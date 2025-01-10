@@ -4,3 +4,6 @@ What this entails is that it should contain our final project along with seperat
 
 DO NOT ADD DIRECTLY TO THIS GITHUB
 \besides the final project and creating your branches.
+
+Contributors:
+Noble Woodall
