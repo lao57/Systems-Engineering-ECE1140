@@ -6,6 +6,6 @@ DO NOT ADD DIRECTLY TO THIS GITHUB
 \besides the final project and creating your branches.
 
 =======
-Team members: Samarth Chopra
-              Noble Woodall
+Team members: Noble Woodall
+              
 
