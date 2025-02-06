@@ -1,6 +1,6 @@
-<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36" version="26.0.10">
+<mxfile host="Electron" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/26.0.9 Chrome/128.0.6613.186 Electron/32.2.5 Safari/537.36" version="26.0.9">
   <diagram name="Page-1" id="AawKH1NQSwZBxSg1J17e">
-    <mxGraphModel dx="1354" dy="1039" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel dx="1450" dy="1117" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -87,7 +87,7 @@
             <mxPoint x="129" y="790" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="OSFHzoRCtvVyblJh_R8Y-23" value="&lt;div&gt;Train Number/Commanded Speed&lt;/div&gt;&lt;div&gt;Authority (TBD)&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+        <mxCell id="OSFHzoRCtvVyblJh_R8Y-23" value="&lt;div&gt;Train Number/Commanded Speed&lt;/div&gt;&lt;div&gt;Authority (TBD)/power availibility/Track condition/Correct door side for each station/Number of Passengers&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
           <mxGeometry x="314" y="719" width="218" height="117" as="geometry" />
         </mxCell>
         <mxCell id="OSFHzoRCtvVyblJh_R8Y-24" value="&lt;div&gt;(TBD)&lt;/div&gt;Speed Limits&lt;div&gt;Distance until Next Beacon&lt;/div&gt;&lt;div&gt;Underground&amp;nbsp;&lt;/div&gt;&lt;div&gt;Grade&amp;nbsp;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
@@ -127,7 +127,7 @@
           <mxGeometry x="176" y="654" width="132" height="137" as="geometry" />
         </mxCell>
         <mxCell id="OSFHzoRCtvVyblJh_R8Y-50" value="Train Number/Commanded Speed&#xa;Authority (TBD)&#xa;Switch State&#xa;Light State&#xa;Crossing State&#xa;" style="text;whiteSpace=wrap;align=center;" parent="1" vertex="1">
-          <mxGeometry x="-75" y="681" width="214" height="132" as="geometry" />
+          <mxGeometry x="-70" y="692" width="214" height="132" as="geometry" />
         </mxCell>
         <mxCell id="OSFHzoRCtvVyblJh_R8Y-52" value="" style="endArrow=classic;html=1;rounded=0;" parent="1" edge="1">
           <mxGeometry width="50" height="50" relative="1" as="geometry">
@@ -203,17 +203,33 @@
         <mxCell id="FCghywJq1Cu_E3_4-0WP-2" value="Display transit system" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
           <mxGeometry x="94" y="111" width="60" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="NgIelILB5ibSEmAcOHg2-1" value="Transit Dispatcher&lt;div&gt;&lt;br&gt;&lt;/div&gt;" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
-          <mxGeometry x="350" y="226" width="30" height="60" as="geometry" />
-        </mxCell>
-        <mxCell id="NgIelILB5ibSEmAcOHg2-2" value="" style="endArrow=classic;html=1;rounded=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" target="OSFHzoRCtvVyblJh_R8Y-3">
+        <mxCell id="lItMZXVgsJ1F_Bo5n-FI-2" value="" style="endArrow=classic;html=1;rounded=0;entryX=0.7;entryY=1.017;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" target="OSFHzoRCtvVyblJh_R8Y-50" edge="1">
           <mxGeometry width="50" height="50" relative="1" as="geometry">
-            <mxPoint x="330" y="257" as="sourcePoint" />
-            <mxPoint x="238" y="247.00042553191489" as="targetPoint" />
+            <mxPoint x="-118" y="828" as="sourcePoint" />
+            <mxPoint x="-9" y="689" as="targetPoint" />
+            <Array as="points" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="NgIelILB5ibSEmAcOHg2-3" value="Open/Close tracks&lt;div&gt;Schedule/Route&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
-          <mxGeometry x="198" y="201" width="118" height="30" as="geometry" />
+        <mxCell id="H3UreKWuIPXjr4UuS77O-6" value="Actor" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;textShadow=0;noLabel=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="-176" y="799" width="30" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="H3UreKWuIPXjr4UuS77O-7" value="Murphy (System Resilience Tester)&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;&amp;nbsp;&lt;/span&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="-187" y="876" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="H3UreKWuIPXjr4UuS77O-8" value="Programmer" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=#d5e8d4;strokeColor=#82b366;fontColor=none;noLabel=1;" vertex="1" parent="1">
+          <mxGeometry x="-45" y="926" width="30" height="66" as="geometry" />
+        </mxCell>
+        <mxCell id="H3UreKWuIPXjr4UuS77O-9" value="Track Builder" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="-60" y="1001" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="H3UreKWuIPXjr4UuS77O-10" value="" style="endArrow=classic;html=1;rounded=0;entryX=0.138;entryY=1.009;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" target="OSFHzoRCtvVyblJh_R8Y-19">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="-4" y="972" as="sourcePoint" />
+            <mxPoint x="139" y="890" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="60" y="914" />
+            </Array>
+          </mxGeometry>
         </mxCell>
       </root>
     </mxGraphModel>
