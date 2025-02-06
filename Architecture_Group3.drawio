@@ -1,6 +1,6 @@
 <mxfile host="Electron" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/26.0.9 Chrome/128.0.6613.186 Electron/32.2.5 Safari/537.36" version="26.0.9">
   <diagram name="Page-1" id="AawKH1NQSwZBxSg1J17e">
-    <mxGraphModel dx="1450" dy="1117" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel dx="1690" dy="1117" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -210,19 +210,19 @@
             <Array as="points" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="H3UreKWuIPXjr4UuS77O-6" value="Actor" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;textShadow=0;noLabel=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+        <mxCell id="H3UreKWuIPXjr4UuS77O-6" value="Actor" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;textShadow=0;noLabel=1;fillColor=#f8cecc;strokeColor=#b85450;" parent="1" vertex="1">
           <mxGeometry x="-176" y="799" width="30" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="H3UreKWuIPXjr4UuS77O-7" value="Murphy (System Resilience Tester)&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;&amp;nbsp;&lt;/span&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+        <mxCell id="H3UreKWuIPXjr4UuS77O-7" value="Murphy (System Resilience Tester)&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;&amp;nbsp;&lt;/span&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
           <mxGeometry x="-187" y="876" width="60" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="H3UreKWuIPXjr4UuS77O-8" value="Programmer" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=#d5e8d4;strokeColor=#82b366;fontColor=none;noLabel=1;" vertex="1" parent="1">
+        <mxCell id="H3UreKWuIPXjr4UuS77O-8" value="Programmer" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=#d5e8d4;strokeColor=#82b366;fontColor=none;noLabel=1;" parent="1" vertex="1">
           <mxGeometry x="-45" y="926" width="30" height="66" as="geometry" />
         </mxCell>
-        <mxCell id="H3UreKWuIPXjr4UuS77O-9" value="Track Builder" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+        <mxCell id="H3UreKWuIPXjr4UuS77O-9" value="Track Builder" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
           <mxGeometry x="-60" y="1001" width="60" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="H3UreKWuIPXjr4UuS77O-10" value="" style="endArrow=classic;html=1;rounded=0;entryX=0.138;entryY=1.009;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" target="OSFHzoRCtvVyblJh_R8Y-19">
+        <mxCell id="H3UreKWuIPXjr4UuS77O-10" value="" style="endArrow=classic;html=1;rounded=0;entryX=0.138;entryY=1.009;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" target="OSFHzoRCtvVyblJh_R8Y-19" edge="1">
           <mxGeometry width="50" height="50" relative="1" as="geometry">
             <mxPoint x="-4" y="972" as="sourcePoint" />
             <mxPoint x="139" y="890" as="targetPoint" />
@@ -230,6 +230,12 @@
               <mxPoint x="60" y="914" />
             </Array>
           </mxGeometry>
+        </mxCell>
+        <mxCell id="zTZPgpIWcizLbxXzgRys-1" value="broke rail/track circuit failure/power failure" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="-120" y="788" width="128" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="zTZPgpIWcizLbxXzgRys-2" value="Data upload/maitenance/data entry" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;rotation=-45;" vertex="1" parent="1">
+          <mxGeometry x="12.56" y="952.44" width="98" height="30" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
