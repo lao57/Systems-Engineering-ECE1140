@@ -204,13 +204,16 @@
           <mxGeometry x="94" y="111" width="60" height="30" as="geometry" />
         </mxCell>
         <mxCell id="NgIelILB5ibSEmAcOHg2-1" value="Transit Dispatcher&lt;div&gt;&lt;br&gt;&lt;/div&gt;" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
-          <mxGeometry x="322" y="206" width="30" height="60" as="geometry" />
+          <mxGeometry x="350" y="226" width="30" height="60" as="geometry" />
         </mxCell>
         <mxCell id="NgIelILB5ibSEmAcOHg2-2" value="" style="endArrow=classic;html=1;rounded=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" target="OSFHzoRCtvVyblJh_R8Y-3">
           <mxGeometry width="50" height="50" relative="1" as="geometry">
-            <mxPoint x="292" y="250.16" as="sourcePoint" />
+            <mxPoint x="330" y="257" as="sourcePoint" />
             <mxPoint x="238" y="247.00042553191489" as="targetPoint" />
           </mxGeometry>
+        </mxCell>
+        <mxCell id="NgIelILB5ibSEmAcOHg2-3" value="Open/Close tracks&lt;div&gt;Schedule/Route&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="198" y="201" width="118" height="30" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
