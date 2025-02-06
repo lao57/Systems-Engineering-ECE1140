@@ -1,6 +1,6 @@
-<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:135.0) Gecko/20100101 Firefox/135.0" version="26.0.10">
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36" version="26.0.10">
   <diagram name="Page-1" id="AawKH1NQSwZBxSg1J17e">
-    <mxGraphModel dx="1757" dy="1246" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel dx="1354" dy="1039" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -117,7 +117,7 @@
         <mxCell id="OSFHzoRCtvVyblJh_R8Y-30" value="Power&amp;nbsp;&lt;div&gt;Service Brake Signal&amp;nbsp;&lt;/div&gt;&lt;div&gt;Interior/exterior Lights&lt;/div&gt;&lt;div&gt;Left/right Doors&lt;/div&gt;&lt;div&gt;Announcement&amp;nbsp;&lt;/div&gt;&lt;div&gt;E-Brake Signal&lt;/div&gt;&lt;div&gt;Cabin Temperature&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
           <mxGeometry x="725" y="603" width="150" height="117" as="geometry" />
         </mxCell>
-        <mxCell id="OSFHzoRCtvVyblJh_R8Y-38" value="Maintenance&amp;nbsp;&lt;div&gt;Train Number/Commanded Speed (Break Signal Calculated via. Authority)&lt;/div&gt;&lt;div&gt;Schedule/Route (TBD might just be switch signal)&lt;/div&gt;&lt;div&gt;Authority (TBD)&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+        <mxCell id="OSFHzoRCtvVyblJh_R8Y-38" value="Maintenance (open/close tracks)&lt;div&gt;Train Number/Commanded Speed (Break Signal Calculated via. Authority)&lt;/div&gt;&lt;div&gt;Schedule/Route (TBD might just be switch signal)&lt;/div&gt;&lt;div&gt;Authority (TBD)&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
           <mxGeometry x="169" y="327" width="273" height="226" as="geometry" />
         </mxCell>
         <mxCell id="OSFHzoRCtvVyblJh_R8Y-39" value="Block Occupancy&lt;div&gt;Light State&lt;/div&gt;&lt;div&gt;Switch State&lt;/div&gt;&lt;div&gt;Crossing State&lt;/div&gt;&lt;div&gt;Track Failures&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
@@ -165,30 +165,43 @@
             <mxPoint x="449" y="720" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="e45wQDxqQ8QPKXyEYzj0-7" value="&lt;div&gt;E-Brake&lt;/div&gt;&lt;div&gt;Service Brake&lt;/div&gt;Power&lt;br&gt;Cabin Temperature" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;rotation=0;" vertex="1" parent="1">
+        <mxCell id="e45wQDxqQ8QPKXyEYzj0-7" value="&lt;div&gt;E-Brake&lt;/div&gt;&lt;div&gt;Service Brake&lt;/div&gt;Power&lt;br&gt;Cabin Temperature" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;rotation=0;" parent="1" vertex="1">
           <mxGeometry x="895" y="479" width="120" height="23" as="geometry" />
         </mxCell>
-        <mxCell id="e45wQDxqQ8QPKXyEYzj0-8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.3333333333333333;exitDx=0;exitDy=0;exitPerimeter=0;" edge="1" parent="1" source="e45wQDxqQ8QPKXyEYzj0-9">
+        <mxCell id="e45wQDxqQ8QPKXyEYzj0-8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.3333333333333333;exitDx=0;exitDy=0;exitPerimeter=0;" parent="1" source="e45wQDxqQ8QPKXyEYzj0-9" edge="1">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="782" y="521" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="e45wQDxqQ8QPKXyEYzj0-9" value="&lt;div&gt;Train Driver&lt;/div&gt;" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+        <mxCell id="e45wQDxqQ8QPKXyEYzj0-9" value="&lt;div&gt;Train Driver&lt;/div&gt;" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
           <mxGeometry x="1017" y="501" width="30" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="e45wQDxqQ8QPKXyEYzj0-15" value="K_P and K_I gains" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;rotation=0;" vertex="1" parent="1">
+        <mxCell id="e45wQDxqQ8QPKXyEYzj0-15" value="K_P and K_I gains" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;rotation=0;" parent="1" vertex="1">
           <mxGeometry x="941.5" y="386" width="120" height="23" as="geometry" />
         </mxCell>
-        <mxCell id="e45wQDxqQ8QPKXyEYzj0-16" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.3333333333333333;exitDx=0;exitDy=0;exitPerimeter=0;" edge="1" parent="1" source="e45wQDxqQ8QPKXyEYzj0-17">
+        <mxCell id="e45wQDxqQ8QPKXyEYzj0-16" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.3333333333333333;exitDx=0;exitDy=0;exitPerimeter=0;" parent="1" source="e45wQDxqQ8QPKXyEYzj0-17" edge="1">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="764" y="476" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="e45wQDxqQ8QPKXyEYzj0-17" value="&lt;div&gt;Train Engineer&lt;/div&gt;" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+        <mxCell id="e45wQDxqQ8QPKXyEYzj0-17" value="&lt;div&gt;Train Engineer&lt;/div&gt;" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
           <mxGeometry x="1057.5" y="366" width="30" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="e45wQDxqQ8QPKXyEYzj0-18" value="&lt;b&gt;Note: Train Driver can only provide inputs when train controller is in automatic mode&lt;/b&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+        <mxCell id="e45wQDxqQ8QPKXyEYzj0-18" value="&lt;b&gt;Note: Train Driver can only provide inputs when train controller is in automatic mode&lt;/b&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
           <mxGeometry x="789" y="525" width="148" height="58" as="geometry" />
+        </mxCell>
+        <mxCell id="FCghywJq1Cu_E3_4-0WP-1" value="" style="endArrow=classic;html=1;rounded=0;entryX=0.75;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" target="OSFHzoRCtvVyblJh_R8Y-3">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="99" y="227" as="sourcePoint" />
+            <mxPoint x="96" y="167" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="99" y="157" />
+              <mxPoint x="161" y="159" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="FCghywJq1Cu_E3_4-0WP-2" value="Display transit system" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="94" y="111" width="60" height="30" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
