@@ -8,6 +8,7 @@ class Simulator:
         self.sim_time = sim_time
         self.current_step = 0
         self.world_time = {'day': 0, 'hour': 0, 'min': 0}
+        self.driver_speed = 0   # active in manual mode
         self.cmd_speed, self.authority, self.cur_speed, self.failure_modes, self.underground, self.cabin_temp, \
             self.doors_status, self.lights_status, self.station_to_be_reached = test_params
         self.cmd_power = 0
@@ -40,10 +41,21 @@ class Simulator:
         self.gui.update_cur_speed(self.cur_speed)
         self.gui.update_cmd_speed(self.cmd_speed)
 
+        # Update train controller mode (interaction from train driver)
+        self.train_controller.train_controller_mode = self.gui.train_controller_mode
+        self.driver_speed = self.gui.driver_speed
+
+        if self.train_controller.train_controller_mode == 'Manual':
+            print("In manual mode!")
+            self.cmd_speed = self.driver_speed
+            self.train_controller.train_controller_mode = 'manual'
+        else:
+            self.train_controller.train_controller_mode = 'auto'
+
         ebrake, sbrake, cmd_power, modified_cabin_temp, open_doors, open_lights, announcement = \
-            self.train_controller.iterate(self.cmd_speed, self.authority, self.cur_speed, self.failure_modes,
-                                          self.underground, self.cabin_temp, self.doors_status, self.lights_status,
-                                          self.station_to_be_reached, self.world_time)
+            self.train_controller.iterate(self.cmd_speed, self.authority, self.cur_speed,
+                                          self.failure_modes, self.underground, self.cabin_temp, self.doors_status,
+                                          self.lights_status, self.station_to_be_reached, self.world_time)
 
         self.cabin_temp = modified_cabin_temp
         self.cmd_power = max(cmd_power, 0)

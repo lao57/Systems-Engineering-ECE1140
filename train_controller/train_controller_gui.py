@@ -1,7 +1,9 @@
 from PyQt6.QtWidgets import (
-    QApplication, QWidget, QLabel, QPushButton, QVBoxLayout, QHBoxLayout, QFrame, QMainWindow
+    QApplication, QWidget, QLabel, QPushButton, QVBoxLayout, QHBoxLayout, QFrame, QMainWindow, QSlider,
+    QLineEdit
 )
 from PyQt6.QtGui import QFont, QColor, QPalette
+from PyQt6.QtCore import Qt
 
 
 class TrainControllerGUI(QWidget):
@@ -18,9 +20,11 @@ class TrainControllerGUI(QWidget):
         self.setPalette(palette)
 
         self.world_time = {'day': 0, 'hour': 0, 'min': 0}
+        self.train_controller_mode = 'Automatic'
         self.cmd_power = 0
         self.cur_speed = 0
         self.cmd_speed = 0
+        self.driver_speed = 0
         self.k_p = k_p
         self.k_i = k_i
         self.most_recent_station = None
@@ -53,9 +57,33 @@ class TrainControllerGUI(QWidget):
         self.e_brake_lbl = QLabel(f"E brake on: {'True' if self.e_brake_on else 'False'}", self)
         self.s_brake_lbl = QLabel(f"Service brake on: {'True' if self.service_brake_on else 'False'}", self)
 
+        # Auto/manual train controller mode
+        self.tc_mode_slider = QSlider(Qt.Orientation.Horizontal)
+        self.tc_mode_slider.setMinimum(0)
+        self.tc_mode_slider.setMaximum(1)
+        self.tc_mode_slider.setValue(0)
+        self.tc_mode_slider.setSingleStep(1)  # Ensures the slider moves in steps of 1
+        self.tc_mode_slider.setFixedWidth(80)
+        self.tc_mode_lbl = QLabel(self.train_controller_mode)
+        self.tc_mode_slider.valueChanged.connect(self.update_train_controller_mode)
+
+        # Train Driver commanded speed
+        self.driver_speed_lbl = QLabel(f"Driver Commanded speed (if in automatic mode): {self.driver_speed}", self)
+        self.driver_speed_textbox = QLineEdit(self)
+        self.driver_speed_textbox.setPlaceholderText("Type here...")
+        self.driver_speed_button = QPushButton("Submit", self)
+        self.driver_speed_button.clicked.connect(self.update_commanded_speed)
+
         # Layout
         layout = QVBoxLayout()
         layout.addWidget(self.world_time_lbl)
+        layout.addWidget(self.tc_mode_slider)
+        layout.addWidget(self.tc_mode_lbl)
+
+        layout.addWidget(self.driver_speed_lbl)
+        layout.addWidget(self.driver_speed_textbox)
+        layout.addWidget(self.driver_speed_button)
+
         layout.addWidget(self.power_gain_lbl)
         layout.addWidget(self.cur_speed_lbl)
         layout.addWidget(self.cmd_speed_lbl)
@@ -109,3 +137,18 @@ class TrainControllerGUI(QWidget):
     def update_cmd_speed(self, cmd_speed):
         self.cmd_speed = cmd_speed
         self.cmd_speed_lbl.setText(f"Commanded speed (mi/h): {self.cmd_speed}")
+
+    def update_train_controller_mode(self, value):
+        if value == 0:
+            self.train_controller_mode = "Automatic"
+            self.tc_mode_slider.setValue(0)
+            self.tc_mode_lbl.setText(self.train_controller_mode)
+        else:
+            self.train_controller_mode = "Manual"
+            self.tc_mode_slider.setValue(1)
+            self.tc_mode_lbl.setText(self.train_controller_mode)
+
+    def update_commanded_speed(self):
+        """Train driver should be able to changed cmd_speed in manual mode."""
+        self.driver_speed = float(self.driver_speed_textbox.text())
+        self.driver_speed_lbl.setText(f"Driver Commanded speed (if in automatic mode): {self.driver_speed}")
