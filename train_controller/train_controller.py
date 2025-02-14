@@ -1,5 +1,6 @@
 from typing import List
 
+
 class TrainController:
     """
     TrainController class for I/O with one train
@@ -39,23 +40,23 @@ class TrainController:
         :param lights_status: [interior_lights_open, exterior_lights_open] boolean list
         :param station_to_be_reached: Station about to be reached
         :param world_time: Dict time: {'hours': int, 'minutes': int} in 24-hour format
-        :return: emergency_brake signal: bool, service_brake_force (N), modified_cabin_temp (F),
+        :return: emergency_brake signal: bool, service_brake_force (N), cmd_power (W), modified_cabin_temp (F),
         open_doors: [left_doors_open, right_doors_open], open_lights: [interior_lights_open, exterior_lights_open],
-        announcement: bool, set_cabin_temp (F)
+        announcement: bool
         """
         # Start of Safety critical section
 
         # Check for any failure modes
         if 1 in failure_modes:
             # train engine failure (pull emergence brake)
-            if failure_modes[0] == 1:
+            if failure_modes[0]:
                 self.e_brake_on = True
-                return self.e_brake_on
+                return self.e_brake_on, None, None, None
             # signal pickup failure
-            if failure_modes[1] == 1:
+            if failure_modes[1]:
                 pass
             # service brake failure (pull emergence brake)
-            if failure_modes[2] == 1:
+            if failure_modes[2]:
                 self.e_brake_on = True
                 return self.e_brake_on
 
@@ -100,7 +101,7 @@ class TrainController:
             self.lights_status[1] = False
 
         # Check if nighttime (between 8 pm and 6 am)
-        if world_time['hours'] >= 20 or world_time['hours'] <= 6:
+        if world_time['hour'] >= 20 or world_time['hour'] <= 6:
             self.lights_status[0] = True
         else:
             self.lights_status[0] = False
