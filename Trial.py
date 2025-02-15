@@ -82,9 +82,13 @@ class Train:
 
     #this function is used to update the speed acceleration and distance travelled of the train over a one second interval
     def update_train(self, power, grade): #power in watts, grade in percentage
+        power = power *1000 #converts kW to Watts
         gravitational_acceleration = (g * np.sin(np.arctan(grade/100)))
         self.previous_acceleration = self.acceleration
-        self.acceleration = (self.brake_signal*service_brake_deceleration - self.ebrake_signal*emergency_brake_deceleration - gravitational_acceleration + power/(self.weight*self.velocity))
+        if(self.velocity <= 0):#see Ipad for notes on this derivation but avoids divide by zero error
+            self.acceleration = (self.brake_signal*service_brake_deceleration - self.ebrake_signal*emergency_brake_deceleration - gravitational_acceleration + np.sqrt((2*power)/(self.weight)))
+        else:#normal acceleration calculation
+            self.acceleration = (self.brake_signal*service_brake_deceleration - self.ebrake_signal*emergency_brake_deceleration - gravitational_acceleration + power/(self.weight*self.velocity))
         velocity_holder = self.velocity
         self.velocity = self.previous_velocity + (1/2)*(self.acceleration + self.previous_acceleration)
         if(self.velocity < 0):
@@ -104,8 +108,6 @@ class Train:
 
 """
 TODO: Implement the following functions:
-install NUMPY
-create an Env file or something to make this transferable
 get this test case passed
 make GUI
 
@@ -116,6 +118,27 @@ make GUI
 
 # Example usage
 if __name__ == "__main__":
+    print("Testing Train Class ----------------------------------------------------------")
     train1 = Train(0)
     #####################0000,1101011101,010,
     train1.beacon_parse("000011010111010100110100101111UVSZE3")
+    train1.display_train()
+    i = 1
+    summer = 0
+    while train1.distance_vector[0] > 0:
+        train1.update_train(120, 0)
+        print("----------------------------------------------------------")
+        print(f"Time: {i} seconds")
+        print(f"The speed is: {train1.velocity * 3.6} (km/hr)")
+        print(f"The acceleration is: {train1.acceleration} (m/s^2), Distance traveled: {train1.distance_travelled} (m)")
+        print(f"Distance traveled: {train1.distance_travelled} (m)")
+        print(f"The distance remaing in the block is:{train1.distance_vector[0]} (m)")
+        summer += train1.acceleration
+        avgaccel = summer/i
+        print()
+        print(f"The average acceleration is: {avgaccel} (m/s^2)")
+
+        i += 1
+        time.sleep(1)
+
+
