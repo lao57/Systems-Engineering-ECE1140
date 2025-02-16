@@ -9,6 +9,7 @@ class Simulator:
         self.current_step = 0
         self.world_time = {'day': 0, 'hour': 0, 'min': 0}
         self.driver_speed = 0   # active in manual mode
+        self.driver_inputs = {}
         self.cmd_speed, self.authority, self.cur_speed, self.failure_modes, self.underground, self.cabin_temp, \
             self.doors_status, self.lights_status, self.station_to_be_reached = test_params
         self.cmd_power = 0
@@ -49,27 +50,32 @@ class Simulator:
             print("In manual mode!")
             self.cmd_speed = self.driver_speed
             self.train_controller.train_controller_mode = 'manual'
+            self.driver_inputs = {'ebrake': self.gui.e_brake_on, 'sbrake': self.gui.service_brake_decel}
         else:
             self.train_controller.train_controller_mode = 'auto'
 
-        ebrake, sbrake, cmd_power, modified_cabin_temp, open_doors, open_lights, announcement = \
+        ebrake, sbrake_decel, cmd_power, modified_cabin_temp, open_doors, open_lights, announcement = \
             self.train_controller.iterate(self.cmd_speed, self.authority, self.cur_speed,
                                           self.failure_modes, self.underground, self.cabin_temp, self.doors_status,
-                                          self.lights_status, self.station_to_be_reached, self.world_time)
+                                          self.lights_status, self.station_to_be_reached,
+                                          self.driver_inputs, self.world_time)
 
         self.cabin_temp = modified_cabin_temp
         self.cmd_power = max(cmd_power, 0)
 
-        # Update power cmd
+        # Update GUI
         self.gui.update_power_cmd(self.cmd_power)
+        self.gui.update_sbrake_decel(sbrake_decel)
+
+        e_brake_decel = self.train_controller.max_ebrake_decel if ebrake else 0.0
 
         # get next speed based on simplified train model
-        self.cur_speed = self.get_next_speed(self.cmd_power)
+        self.cur_speed = self.get_next_speed(self.cmd_power, e_brake_decel, sbrake_decel)
 
         # Increment step count
         self.current_step += 1
 
-    def get_next_speed(self, cmd_power, dt=1.0):
+    def get_next_speed(self, cmd_power, e_brake_decel, s_brake_decel, dt=1.0):
         """
         Simulates train speed based on power input.
         Uses basic kinematic equations: F = ma, v = u + at.
@@ -93,12 +99,12 @@ class Simulator:
         # Apply rolling resistance
         force = force - rolling_resistance
 
-        # Calculate acceleration: a = F / m
-        acceleration = force / mass
+        # Calculate acceleration: a = F / m - (brake decel)
+        acceleration = force / mass - (e_brake_decel + s_brake_decel)
 
         # Update speed: v = u + at
         self.cur_speed += acceleration * dt
 
-        return self.cur_speed
+        return max(self.cur_speed, 0)
 
 

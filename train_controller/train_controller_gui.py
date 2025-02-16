@@ -24,7 +24,6 @@ class TrainControllerGUI(QWidget):
         self.cmd_power = 0
         self.cur_speed = 0
         self.cmd_speed = 0
-        self.driver_speed = 0
         self.k_p = k_p
         self.k_i = k_i
         self.most_recent_station = None
@@ -34,14 +33,15 @@ class TrainControllerGUI(QWidget):
         self.underground = False
         self.cur_cabin_temp = None
         self.e_brake_on = False
-        self.service_brake_on = False
+        self.service_brake_decel = 0.0
+        self.max_sbrake_decel = 1.2  # 1.2 m/s
 
         # create widgets
         self.world_time_lbl = QLabel(f"World time (24-hr): Day {self.world_time['day']} "
                                      f"{self.world_time['hour']:02d}:{self.world_time['min']:02d}", self)
         self.power_gain_lbl = QLabel(f"Power delivered (W): {self.cmd_power}", self)
-        self.cur_speed_lbl = QLabel(f"Current speed (mi/h): {self.cur_speed}", self)
-        self.cmd_speed_lbl = QLabel(f"Commanded speed (mi/h): {self.cmd_speed}", self)
+        self.cur_speed_lbl = QLabel(f"Current speed (m/s): {self.cur_speed}", self)
+        self.cmd_speed_lbl = QLabel(f"Commanded speed (m/s): {self.cmd_speed}", self)
 
         self.p_gain_lbl = QLabel(f"K_P (Proportional gain): {k_p}", self)
         self.i_gain_lbl = QLabel(f"K_I (Integral gain): {k_i}", self)
@@ -55,7 +55,9 @@ class TrainControllerGUI(QWidget):
         self.underground_lbl = QLabel(f"Underground: {'True' if self.underground else 'False'}", self)
         self.cur_cabin_temp_lbl = QLabel(f"Current cabin temp (F): {self.cur_cabin_temp}", self)
         self.e_brake_lbl = QLabel(f"E brake on: {'True' if self.e_brake_on else 'False'}", self)
-        self.s_brake_lbl = QLabel(f"Service brake on: {'True' if self.service_brake_on else 'False'}", self)
+        self.s_brake_lbl = QLabel(f"Service brake deceleration (m/s^2): {self.service_brake_decel}", self)
+
+        self.driver_speed = 0
 
         # Auto/manual train controller mode
         self.tc_mode_slider = QSlider(Qt.Orientation.Horizontal)
@@ -67,12 +69,25 @@ class TrainControllerGUI(QWidget):
         self.tc_mode_lbl = QLabel(self.train_controller_mode)
         self.tc_mode_slider.valueChanged.connect(self.update_train_controller_mode)
 
-        # Train Driver commanded speed
+        # Train Driver inputs
         self.driver_speed_lbl = QLabel(f"Driver Commanded speed (if in automatic mode): {self.driver_speed}", self)
         self.driver_speed_textbox = QLineEdit(self)
         self.driver_speed_textbox.setPlaceholderText("Type here...")
         self.driver_speed_button = QPushButton("Submit", self)
         self.driver_speed_button.clicked.connect(self.update_commanded_speed)
+
+        self.driver_sbrake_slider = QSlider(Qt.Orientation.Horizontal)
+        self.driver_sbrake_slider.setMinimum(0)
+        self.driver_sbrake_slider.setMaximum(4)
+        self.driver_sbrake_slider.setValue(0)
+        self.driver_sbrake_slider.setSingleStep(1)
+        self.driver_sbrake_slider.setFixedWidth(120)
+        self.driver_sbrake_slider.valueChanged.connect(self.update_driver_sbrake_decel)
+
+        self.driver_ebrake_button = QPushButton("Toggle EBrake", self)
+        self.driver_ebrake_button.setFixedWidth(100)
+        self.driver_ebrake_button.setStyleSheet("background-color: lightgray; color: black;")
+        self.driver_ebrake_button.clicked.connect(self.update_driver_ebrake_status)
 
         # Layout
         layout = QVBoxLayout()
@@ -88,6 +103,11 @@ class TrainControllerGUI(QWidget):
         layout.addWidget(self.cur_speed_lbl)
         layout.addWidget(self.cmd_speed_lbl)
 
+        layout.addWidget(self.driver_sbrake_slider)
+        layout.addWidget(self.s_brake_lbl)
+        layout.addWidget(self.driver_ebrake_button)
+        layout.addWidget(self.e_brake_lbl)
+
         layout.addWidget(self.p_gain_lbl)
         layout.addWidget(self.i_gain_lbl)
 
@@ -99,8 +119,6 @@ class TrainControllerGUI(QWidget):
         layout.addWidget(self.out_light_status_lbl)
         layout.addWidget(self.underground_lbl)
         layout.addWidget(self.cur_cabin_temp_lbl)
-        layout.addWidget(self.e_brake_lbl)
-        layout.addWidget(self.s_brake_lbl)
 
         self.setLayout(layout)
 
@@ -110,7 +128,7 @@ class TrainControllerGUI(QWidget):
 
     def update_power_cmd(self, power):
         self.cmd_power = power
-        self.power_gain_lbl.setText(f"Power delivered (W): {self.cmd_power}")
+        self.power_gain_lbl.setText(f"Power delivered (W): {self.cmd_power:.2f}")
 
     def update_controller_gains(self, k_p, k_i):
         self.k_p = k_p
@@ -132,7 +150,7 @@ class TrainControllerGUI(QWidget):
 
     def update_cur_speed(self, cur_speed):
         self.cur_speed = cur_speed
-        self.cur_speed_lbl.setText(f"Current speed (mi/h): {self.cur_speed}")
+        self.cur_speed_lbl.setText(f"Current speed (mi/h): {self.cur_speed:.2f}")
 
     def update_cmd_speed(self, cmd_speed):
         self.cmd_speed = cmd_speed
@@ -152,3 +170,25 @@ class TrainControllerGUI(QWidget):
         """Train driver should be able to changed cmd_speed in manual mode."""
         self.driver_speed = float(self.driver_speed_textbox.text())
         self.driver_speed_lbl.setText(f"Driver Commanded speed (if in automatic mode): {self.driver_speed}")
+
+    def update_sbrake_decel(self, decel):
+        self.service_brake_decel = decel
+        self.s_brake_lbl.setText(f"Service brake deceleration (m/s^2): {self.service_brake_decel}")
+
+    def update_driver_sbrake_decel(self, value):
+        """Value between 0-4."""
+        self.service_brake_decel = value / 4 * self.max_sbrake_decel
+        self.s_brake_lbl.setText(f"Service brake deceleration (m/s^2): {self.service_brake_decel:.2f}")
+
+    def update_ebrake_status(self, value):
+        self.e_brake_on = value
+        self.e_brake_lbl.setText(f"E brake on: {'True' if self.e_brake_on else 'False'}")
+
+    def update_driver_ebrake_status(self):
+        self.e_brake_on = not self.e_brake_on
+        self.e_brake_lbl.setText(f"E brake on: {'True' if self.e_brake_on else 'False'}")
+        # change button color
+        if self.e_brake_on:
+            self.driver_ebrake_button.setStyleSheet("background-color: red; color: white;")
+        else:
+            self.driver_ebrake_button.setStyleSheet("background-color: lightgray; color: black;")

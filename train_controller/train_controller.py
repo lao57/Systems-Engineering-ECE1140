@@ -22,16 +22,19 @@ class TrainController:
         self.underground = False
         self.cur_cabin_temp = None
         self.e_brake_on = False
-        self.service_brake_on = False
+        self.service_brake_decel = 0
         self.announce_station = False
         self.set_cabin_temp = comfortable_temp
         # manual/automatic mode
         self.train_controller_mode = "auto"
+        # brake stats
+        self.max_sbrake_decel = 1.2  # 1.2 m/s
+        self.max_ebrake_decel = 2.73  # 2.73 m/s
 
     def iterate(self, cmd_speed: int | float, authority: int | float, cur_speed: int | float,
                 failure_modes: List[bool], underground: bool, cabin_temp: int | float,
                 doors_status: List[bool], lights_status: List[bool], station_to_be_reached: str,
-                world_time: dict):
+                driver_inputs: dict, world_time: dict):
         """
         :param cmd_speed: Commanded speed (m/s)
         :param authority: Authority (m)
@@ -43,7 +46,7 @@ class TrainController:
         :param lights_status: [interior_lights_open, exterior_lights_open] boolean list
         :param station_to_be_reached: Station about to be reached
         :param world_time: Dict time: {'hours': int, 'minutes': int} in 24-hour format
-        :return: emergency_brake signal: bool, service_brake_force (N), cmd_power (W), modified_cabin_temp (F),
+        :return: emergency_brake signal: bool, service_brake_force (m/s^2), cmd_power (W), modified_cabin_temp (F),
         open_doors: [left_doors_open, right_doors_open], open_lights: [interior_lights_open, exterior_lights_open],
         announcement: bool
         """
@@ -96,35 +99,25 @@ class TrainController:
             self.manual_mode(cmd_speed, authority, cur_speed,
                              failure_modes, underground, cabin_temp,
                              doors_status, lights_status, station_to_be_reached,
-                             world_time)
+                             driver_inputs, world_time)
 
-        return self.e_brake_on, self.service_brake_on, self.cmd_power, self.set_cabin_temp, self.doors_status, \
+        return self.e_brake_on, self.service_brake_decel, self.cmd_power, self.set_cabin_temp, self.doors_status, \
             self.lights_status, self.announce_station
 
     def automatic_mode(self, cmd_speed: int | float, authority: int | float, cur_speed: int | float,
                        failure_modes: List[bool], underground: bool, cabin_temp: int | float,
                        doors_status: List[bool], lights_status: List[bool], station_to_be_reached: str,
                        world_time: dict):
-        # # compute current speed error
-        # self.speed_error.append(cmd_speed - cur_speed)
-        # # deliver power (according to control law)
-        # if len(self.integrated_error) >= 1:
-        #     cur_integrated_error = self.integrated_error[-1] + \
-        #                            (self.T / 2) * (self.speed_error[-1] + self.speed_error[-2])
-        #     self.integrated_error.append(cur_integrated_error)
-        # else:
-        #     cur_integrated_error = 0
-        #     self.integrated_error.append(cur_integrated_error)
-        #
-        # self.cmd_power = self.k_p * self.speed_error[-1] + self.k_i * cur_integrated_error
-        # # recompute cmd_power if greater than or equal to maximum engine power
-        # if self.cmd_power >= self.max_engine_power:
-        #     cur_integrated_error = self.integrated_error[-1]
-        #     self.cmd_power = self.k_p * self.speed_error[-1] + self.k_i * cur_integrated_error
+        # pull service brake to decelerate
+        if (cur_speed - cmd_speed) > 10:
+            self.service_brake_decel = self.max_sbrake_decel
+        elif (cur_speed - cmd_speed) > 3:
+            self.service_brake_decel = self.max_sbrake_decel * 0.5
+        else:
+            self.service_brake_decel = 0.0
 
         # about to reach station
         if station_to_be_reached is not None:
-            # TODO: Does train model have to pass input regarding which doors to be opened?
             self.most_recent_station = station_to_be_reached
             # For now, open both doors
             self.doors_status = [True, True]
@@ -151,13 +144,16 @@ class TrainController:
         if self.cur_cabin_temp != self.comfortable_temp:
             self.set_cabin_temp = self.comfortable_temp
 
-        # return train controller outputs
         self.e_brake_on = False
-        self.service_brake_on = False
 
     def manual_mode(self, cmd_speed: int | float, authority: int | float, cur_speed: int | float,
                     failure_modes: List[bool], underground: bool, cabin_temp: int | float,
                     doors_status: List[bool], lights_status: List[bool], station_to_be_reached: str,
-                    world_time: dict):
-        print("cmd_speed in manual mode: ", cmd_speed)
+                    driver_inputs: dict, world_time: dict):
 
+        if driver_inputs['ebrake']:
+            self.e_brake_on = True
+        else:
+            self.e_brake_on = False
+
+        self.service_brake_decel = driver_inputs['sbrake']
