@@ -66,6 +66,10 @@ class Simulator:
         # Update GUI
         self.gui.update_power_cmd(self.cmd_power)
         self.gui.update_sbrake_decel(sbrake_decel)
+        self.gui.update_cabin_temp(self.cabin_temp)
+        self.gui.update_doors_status(open_doors)
+        self.gui.update_lights_status(open_lights)
+        self.gui.update_most_recent_station(self.station_to_be_reached)
 
         e_brake_decel = self.train_controller.max_ebrake_decel if ebrake else 0.0
 

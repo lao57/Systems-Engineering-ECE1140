@@ -73,7 +73,9 @@ class TrainControllerGUI(QWidget):
         self.driver_speed_lbl = QLabel(f"Driver Commanded speed (if in automatic mode): {self.driver_speed}", self)
         self.driver_speed_textbox = QLineEdit(self)
         self.driver_speed_textbox.setPlaceholderText("Type here...")
+        self.driver_speed_textbox.setFixedWidth(200)
         self.driver_speed_button = QPushButton("Submit", self)
+        self.driver_speed_button.setFixedWidth(100)
         self.driver_speed_button.clicked.connect(self.update_commanded_speed)
 
         self.driver_sbrake_slider = QSlider(Qt.Orientation.Horizontal)
@@ -147,6 +149,10 @@ class TrainControllerGUI(QWidget):
     def update_lights_status(self, lights_status):
         self.lights_status = lights_status
         self.in_light_status_lbl.setText(f"Indoor light on: {'On' if self.lights_status[0] else 'Off'}")
+
+    def update_cabin_temp(self, cabin_temp):
+        self.cur_cabin_temp = cabin_temp
+        self.cur_cabin_temp_lbl.setText(f"Current cabin temp (F): {self.cur_cabin_temp}")
 
     def update_cur_speed(self, cur_speed):
         self.cur_speed = cur_speed
