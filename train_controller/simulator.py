@@ -51,6 +51,8 @@ class Simulator:
             self.cmd_speed = self.driver_speed
             self.train_controller.train_controller_mode = 'manual'
             self.driver_inputs = {'ebrake': self.gui.e_brake_on, 'sbrake': self.gui.service_brake_decel}
+            self.cabin_temp = self.gui.cur_cabin_temp
+            self.lights_status[0] = self.gui.lights_status[0]
         else:
             self.train_controller.train_controller_mode = 'auto'
 
@@ -70,6 +72,8 @@ class Simulator:
         self.gui.update_doors_status(open_doors)
         self.gui.update_lights_status(open_lights)
         self.gui.update_most_recent_station(self.station_to_be_reached)
+        self.gui.update_speed_limit(self.train_controller.speed_limit)
+        self.gui.update_authority(self.authority)
 
         e_brake_decel = self.train_controller.max_ebrake_decel if ebrake else 0.0
 

@@ -1,6 +1,6 @@
 from PyQt6.QtWidgets import (
     QApplication, QWidget, QLabel, QPushButton, QVBoxLayout, QHBoxLayout, QFrame, QMainWindow, QSlider,
-    QLineEdit
+    QLineEdit, QGridLayout
 )
 from PyQt6.QtGui import QFont, QColor, QPalette
 from PyQt6.QtCore import Qt
@@ -24,14 +24,16 @@ class TrainControllerGUI(QWidget):
         self.cmd_power = 0
         self.cur_speed = 0
         self.cmd_speed = 0
+        self.authority = 1000
         self.k_p = k_p
         self.k_i = k_i
-        self.most_recent_station = None
+        self.most_recent_station = 'Yard'
+        self.speed_limit = 0
         self.announcement = False
         self.doors_status = [False, False]  # [left_doors_open, right_doors_open]
         self.lights_status = [False, False]  # [interior_lights_open, exterior_lights_open]
         self.underground = False
-        self.cur_cabin_temp = None
+        self.cur_cabin_temp = 0.00
         self.e_brake_on = False
         self.service_brake_decel = 0.0
         self.max_sbrake_decel = 1.2  # 1.2 m/s
@@ -39,17 +41,19 @@ class TrainControllerGUI(QWidget):
         # create widgets
         self.world_time_lbl = QLabel(f"World time (24-hr): Day {self.world_time['day']} "
                                      f"{self.world_time['hour']:02d}:{self.world_time['min']:02d}", self)
+
         self.power_gain_lbl = QLabel(f"Power delivered (W): {self.cmd_power}", self)
         self.cur_speed_lbl = QLabel(f"Current speed (m/s): {self.cur_speed}", self)
         self.cmd_speed_lbl = QLabel(f"Commanded speed (m/s): {self.cmd_speed}", self)
-
+        self.speed_limit_lbl = QLabel(f"Speed limit (m/s): {self.speed_limit}", self)
+        self.authority_lbl = QLabel(f"Authority (m): {self.authority:.2f}", self)
         self.p_gain_lbl = QLabel(f"K_P (Proportional gain): {k_p}", self)
         self.i_gain_lbl = QLabel(f"K_I (Integral gain): {k_i}", self)
 
         self.station_lbl = QLabel(f"Most recent station: {self.most_recent_station}", self)
         self.announcement_lbl = QLabel(f"Time to announce: {self.announcement}", self)
         self.left_door_status_lbl = QLabel(f"Left door open: {'Open' if self.doors_status[0] else 'Closed'}", self)
-        self.right_door_status_lbl = QLabel(f"Left door open: {'Open' if self.doors_status[1] else 'Closed'}", self)
+        self.right_door_status_lbl = QLabel(f"Right door open: {'Open' if self.doors_status[1] else 'Closed'}", self)
         self.in_light_status_lbl = QLabel(f"Indoor light on: {'On' if self.lights_status[0] else 'Off'}", self)
         self.out_light_status_lbl = QLabel(f"Outdoor light on: {'On' if self.doors_status[1] else 'Off'}", self)
         self.underground_lbl = QLabel(f"Underground: {'True' if self.underground else 'False'}", self)
@@ -72,7 +76,7 @@ class TrainControllerGUI(QWidget):
         # Train Driver inputs
         self.driver_speed_lbl = QLabel(f"Driver Commanded speed (if in automatic mode): {self.driver_speed}", self)
         self.driver_speed_textbox = QLineEdit(self)
-        self.driver_speed_textbox.setPlaceholderText("Type here...")
+        self.driver_speed_textbox.setPlaceholderText("Enter driver speed...")
         self.driver_speed_textbox.setFixedWidth(200)
         self.driver_speed_button = QPushButton("Submit", self)
         self.driver_speed_button.setFixedWidth(100)
@@ -91,38 +95,65 @@ class TrainControllerGUI(QWidget):
         self.driver_ebrake_button.setStyleSheet("background-color: lightgray; color: black;")
         self.driver_ebrake_button.clicked.connect(self.update_driver_ebrake_status)
 
-        # Layout
-        layout = QVBoxLayout()
-        layout.addWidget(self.world_time_lbl)
-        layout.addWidget(self.tc_mode_slider)
-        layout.addWidget(self.tc_mode_lbl)
+        self.driver_cabin_temp_textbox = QLineEdit(self)
+        self.driver_cabin_temp_textbox.setPlaceholderText("Enter cabin temp...")
+        self.driver_cabin_temp_textbox.setFixedWidth(200)
+        self.driver_cabin_temp_button = QPushButton("Submit", self)
+        self.driver_cabin_temp_button.setFixedWidth(100)
+        self.driver_cabin_temp_button.clicked.connect(self.update_driver_cabin_temp)
 
-        layout.addWidget(self.driver_speed_lbl)
-        layout.addWidget(self.driver_speed_textbox)
-        layout.addWidget(self.driver_speed_button)
+        self.driver_indoor_light_slider = QSlider(Qt.Orientation.Horizontal)
+        self.driver_indoor_light_slider.setMinimum(0)
+        self.driver_indoor_light_slider.setMaximum(1)
+        self.driver_indoor_light_slider.setValue(0)
+        self.driver_indoor_light_slider.setSingleStep(1)
+        self.driver_indoor_light_slider.setFixedWidth(80)
+        self.driver_indoor_light_slider.valueChanged.connect(self.update_driver_in_light_status)
 
-        layout.addWidget(self.power_gain_lbl)
-        layout.addWidget(self.cur_speed_lbl)
-        layout.addWidget(self.cmd_speed_lbl)
+        # left panel
+        left_panel = QVBoxLayout()
+        left_panel.addWidget(self.power_gain_lbl)
+        left_panel.addWidget(self.cur_speed_lbl)
+        left_panel.addWidget(self.cmd_speed_lbl)
+        left_panel.addWidget(self.speed_limit_lbl)
+        left_panel.addWidget(self.authority_lbl)
+        left_panel.addWidget(self.p_gain_lbl)
+        left_panel.addWidget(self.i_gain_lbl)
+        left_panel.addStretch()  # Pushes elements to the top
 
-        layout.addWidget(self.driver_sbrake_slider)
-        layout.addWidget(self.s_brake_lbl)
-        layout.addWidget(self.driver_ebrake_button)
-        layout.addWidget(self.e_brake_lbl)
+        # right panel
+        right_panel = QVBoxLayout()
+        right_panel.addWidget(self.world_time_lbl)
+        right_panel.addWidget(self.tc_mode_slider)
+        right_panel.addWidget(self.tc_mode_lbl)
 
-        layout.addWidget(self.p_gain_lbl)
-        layout.addWidget(self.i_gain_lbl)
+        right_panel.addWidget(self.driver_speed_lbl)
+        right_panel.addWidget(self.driver_speed_textbox)
+        right_panel.addWidget(self.driver_speed_button)
 
-        layout.addWidget(self.station_lbl)
-        layout.addWidget(self.announcement_lbl)
-        layout.addWidget(self.left_door_status_lbl)
-        layout.addWidget(self.right_door_status_lbl)
-        layout.addWidget(self.in_light_status_lbl)
-        layout.addWidget(self.out_light_status_lbl)
-        layout.addWidget(self.underground_lbl)
-        layout.addWidget(self.cur_cabin_temp_lbl)
+        right_panel.addWidget(self.cur_cabin_temp_lbl)
+        right_panel.addWidget(self.driver_cabin_temp_textbox)
+        right_panel.addWidget(self.driver_cabin_temp_button)
 
-        self.setLayout(layout)
+        right_panel.addWidget(self.driver_sbrake_slider)
+        right_panel.addWidget(self.s_brake_lbl)
+        right_panel.addWidget(self.driver_ebrake_button)
+        right_panel.addWidget(self.e_brake_lbl)
+
+        right_panel.addWidget(self.station_lbl)
+        right_panel.addWidget(self.announcement_lbl)
+        right_panel.addWidget(self.left_door_status_lbl)
+        right_panel.addWidget(self.right_door_status_lbl)
+        right_panel.addWidget(self.driver_indoor_light_slider)
+        right_panel.addWidget(self.in_light_status_lbl)
+        right_panel.addWidget(self.out_light_status_lbl)
+        right_panel.addWidget(self.underground_lbl)
+
+        # self.setLayout(layout)
+        main_layout = QGridLayout()
+        main_layout.addLayout(left_panel, 0, 0)  # Top-left
+        main_layout.addLayout(right_panel, 0, 1)  # Right half
+        self.setLayout(main_layout)
 
     def update_world_time(self, world_time):
         self.world_time = world_time
@@ -144,23 +175,41 @@ class TrainControllerGUI(QWidget):
 
     def update_doors_status(self, doors_status):
         self.doors_status = doors_status
-        self.station_lbl.setText(f"K_I ((Proportional gain): {self.k_i}")
+        self.left_door_status_lbl.setText(f"Left door open: {'Open' if self.doors_status[0] else 'Closed'}")
+        self.right_door_status_lbl.setText(f"Right door open: {'Open' if self.doors_status[1] else 'Closed'}")
 
     def update_lights_status(self, lights_status):
         self.lights_status = lights_status
         self.in_light_status_lbl.setText(f"Indoor light on: {'On' if self.lights_status[0] else 'Off'}")
+        self.out_light_status_lbl.setText(f"Outdoor light on: {'On' if self.lights_status[1] else 'Off'}")
+
+    def update_driver_in_light_status(self, in_lights_status):
+        self.lights_status[0] = True if in_lights_status else False
+        self.in_light_status_lbl.setText(f"Indoor light on: {'On' if self.lights_status[0] else 'Off'}")
 
     def update_cabin_temp(self, cabin_temp):
         self.cur_cabin_temp = cabin_temp
-        self.cur_cabin_temp_lbl.setText(f"Current cabin temp (F): {self.cur_cabin_temp}")
+        self.cur_cabin_temp_lbl.setText(f"Current cabin temp (F): {self.cur_cabin_temp:.2f}")
+
+    def update_driver_cabin_temp(self):
+        self.cur_cabin_temp = float(self.driver_cabin_temp_textbox.text())
+        self.cur_cabin_temp_lbl.setText(f"Current cabin temp (F): {self.cur_cabin_temp:.2f}")
 
     def update_cur_speed(self, cur_speed):
         self.cur_speed = cur_speed
-        self.cur_speed_lbl.setText(f"Current speed (mi/h): {self.cur_speed:.2f}")
+        self.cur_speed_lbl.setText(f"Current speed (m/s): {self.cur_speed:.2f}")
 
     def update_cmd_speed(self, cmd_speed):
         self.cmd_speed = cmd_speed
-        self.cmd_speed_lbl.setText(f"Commanded speed (mi/h): {self.cmd_speed}")
+        self.cmd_speed_lbl.setText(f"Commanded speed (m/s): {self.cmd_speed:.2f}")
+
+    def update_speed_limit(self, speed_limit):
+        self.speed_limit = speed_limit
+        self.speed_limit_lbl.setText(f"Speed limit (m/s): {self.speed_limit:.2f}")
+
+    def update_authority(self, authority):
+        self.authority = authority
+        self.authority_lbl.setText(f"Authority (m): {self.authority:.2f}")
 
     def update_train_controller_mode(self, value):
         if value == 0:
@@ -175,7 +224,7 @@ class TrainControllerGUI(QWidget):
     def update_commanded_speed(self):
         """Train driver should be able to changed cmd_speed in manual mode."""
         self.driver_speed = float(self.driver_speed_textbox.text())
-        self.driver_speed_lbl.setText(f"Driver Commanded speed (if in automatic mode): {self.driver_speed}")
+        self.driver_speed_lbl.setText(f"Driver Commanded speed (if in automatic mode): {self.driver_speed:.2f}")
 
     def update_sbrake_decel(self, decel):
         self.service_brake_decel = decel

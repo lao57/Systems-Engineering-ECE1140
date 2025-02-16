@@ -20,7 +20,7 @@ def main():
     comfortable_temp = 70  # 70 deg F
 
     # Test params
-    cmd_speed = 20
+    cmd_speed = 14
     authority = 200
     cur_speed = 0
     failure_modes = [False, False, False]

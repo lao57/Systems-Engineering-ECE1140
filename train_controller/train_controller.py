@@ -20,16 +20,20 @@ class TrainController:
         self.doors_status = [False, False]  # [left_doors_open, right_doors_open]
         self.lights_status = [False, False]  # [interior_lights_open, exterior_lights_open]
         self.underground = False
-        self.cur_cabin_temp = None
+        self.cur_cabin_temp = 0.00
         self.e_brake_on = False
         self.service_brake_decel = 0
         self.announce_station = False
         self.set_cabin_temp = comfortable_temp
         # manual/automatic mode
         self.train_controller_mode = "auto"
-        # brake stats
+        # train stats
         self.max_sbrake_decel = 1.2  # 1.2 m/s
         self.max_ebrake_decel = 2.73  # 2.73 m/s
+        self.max_train_speed = 19.4  # 19.4 m/s
+        # station speed limits (stored as a dict in train controller module)
+        self.stations = {'Doormont': {'speed_limit': 18}}
+        self.speed_limit = self.max_train_speed
 
     def iterate(self, cmd_speed: int | float, authority: int | float, cur_speed: int | float,
                 failure_modes: List[bool], underground: bool, cabin_temp: int | float,
@@ -43,7 +47,7 @@ class TrainController:
         :param underground: True if underground
         :param cabin_temp: Cabin temperature (F)
         :param doors_status: [left_doors_open, right_doors_open] boolean list
-        :param lights_status: [interior_lights_open, exterior_lights_open] boolean list
+        :param lights_status: [interior_lights_on, exterior_lights_on] boolean list
         :param station_to_be_reached: Station about to be reached
         :param world_time: Dict time: {'hours': int, 'minutes': int} in 24-hour format
         :return: emergency_brake signal: bool, service_brake_force (m/s^2), cmd_power (W), modified_cabin_temp (F),
@@ -72,6 +76,22 @@ class TrainController:
 
         # End of safety critical section
 
+        # about to reach station
+        if station_to_be_reached != self.most_recent_station:
+            self.most_recent_station = station_to_be_reached
+            # For now, open both doors
+            self.doors_status = [True, True]
+            self.announce_station = True
+        else:
+            self.doors_status = [False, False]
+            self.announce_station = False
+
+        self.speed_limit = self.stations[self.most_recent_station]['speed_limit']
+        if self.speed_limit > self.max_train_speed:  # never exceed max train speed
+            self.speed_limit = self.max_train_speed
+        # clamp cmd_speed
+        cmd_speed = min(cmd_speed, self.speed_limit)
+
         # compute current speed error
         self.speed_error.append(cmd_speed - cur_speed)
         # deliver power (according to control law)
@@ -88,6 +108,12 @@ class TrainController:
         if self.cmd_power >= self.max_engine_power:
             cur_integrated_error = self.integrated_error[-1]
             self.cmd_power = self.k_p * self.speed_error[-1] + self.k_i * cur_integrated_error
+
+        # Check if underground (turn on exterior lights)
+        if underground:
+            self.lights_status[1] = True
+        else:
+            self.lights_status[1] = False
 
         # manual mode
         if self.train_controller_mode == "auto":
@@ -108,29 +134,18 @@ class TrainController:
                        failure_modes: List[bool], underground: bool, cabin_temp: int | float,
                        doors_status: List[bool], lights_status: List[bool], station_to_be_reached: str,
                        world_time: dict):
-        # pull service brake to decelerate
-        if (cur_speed - cmd_speed) > 10:
+        if (cur_speed - cmd_speed) > 10 or (cur_speed - self.speed_limit) > 10:
             self.service_brake_decel = self.max_sbrake_decel
-        elif (cur_speed - cmd_speed) > 3:
+        elif (cur_speed - cmd_speed) > 3 or (cur_speed - self.speed_limit) > 3:
             self.service_brake_decel = self.max_sbrake_decel * 0.5
         else:
             self.service_brake_decel = 0.0
 
-        # about to reach station
-        if station_to_be_reached is not None:
-            self.most_recent_station = station_to_be_reached
-            # For now, open both doors
-            self.doors_status = [True, True]
-            self.announce_station = True
-        else:
-            self.doors_status = [False, False]
-            self.announce_station = False
-
-        # Check if underground (turn on exterior lights)
-        if underground:
-            self.lights_status[1] = True
-        else:
-            self.lights_status[1] = False
+        # # Check if underground (turn on exterior lights)
+        # if underground:
+        #     self.lights_status[1] = True
+        # else:
+        #     self.lights_status[1] = False
 
         # Check if nighttime (between 8 pm and 6 am)
         if world_time['hour'] >= 20 or world_time['hour'] <= 6:
@@ -157,3 +172,7 @@ class TrainController:
             self.e_brake_on = False
 
         self.service_brake_decel = driver_inputs['sbrake']
+
+        self.set_cabin_temp = cabin_temp
+
+        self.lights_status[0] = lights_status[0]
