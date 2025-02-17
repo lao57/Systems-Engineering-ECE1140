@@ -18,10 +18,30 @@ binary_to_value = {
     '111': 70
     }
 
+#static dictionary for authority
+authority_decoder = {
+    '0000': 0,
+    '0001': 65,
+    '0010': 130,
+    '0011': 195,
+    '0100': 260,
+    '0101': 325,
+    '0110': 390,
+    '0111': 455,
+    '1000': 520,
+    '1001': 585,
+    '1010': 650,
+    '1011': 715,
+    '1100': 780,
+    '1101': 845,
+    '1110': 910,
+    '1111': 3000 #big number
+}
+
 from enum import Enum
 
 class Train:
-    def __init__(self, train_number, capacity = 75, numberOfPassengers = 2, numberOfCarts = 5):
+    def __init__(self, train_number = 1, numberOfPassengers = 2):
         self.Baud_ID = 0
         self.train_number = train_number
 
@@ -30,20 +50,21 @@ class Train:
         self.acceleration = 0
         self.previous_acceleration = 0
         self.distance_travelled = 0
+        self.authority = 0
 
         self.power = 0
         self.ebrake_signal = 0
         self.brake_signal = 0
 
-        self.capacity = capacity
-        self.numberOfCarts = numberOfCarts
+        self.capacity = 75 #SET AS MAX VALUE
+        self.numberOfCarts = 1 #according to profetta this is constant
         self.numberOfPassengers = numberOfPassengers #starts at 2 for the driver and the conductor
 
         self.left_door = False
         self.right_door = False
         self.exterior_light = False
         self.interior_light = False
-        self.weight = numberOfCarts * 40000 + numberOfPassengers * 70 #40 tons per cart plus 70 kg per person
+        self.weight = self.numberOfCarts * 40000 + numberOfPassengers * 70 #40 tons per cart plus 70 kg per person
 
         self.distance_vector = []
         self.speeds_vector = [] #holds initial speed until beacon where then those are pushed to the back of the vector
@@ -77,7 +98,13 @@ class Train:
             self.at_station_vector.append(beaconvector[4+num_blocks*14+i])
             self.extra_bit_vector.append(beaconvector[4+num_blocks*15+i])
 
-        
+    def baud_read(self,baud_signal):
+        # Print the values to debug
+        print(f"baud_signal[0:4]: '{baud_signal[0:4]}' (type: {type(baud_signal[0:4])})")
+        print(f"self.Baud_ID: '{self.Baud_ID}' (type: {type(self.Baud_ID)})")
+
+        if baud_signal[0:4] == self.Baud_ID:
+            self.authority = authority_decoder[baud_signal[-4:]]
 
 
     #this function is used to update the speed acceleration and distance travelled of the train over a one second interval
@@ -85,10 +112,13 @@ class Train:
         power = power *1000 #converts kW to Watts
         gravitational_acceleration = (g * np.sin(np.arctan(grade/100)))
         self.previous_acceleration = self.acceleration
-        if(self.velocity <= 0):#see Ipad for notes on this derivation but avoids divide by zero error
-            self.acceleration = (self.brake_signal*service_brake_deceleration - self.ebrake_signal*emergency_brake_deceleration - gravitational_acceleration + np.sqrt((2*power)/(self.weight)))
-        else:#normal acceleration calculation
-            self.acceleration = (self.brake_signal*service_brake_deceleration - self.ebrake_signal*emergency_brake_deceleration - gravitational_acceleration + power/(self.weight*self.velocity))
+        if self.ebrake_signal == True:
+            self.acceleration = (0 - self.brake_signal*service_brake_deceleration - self.ebrake_signal*emergency_brake_deceleration - gravitational_acceleration)
+        else:
+            if(self.velocity <= 0):#see Ipad for notes on this derivation but avoids divide by zero error
+                self.acceleration = (np.sqrt((2*power)/(self.weight))-self.brake_signal*service_brake_deceleration - self.ebrake_signal*emergency_brake_deceleration - gravitational_acceleration)
+            else:#normal acceleration calculation
+                self.acceleration = (power/(self.weight*self.velocity) - self.brake_signal*service_brake_deceleration - self.ebrake_signal*emergency_brake_deceleration - gravitational_acceleration)
         velocity_holder = self.velocity
         self.velocity = self.previous_velocity + (1/2)*(self.acceleration + self.previous_acceleration)
         if(self.velocity < 0):
@@ -97,6 +127,7 @@ class Train:
         distance_over_interval = (1/2)*(self.velocity + self.previous_velocity)#one second times the average velocity
         self.distance_travelled += distance_over_interval
         self.distance_vector[0] -= distance_over_interval
+        self.authority -= distance_over_interval
         while self.distance_vector[0] < 0:
             self.distance_vector[1] += self.distance_vector[0] #applying extra distance into the next block
             self.distance_vector.pop(0)
