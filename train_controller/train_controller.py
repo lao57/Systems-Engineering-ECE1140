@@ -32,7 +32,8 @@ class TrainController:
         self.max_ebrake_decel = 2.73  # 2.73 m/s
         self.max_train_speed = 19.4  # 19.4 m/s
         # station speed limits (stored as a dict in train controller module)
-        self.stations = {'Doormont': {'speed_limit': 18}}
+        self.stations = {'Dormont': {'speed_limit': 18}, 'Edgebrook': {'speed_limit': 18.5},
+                         'Pioneer': {'speed_limit': 18.5}}
         self.speed_limit = self.max_train_speed
 
     def iterate(self, cmd_speed: int | float, authority: int | float, cur_speed: int | float,
@@ -61,39 +62,43 @@ class TrainController:
             # train engine failure (pull emergence brake)
             if failure_modes[0]:
                 self.e_brake_on = True
-                self.service_brake_decel = False
+                self.service_brake_decel = 0.0
                 self.cmd_power = 0
                 return self.e_brake_on, self.service_brake_decel, self.cmd_power, \
                     self.set_cabin_temp, self.doors_status, self.lights_status, self.announce_station
             # signal pickup failure
             if failure_modes[1]:
                 self.e_brake_on = True
-                self.service_brake_decel = False
+                self.service_brake_decel = 0.0
                 self.cmd_power = 0
                 return self.e_brake_on, self.service_brake_decel, self.cmd_power, \
                     self.set_cabin_temp, self.doors_status, self.lights_status, self.announce_station
             # service brake failure (pull emergence brake)
             if failure_modes[2]:
                 self.e_brake_on = True
-                self.service_brake_decel = False
+                self.service_brake_decel = 0.0
                 self.cmd_power = 0
                 return self.e_brake_on, self.service_brake_decel, self.cmd_power, \
                     self.set_cabin_temp, self.doors_status, self.lights_status, self.announce_station
 
         # check if train directly in front or low authority (risk of crashing)
         if authority <= 20:  # 20 m
-            return True
+            self.e_brake_on = True
+            self.service_brake_decel = 0.0
+            self.cmd_power = 0
+            return self.e_brake_on, self.service_brake_decel, self.cmd_power, \
+                self.set_cabin_temp, self.doors_status, self.lights_status, self.announce_station
 
         # End of safety critical section
 
         # about to reach station
-        if station_to_be_reached != self.most_recent_station:
+        if station_to_be_reached != self.most_recent_station and station_to_be_reached in self.stations:
             self.most_recent_station = station_to_be_reached
             # For now, open both doors
-            self.doors_status = [True, True]
+            self.doors_status = doors_status
             self.announce_station = True
         else:
-            self.doors_status = [False, False]
+            self.doors_status = doors_status
             self.announce_station = False
 
         self.speed_limit = self.stations[self.most_recent_station]['speed_limit']
@@ -169,14 +174,16 @@ class TrainController:
                     failure_modes: List[bool], underground: bool, cabin_temp: int | float,
                     doors_status: List[bool], lights_status: List[bool], station_to_be_reached: str,
                     driver_inputs: dict, world_time: dict):
+        self.service_brake_decel = driver_inputs['sbrake']
 
         if driver_inputs['ebrake']:
             self.e_brake_on = True
+            self.cmd_power = 0
+            self.service_brake_decel = 0.0
         else:
             self.e_brake_on = False
 
-        self.service_brake_decel = driver_inputs['sbrake']
-
         self.set_cabin_temp = cabin_temp
 
+        # only modify indoor lights
         self.lights_status[0] = lights_status[0]

@@ -29,7 +29,7 @@ def main():
     cabin_temp = 40
     doors_status = [False, False]
     lights_status = [False, False]
-    station_to_be_reached = 'Doormont'
+    station_to_be_reached = 'Dormont'
 
     test_params = [cmd_speed, authority, cur_speed, failure_modes, underground, cabin_temp, doors_status,
                    lights_status, station_to_be_reached]

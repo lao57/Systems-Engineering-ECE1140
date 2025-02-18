@@ -87,8 +87,9 @@ class Simulator:
             self.testbench.doors_status_event = False
 
         if self.testbench.lights_status_event:
+            print(self.testbench.lights_status)
             self.lights_status = self.testbench.lights_status
-            self.testbench.lights_status = False
+            self.testbench.lights_status_event = False
 
         if self.testbench.station_to_be_reached_event:
             self.station_to_be_reached = self.testbench.station_to_be_reached
