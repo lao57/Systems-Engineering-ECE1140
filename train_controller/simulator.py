@@ -2,8 +2,9 @@ from PyQt6.QtCore import Qt, pyqtSlot, QTimer
 
 
 class Simulator:
-    def __init__(self, gui, train_controller, test_params, sim_time=100, timer_interval=100):
+    def __init__(self, gui, testbench, train_controller, test_params, sim_time=100, timer_interval=100):
         self.gui = gui
+        self.testbench = testbench
         self.train_controller = train_controller
         self.sim_time = sim_time
         self.current_step = 0
@@ -56,6 +57,47 @@ class Simulator:
         else:
             self.train_controller.train_controller_mode = 'auto'
 
+        # take testbench inputs if event occurs
+        if self.testbench.cmd_speed_event:
+            self.cmd_speed = self.testbench.cmd_speed
+            self.testbench.cmd_speed_event = False
+
+        if self.testbench.authority_event:
+            self.authority = self.testbench.authority
+            self.testbench.authority_event = False
+
+        if self.testbench.cur_speed_event:
+            self.cur_speed = self.testbench.cur_speed
+            self.testbench.cur_speed_event = False
+
+        if self.testbench.failure_mode_event:
+            self.failure_modes = self.testbench.failure_modes
+            self.testbench.failure_mode_event = False
+
+        if self.testbench.underground_event:
+            self.underground = self.testbench.underground
+            self.testbench.underground_event = False
+
+        if self.testbench.cabin_temp_event:
+            self.cabin_temp = self.testbench.cabin_temp
+            self.testbench.cabin_temp_event = False
+
+        if self.testbench.doors_status_event:
+            self.doors_status = self.testbench.doors_status
+            self.testbench.doors_status_event = False
+
+        if self.testbench.lights_status_event:
+            self.lights_status = self.testbench.lights_status
+            self.testbench.lights_status = False
+
+        if self.testbench.station_to_be_reached_event:
+            self.station_to_be_reached = self.testbench.station_to_be_reached
+            self.testbench.station_to_be_reached_event = False
+
+        if self.testbench.world_time_event:
+            self.world_time = self.testbench.world_time
+            self.testbench.world_time_event = False
+
         ebrake, sbrake_decel, cmd_power, modified_cabin_temp, open_doors, open_lights, announcement = \
             self.train_controller.iterate(self.cmd_speed, self.authority, self.cur_speed,
                                           self.failure_modes, self.underground, self.cabin_temp, self.doors_status,
@@ -65,7 +107,7 @@ class Simulator:
         self.cabin_temp = modified_cabin_temp
         self.cmd_power = max(cmd_power, 0)
 
-        # Update GUI
+        # Update train controller GUI
         self.gui.update_power_cmd(self.cmd_power)
         self.gui.update_sbrake_decel(sbrake_decel)
         self.gui.update_cabin_temp(self.cabin_temp)
@@ -74,6 +116,7 @@ class Simulator:
         self.gui.update_most_recent_station(self.station_to_be_reached)
         self.gui.update_speed_limit(self.train_controller.speed_limit)
         self.gui.update_authority(self.authority)
+        self.gui.update_failure_modes(self.failure_modes)
 
         e_brake_decel = self.train_controller.max_ebrake_decel if ebrake else 0.0
 

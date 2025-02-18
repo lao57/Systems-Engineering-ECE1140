@@ -2,7 +2,7 @@ from PyQt6.QtWidgets import (
     QApplication, QWidget, QLabel, QPushButton, QVBoxLayout, QHBoxLayout, QFrame, QMainWindow, QSlider,
     QLineEdit, QGridLayout
 )
-from PyQt6.QtGui import QFont, QColor, QPalette
+from PyQt6.QtGui import QFont, QColor, QPalette, QPixmap, QPainter, QPen
 from PyQt6.QtCore import Qt
 
 
@@ -37,6 +37,7 @@ class TrainControllerGUI(QWidget):
         self.e_brake_on = False
         self.service_brake_decel = 0.0
         self.max_sbrake_decel = 1.2  # 1.2 m/s
+        self.failure_modes = [False, False, False]
 
         # create widgets
         self.world_time_lbl = QLabel(f"World time (24-hr): Day {self.world_time['day']} "
@@ -49,6 +50,28 @@ class TrainControllerGUI(QWidget):
         self.authority_lbl = QLabel(f"Authority (m): {self.authority:.2f}", self)
         self.p_gain_lbl = QLabel(f"K_P (Proportional gain): {k_p}", self)
         self.i_gain_lbl = QLabel(f"K_I (Integral gain): {k_i}", self)
+
+        self.train_engine_fail_icon = QLabel(self)
+        self.train_engine_fail_lbl = QLabel(f"Train engine failure", self)
+        self.signal_pickup_fail_icon = QLabel(self)
+        self.signal_pickup_fail_lbl = QLabel(f"Signal pickup failure", self)
+        self.sbrake_fail_icon = QLabel(self)
+        self.sbrake_fail_lbl = QLabel(f"Service brake failure", self)
+        self.update_failure_modes(self.failure_modes)
+
+        failure_icons_layout = QHBoxLayout()
+        failure_icons_layout.addSpacing(50)
+        failure_icons_layout.addWidget(self.train_engine_fail_icon)
+        failure_icons_layout.addSpacing(100)
+        failure_icons_layout.addWidget(self.signal_pickup_fail_icon)
+        failure_icons_layout.addSpacing(100)
+        failure_icons_layout.addWidget(self.sbrake_fail_icon)
+
+        failure_lbl_layout = QHBoxLayout()
+        failure_icons_layout.addSpacing(50)
+        failure_lbl_layout.addWidget(self.train_engine_fail_lbl)
+        failure_lbl_layout.addWidget(self.signal_pickup_fail_lbl)
+        failure_lbl_layout.addWidget(self.sbrake_fail_lbl)
 
         self.station_lbl = QLabel(f"Most recent station: {self.most_recent_station}", self)
         self.announcement_lbl = QLabel(f"Time to announce: {self.announcement}", self)
@@ -110,49 +133,60 @@ class TrainControllerGUI(QWidget):
         self.driver_indoor_light_slider.setFixedWidth(80)
         self.driver_indoor_light_slider.valueChanged.connect(self.update_driver_in_light_status)
 
-        # left panel
-        left_panel = QVBoxLayout()
-        left_panel.addWidget(self.power_gain_lbl)
-        left_panel.addWidget(self.cur_speed_lbl)
-        left_panel.addWidget(self.cmd_speed_lbl)
-        left_panel.addWidget(self.speed_limit_lbl)
-        left_panel.addWidget(self.authority_lbl)
-        left_panel.addWidget(self.p_gain_lbl)
-        left_panel.addWidget(self.i_gain_lbl)
-        left_panel.addStretch()  # Pushes elements to the top
+        # top left panel
+        top_left_panel = QVBoxLayout()
+        top_left_panel.addWidget(self.power_gain_lbl)
+        top_left_panel.addWidget(self.cur_speed_lbl)
+        top_left_panel.addWidget(self.cmd_speed_lbl)
+        top_left_panel.addWidget(self.speed_limit_lbl)
+        top_left_panel.addWidget(self.authority_lbl)
+        top_left_panel.addWidget(self.p_gain_lbl)
+        top_left_panel.addWidget(self.i_gain_lbl)
+        top_left_panel.addStretch()  # Pushes elements to the top
 
-        # right panel
-        right_panel = QVBoxLayout()
-        right_panel.addWidget(self.world_time_lbl)
-        right_panel.addWidget(self.tc_mode_slider)
-        right_panel.addWidget(self.tc_mode_lbl)
+        # bottom left panel
+        bottom_left_panel = QVBoxLayout()
+        bottom_left_panel.addStretch()
 
-        right_panel.addWidget(self.driver_speed_lbl)
-        right_panel.addWidget(self.driver_speed_textbox)
-        right_panel.addWidget(self.driver_speed_button)
+        bottom_left_panel.addWidget(self.driver_speed_lbl)
+        bottom_left_panel.addWidget(self.driver_speed_textbox)
+        bottom_left_panel.addWidget(self.driver_speed_button)
 
-        right_panel.addWidget(self.cur_cabin_temp_lbl)
-        right_panel.addWidget(self.driver_cabin_temp_textbox)
-        right_panel.addWidget(self.driver_cabin_temp_button)
+        bottom_left_panel.addWidget(self.cur_cabin_temp_lbl)
+        bottom_left_panel.addWidget(self.driver_cabin_temp_textbox)
+        bottom_left_panel.addWidget(self.driver_cabin_temp_button)
 
-        right_panel.addWidget(self.driver_sbrake_slider)
-        right_panel.addWidget(self.s_brake_lbl)
-        right_panel.addWidget(self.driver_ebrake_button)
-        right_panel.addWidget(self.e_brake_lbl)
+        # top right panel
+        top_right_panel = QVBoxLayout()
+        top_right_panel.addWidget(self.world_time_lbl)
+        top_right_panel.addWidget(self.tc_mode_slider)
+        top_right_panel.addWidget(self.tc_mode_lbl)
 
-        right_panel.addWidget(self.station_lbl)
-        right_panel.addWidget(self.announcement_lbl)
-        right_panel.addWidget(self.left_door_status_lbl)
-        right_panel.addWidget(self.right_door_status_lbl)
-        right_panel.addWidget(self.driver_indoor_light_slider)
-        right_panel.addWidget(self.in_light_status_lbl)
-        right_panel.addWidget(self.out_light_status_lbl)
-        right_panel.addWidget(self.underground_lbl)
+        top_right_panel.addLayout(failure_icons_layout)
+        top_right_panel.addLayout(failure_lbl_layout)
 
-        # self.setLayout(layout)
+        top_right_panel.addWidget(self.driver_sbrake_slider)
+        top_right_panel.addWidget(self.s_brake_lbl)
+        top_right_panel.addWidget(self.driver_ebrake_button)
+        top_right_panel.addWidget(self.e_brake_lbl)
+
+        # bottom right panel
+        bottom_right_panel = QVBoxLayout()
+        bottom_right_panel.addStretch()
+        bottom_right_panel.addWidget(self.station_lbl)
+        bottom_right_panel.addWidget(self.announcement_lbl)
+        bottom_right_panel.addWidget(self.left_door_status_lbl)
+        bottom_right_panel.addWidget(self.right_door_status_lbl)
+        bottom_right_panel.addWidget(self.driver_indoor_light_slider)
+        bottom_right_panel.addWidget(self.in_light_status_lbl)
+        bottom_right_panel.addWidget(self.out_light_status_lbl)
+        bottom_right_panel.addWidget(self.underground_lbl)
+
         main_layout = QGridLayout()
-        main_layout.addLayout(left_panel, 0, 0)  # Top-left
-        main_layout.addLayout(right_panel, 0, 1)  # Right half
+        main_layout.addLayout(top_left_panel, 0, 0)  # Top-left
+        main_layout.addLayout(top_right_panel, 0, 1)  # Right half
+        main_layout.addLayout(bottom_left_panel, 1, 0)  # Bottom-left
+        main_layout.addLayout(bottom_right_panel, 1, 1)  # Bottom-right
         self.setLayout(main_layout)
 
     def update_world_time(self, world_time):
@@ -247,3 +281,21 @@ class TrainControllerGUI(QWidget):
             self.driver_ebrake_button.setStyleSheet("background-color: red; color: white;")
         else:
             self.driver_ebrake_button.setStyleSheet("background-color: lightgray; color: black;")
+
+    def update_failure_modes(self, failure_modes):
+        size = 20
+        pixmap_list = []
+        for i in range(len(failure_modes)):
+            pixmap = QPixmap(size, size)
+            pixmap.fill(Qt.GlobalColor.transparent)
+            painter = QPainter(pixmap)
+            painter.setBrush(Qt.GlobalColor.red if failure_modes[i] else Qt.GlobalColor.green)
+            painter.setPen(QPen(Qt.GlobalColor.black, 2))  # Black outline, 2px width
+            # Draw a filled rectangle with a black outline
+            painter.drawRect(1, 1, size - 2, size - 2)  # Leave 1px padding for outline
+            painter.end()
+            pixmap_list.append(pixmap)
+
+        self.train_engine_fail_icon.setPixmap(pixmap_list[0])
+        self.signal_pickup_fail_icon.setPixmap(pixmap_list[1])
+        self.sbrake_fail_icon.setPixmap(pixmap_list[2])

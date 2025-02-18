@@ -57,18 +57,28 @@ class TrainController:
         # Start of Safety critical section
 
         # Check for any failure modes
-        if 1 in failure_modes:
+        if True in failure_modes:
             # train engine failure (pull emergence brake)
             if failure_modes[0]:
                 self.e_brake_on = True
-                return self.e_brake_on, None, None, None
+                self.service_brake_decel = False
+                self.cmd_power = 0
+                return self.e_brake_on, self.service_brake_decel, self.cmd_power, \
+                    self.set_cabin_temp, self.doors_status, self.lights_status, self.announce_station
             # signal pickup failure
             if failure_modes[1]:
-                pass
+                self.e_brake_on = True
+                self.service_brake_decel = False
+                self.cmd_power = 0
+                return self.e_brake_on, self.service_brake_decel, self.cmd_power, \
+                    self.set_cabin_temp, self.doors_status, self.lights_status, self.announce_station
             # service brake failure (pull emergence brake)
             if failure_modes[2]:
                 self.e_brake_on = True
-                return self.e_brake_on
+                self.service_brake_decel = False
+                self.cmd_power = 0
+                return self.e_brake_on, self.service_brake_decel, self.cmd_power, \
+                    self.set_cabin_temp, self.doors_status, self.lights_status, self.announce_station
 
         # check if train directly in front or low authority (risk of crashing)
         if authority <= 20:  # 20 m
@@ -140,12 +150,6 @@ class TrainController:
             self.service_brake_decel = self.max_sbrake_decel * 0.5
         else:
             self.service_brake_decel = 0.0
-
-        # # Check if underground (turn on exterior lights)
-        # if underground:
-        #     self.lights_status[1] = True
-        # else:
-        #     self.lights_status[1] = False
 
         # Check if nighttime (between 8 pm and 6 am)
         if world_time['hour'] >= 20 or world_time['hour'] <= 6:

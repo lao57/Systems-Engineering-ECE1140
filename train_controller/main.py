@@ -8,6 +8,7 @@ from PyQt6.QtCore import QTimer, QThread
 
 from train_controller import TrainController
 from train_controller_gui import TrainControllerGUI
+from testbench_gui import TestbenchGUI
 from simulator import Simulator
 
 
@@ -38,10 +39,12 @@ def main():
     sim_time = int(1e3)
     app = QApplication(sys.argv)
     gui = TrainControllerGUI(k_p, k_i)
+    testbench = TestbenchGUI()
     gui.show()
+    testbench.show()
 
     # Start the master simulation loop
-    sim = Simulator(gui, train_controller, test_params, sim_time=sim_time, timer_interval=int(1e3))
+    sim = Simulator(gui, testbench, train_controller, test_params, sim_time=sim_time, timer_interval=int(1e3))
 
     sys.exit(app.exec())
 
