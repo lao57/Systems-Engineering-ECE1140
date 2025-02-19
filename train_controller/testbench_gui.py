@@ -14,7 +14,7 @@ class TestbenchGUI(QWidget):
         self.setWindowTitle("Train Controller Testbench GUI")
         self.resize(800, 600)
 
-        self.cmd_speed = 0
+        self.cmd_speed = 10
         self.authority = 0
         self.cur_speed = 0
         self.failure_modes = [False, False, False]

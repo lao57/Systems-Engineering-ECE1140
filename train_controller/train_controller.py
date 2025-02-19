@@ -142,6 +142,8 @@ class TrainController:
                              doors_status, lights_status, station_to_be_reached,
                              driver_inputs, world_time)
 
+        self.cmd_power = max(self.cmd_power, 0)
+
         return self.e_brake_on, self.service_brake_decel, self.cmd_power, self.set_cabin_temp, self.doors_status, \
             self.lights_status, self.announce_station
 

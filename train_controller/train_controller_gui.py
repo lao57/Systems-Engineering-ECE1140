@@ -84,7 +84,7 @@ class TrainControllerGUI(QWidget):
         self.e_brake_lbl = QLabel(f"E brake on: {'True' if self.e_brake_on else 'False'}", self)
         self.s_brake_lbl = QLabel(f"Service brake deceleration (m/s^2): {self.service_brake_decel}", self)
 
-        self.driver_speed = 0
+        self.driver_speed = 10
 
         # Auto/manual train controller mode
         self.tc_mode_slider = QSlider(Qt.Orientation.Horizontal)
@@ -275,6 +275,15 @@ class TrainControllerGUI(QWidget):
 
     def update_driver_ebrake_status(self):
         self.e_brake_on = not self.e_brake_on
+        self.e_brake_lbl.setText(f"E brake on: {'True' if self.e_brake_on else 'False'}")
+        # change button color
+        if self.e_brake_on:
+            self.driver_ebrake_button.setStyleSheet("background-color: red; color: white;")
+        else:
+            self.driver_ebrake_button.setStyleSheet("background-color: lightgray; color: black;")
+
+    def update_ebrake(self, e_brake_on):
+        self.e_brake_on = e_brake_on
         self.e_brake_lbl.setText(f"E brake on: {'True' if self.e_brake_on else 'False'}")
         # change button color
         if self.e_brake_on:

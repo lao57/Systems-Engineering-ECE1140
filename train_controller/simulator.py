@@ -9,7 +9,7 @@ class Simulator:
         self.sim_time = sim_time
         self.current_step = 0
         self.world_time = {'day': 0, 'hour': 0, 'min': 0}
-        self.driver_speed = 0   # active in manual mode
+        self.driver_speed = 10   # active in manual mode
         self.driver_inputs = {}
         self.cmd_speed, self.authority, self.cur_speed, self.failure_modes, self.underground, self.cabin_temp, \
             self.doors_status, self.lights_status, self.station_to_be_reached = test_params
@@ -87,7 +87,6 @@ class Simulator:
             self.testbench.doors_status_event = False
 
         if self.testbench.lights_status_event:
-            print(self.testbench.lights_status)
             self.lights_status = self.testbench.lights_status
             self.testbench.lights_status_event = False
 
@@ -106,11 +105,12 @@ class Simulator:
                                           self.driver_inputs, self.world_time)
 
         self.cabin_temp = modified_cabin_temp
-        self.cmd_power = max(cmd_power, 0)
+        self.cmd_power = cmd_power
 
         # Update train controller GUI
         self.gui.update_power_cmd(self.cmd_power)
         self.gui.update_sbrake_decel(sbrake_decel)
+        self.gui.update_ebrake(ebrake)
         self.gui.update_cabin_temp(self.cabin_temp)
         self.gui.update_doors_status(open_doors)
         self.gui.update_lights_status(open_lights)
