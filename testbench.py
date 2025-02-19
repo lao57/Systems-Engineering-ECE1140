@@ -1,41 +1,35 @@
-import random
-from PyQt6.QtCore import QTimer
 from PyQt6.QtWidgets import QTableWidgetItem
-from PyQt6.QtGui import QFont, QColor, QPalette
 
 class TestBench:
     def __init__(self, ctc_office):
         self.ctc_office = ctc_office
+        self.block_data = {}  # Stores block occupancy states
 
-    def simulate_train_updates(self):
-        def update():
-            train_data = [[101, "3", "50 kmh", "40 m"], [102, "5", "45 kmh", "40 m"]]
-            self.update_train_monitor(train_data)
+    def initialize_block_occupancy(self):
 
-        self.timer_train_updates = QTimer(self.ctc_office)
-        self.timer_train_updates.timeout.connect(update)
-        self.timer_train_updates.start(5000)  # Update every 5 seconds
+        self.block_data = {}  # Reset block occupancy storage
 
-    def simulate_track_data(self, selected_line=None):
-        def update():
-            occupancy = {f"Block {i}": "Occupied" if random.choice([0, 1]) else "Unoccupied" for i in range(1, 11)}
-            self.update_block_occupancy(occupancy)
+        for block in range(1, 77):  # Red Line blocks
+            self.block_data[(block, "Red Line")] = "Unoccupied"
+        for block in range(1, 142):  # Green Line blocks
+            self.block_data[(block, "Green Line")] = "Unoccupied"
 
-        if selected_line:
-            print(f"Updating block occupancy for {selected_line}")
+        self.update_block_occupancy_table()
 
-        self.timer_track_data = QTimer(self.ctc_office)
-        self.timer_track_data.timeout.connect(update)
-        self.timer_track_data.start(5000)  # Update every 5 seconds
+    def update_block_occupancy_table(self):
 
-    def update_train_monitor(self, train_data):
-        self.ctc_office.tableTrainMonitor.setRowCount(len(train_data))
-        for row, train in enumerate(train_data):
-            for col, data in enumerate(train):
-                self.ctc_office.tableTrainMonitor.setItem(row, col, QTableWidgetItem(str(data)))
+        current_line = self.ctc_office.comboBlockOccupancy.currentText()
+        block_count = 76 if "red" in current_line.lower() else 141
 
-    def update_block_occupancy(self, occupancy):
-        self.ctc_office.tableBlockOccupancy.setRowCount(len(occupancy))
-        for row, (block, status) in enumerate(occupancy.items()):
-            self.ctc_office.tableBlockOccupancy.setItem(row, 0, QTableWidgetItem(block))
+        for row in range(block_count):
+            block_number = row + 1
+            status = self.block_data.get((block_number, current_line), "Unoccupied")
             self.ctc_office.tableBlockOccupancy.setItem(row, 1, QTableWidgetItem(status))
+
+    def set_block_occupied(self, block_number, train_line):
+    
+        self.block_data[(block_number, train_line)] = "Occupied"
+
+    def set_block_unoccupied(self, block_number, train_line):
+
+        self.block_data[(block_number, train_line)] = "Unoccupied"
