@@ -205,8 +205,13 @@ class TrainControllerGUI(QWidget):
         self.i_gain_lbl.setText(f"K_I (Proportional gain): {self.k_i}")
 
     def update_most_recent_station(self, station_name):
+        if self.most_recent_station != station_name:
+            self.announcement = True
+        else:
+            self.announcement = False
         self.most_recent_station = station_name
         self.station_lbl.setText(f"Most recent station: {self.most_recent_station}")
+        self.announcement_lbl.setText(f"Time to announce: {self.announcement}")
 
     def update_doors_status(self, doors_status):
         self.doors_status = doors_status
