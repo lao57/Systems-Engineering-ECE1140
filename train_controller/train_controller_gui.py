@@ -191,7 +191,8 @@ class TrainControllerGUI(QWidget):
 
     def update_world_time(self, world_time):
         self.world_time = world_time
-        self.world_time_lbl.setText(f"World time (24-hr): {self.world_time['hour']:02d}:{self.world_time['min']:02d}")
+        self.world_time_lbl.setText(f"World time (24-hr): Day {self.world_time['day']} "
+                                     f"{self.world_time['hour']:02d}:{self.world_time['min']:02d}")
 
     def update_power_cmd(self, power):
         self.cmd_power = power

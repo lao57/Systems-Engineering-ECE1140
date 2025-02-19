@@ -127,8 +127,8 @@ class TrainController:
         # Check if underground (turn on exterior lights)
         if underground:
             self.lights_status[1] = True
-        else:
-            self.lights_status[1] = False
+        # else:
+        #     self.lights_status[1] = False
 
         # manual mode
         if self.train_controller_mode == "auto":
@@ -143,6 +143,9 @@ class TrainController:
                              driver_inputs, world_time)
 
         self.cmd_power = max(self.cmd_power, 0)
+
+        # take testbench inputs as priority
+        self.lights_status = lights_status
 
         return self.e_brake_on, self.service_brake_decel, self.cmd_power, self.set_cabin_temp, self.doors_status, \
             self.lights_status, self.announce_station
@@ -161,8 +164,8 @@ class TrainController:
         # Check if nighttime (between 8 pm and 6 am)
         if world_time['hour'] >= 20 or world_time['hour'] <= 6:
             self.lights_status[0] = True
-        else:
-            self.lights_status[0] = False
+        # else:
+        #     self.lights_status[0] = False
 
         # Check if comfortable cabin temp (F)
         self.cur_cabin_temp = cabin_temp
@@ -188,4 +191,4 @@ class TrainController:
         self.set_cabin_temp = cabin_temp
 
         # only modify indoor lights
-        self.lights_status[0] = lights_status[0]
+        # self.lights_status[0] = lights_status[0]

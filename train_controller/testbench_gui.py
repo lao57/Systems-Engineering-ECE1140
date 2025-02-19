@@ -293,9 +293,9 @@ class TestbenchGUI(QWidget):
         self.station_to_be_reached_event = True
 
     def update_world_time(self):
-        self.world_time['day'] = self.world_time_day_textbox.text()
-        self.world_time['hour'] = self.world_time_hour_textbox.text()
-        self.world_time['min'] = self.world_time_min_textbox.text()
+        self.world_time['day'] = int(self.world_time_day_textbox.text())
+        self.world_time['hour'] = int(self.world_time_hour_textbox.text())
+        self.world_time['min'] = int(self.world_time_min_textbox.text())
         self.world_time_event = True
 
 
