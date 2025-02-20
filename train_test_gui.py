@@ -1,7 +1,5 @@
 import sys
-from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QVBoxLayout, QLabel, QLineEdit, QHBoxLayout, QFileDialog, QFrame
-from PyQt5.QtGui import QPixmap
-from PyQt5.QtCore import Qt, QTimer
+from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QVBoxLayout, QLabel, QLineEdit, QHBoxLayout
 import train_class
 
 class MyApp(QWidget):
@@ -11,32 +9,11 @@ class MyApp(QWidget):
         self.initUI()
 
     def initUI(self):
-        ####################################################################################################################
-        """
-        Create the main layout with a blue banner on top
-        """
-        ####################################################################################################################
 
-        # Create the blue banner at the top
-        self.banner_frame = QFrame(self)
-        self.banner_frame.setStyleSheet("background-color: #001573; height: 100px;")
-        self.banner_layout = QVBoxLayout()
-        self.banner_frame.setLayout(self.banner_layout)
-
-        # Create a label to hold the uploaded image
-        self.banner_image_label = QLabel(self)
-        self.banner_image_label.setAlignment(Qt.AlignCenter)
-        self.banner_layout.addWidget(self.banner_image_label)
-        
-        # Create an upload image button for the banner
-        self.upload_image_button = QPushButton('Upload Image', self)
-        self.upload_image_button.setStyleSheet("color: white; background-color: #333; padding: 5px; border-radius: 5px;")
-        self.upload_image_button.clicked.connect(self.upload_image)
-        self.banner_layout.addWidget(self.upload_image_button)
 
         ####################################################################################################################
         """
-        Create the input fields for variables to store text input
+        Create the input fields for vairables to store text input
         """
         ####################################################################################################################
         # Create input fields for train initialization
@@ -44,6 +21,10 @@ class MyApp(QWidget):
         self.number_of_passengers_input = QLineEdit(self)
         self.beacon_input = QLineEdit(self)
         self.baud_input = QLineEdit(self)
+
+
+
+
 
         ####################################################################################################################
         """
@@ -54,6 +35,10 @@ class MyApp(QWidget):
         # Create button to initialize train
         self.init_train_button = QPushButton('Initialize Train', self)
         self.init_train_button.clicked.connect(self.initialize_train)
+
+        # Create button to parse beacon
+        self.parse_beacon_button = QPushButton('Parse Beacon', self)
+        self.parse_beacon_button.clicked.connect(self.parse_beacon)
 
         # Create button to update train
         self.update_train_button = QPushButton('Update Train', self)
@@ -81,6 +66,9 @@ class MyApp(QWidget):
         self.ebrake_button.setStyleSheet("background-color: red")
         self.ebrake_button.clicked.connect(self.toggle_ebrake)
         self.ebrake_button.setEnabled(False)
+
+
+
 
         ####################################################################################################################
         """
@@ -113,9 +101,21 @@ class MyApp(QWidget):
         """
         ####################################################################################################################
        
+
         # Layout for input fields
         input_layout = QVBoxLayout()
+        input_layout.addWidget(self.train_number_label)
+        input_layout.addWidget(self.train_number_input)
+        input_layout.addWidget(self.number_of_passengers_label)
+        input_layout.addWidget(self.number_of_passengers_input)
         input_layout.addWidget(self.init_train_button)
+        input_layout.addWidget(self.beacon_input_label)
+        input_layout.addWidget(self.beacon_input)
+        input_layout.addWidget(self.parse_beacon_button)
+        input_layout.addWidget(self.baud_input_label)
+        input_layout.addWidget(self.baud_input)
+
+
 
 
         # Layout for train variables
@@ -142,28 +142,23 @@ class MyApp(QWidget):
         control_layout.addWidget(self.ebrake_button)
 
         # Main layout
-        main_layout = QVBoxLayout()
-        main_layout.addWidget(self.banner_frame)  # Add the banner first
-        content_layout = QHBoxLayout()
-        content_layout.addLayout(input_layout)
-        content_layout.addLayout(train_layout)
-        content_layout.addLayout(control_layout)
-        main_layout.addLayout(content_layout)
+        main_layout = QHBoxLayout()
+        main_layout.addLayout(input_layout)
+        main_layout.addLayout(train_layout)
+        main_layout.addLayout(control_layout)
 
         self.setLayout(main_layout)
         self.setWindowTitle('PyQt5 GUI with Train Variables')
         self.setGeometry(300, 300, 600, 400)
         self.show()
 
-        # Initialize the timer
-        self.timer = QTimer()
-        self.timer.timeout.connect(self.update_train)
 
     ####################################################################################################################
     """
     Button Functions
     """
     ####################################################################################################################
+       
 
     def initialize_train(self):
         if self.train_number_input.text() == "":
@@ -176,19 +171,22 @@ class MyApp(QWidget):
             number_of_passengers = int(self.number_of_passengers_input.text())
 
         self.train = train_class.Train(train_number, number_of_passengers)
-        self.train.beacon_parse("000011010111010100110100101111UVSZE3")
         self.update_train_labels()
+        self.update_train_button.setEnabled(True)  # Enable update button
+        self.parse_beacon_button.setEnabled(True)  # Enable parse beacon button
         self.left_door_button.setEnabled(True)
         self.right_door_button.setEnabled(True)
         self.interior_light_button.setEnabled(True)
         self.exterior_light_button.setEnabled(True)
         self.ebrake_button.setEnabled(True)
 
-        # Start the timer to update the train every second
-        self.timer.start(1000)
+    def parse_beacon(self):
+        beacon = self.beacon_input.text()
+        self.train.beacon_parse(beacon)
+        self.update_train_labels()
 
     def update_train(self):
-        self.train.baud_read("0000101111")
+        self.train.baud_read(self.baud_input.text())
         self.train.update_train(120, 0)
         self.update_train_labels()
 
@@ -205,18 +203,10 @@ class MyApp(QWidget):
         self.at_station_vector_label.setText(f"At Station Vector: {self.train.at_station_vector}")
         self.extra_bit_vector_label.setText(f"Extra Bit Vector: {self.train.extra_bit_vector}")
 
-    # Function to upload and display an image on the banner
-    def upload_image(self):
-        options = QFileDialog.Options()
-        file_name, _ = QFileDialog.getOpenFileName(self, "Upload Banner Image", "", "Images (*.png *.xpm *.jpg);;All Files (*)", options=options)
-        if file_name:
-            pixmap = QPixmap(file_name)
-            pixmap = pixmap.scaled(100, 100, Qt.KeepAspectRatio)  # Scale image to fit the banner
-            self.banner_image_label.setPixmap(pixmap)
-            self.upload_image_button.deleteLater()  # Delete the button after clicking
 
 
-    # TOGGLABLES
+
+    #TOGGLABLES
     def toggle_left_door(self):
         self.train.left_door = not self.train.left_door
         self.left_door_button.setText(f"Left Door: {'Open' if self.train.left_door else 'Closed'}")
@@ -238,13 +228,14 @@ class MyApp(QWidget):
         self.ebrake_button.setText(f"Emergency Brake: {'Engaged' if self.train.ebrake_signal else 'Disengaged'}")
 
 
-####################################################################################################################
+#################################################################################################################################################
 """
 MAIN FUNCTION
 """
-####################################################################################################################
+#################################################################################################################################################
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     ex = MyApp()
     sys.exit(app.exec_())
+    #000011010111010100110100101111UVSZE3
