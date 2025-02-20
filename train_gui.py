@@ -1,7 +1,7 @@
 import sys
-from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QVBoxLayout, QLabel, QLineEdit, QHBoxLayout, QFileDialog, QFrame
-from PyQt5.QtGui import QPixmap
-from PyQt5.QtCore import Qt, QTimer
+from PyQt6.QtWidgets import QApplication, QWidget, QPushButton, QVBoxLayout, QLabel, QLineEdit, QHBoxLayout, QFileDialog, QFrame
+from PyQt6.QtGui import QPixmap
+from PyQt6.QtCore import Qt, QTimer
 import train_class
 
 class MyApp(QWidget):
@@ -20,7 +20,7 @@ class MyApp(QWidget):
 
         # Create a label to hold the uploaded image
         self.banner_image_label = QLabel(self)
-        self.banner_image_label.setAlignment(Qt.AlignCenter)
+        self.banner_image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.banner_layout.addWidget(self.banner_image_label)
         
         # Create an upload image button for the banner
@@ -31,15 +31,9 @@ class MyApp(QWidget):
 
         # Create a clock label
         self.clock_label = QLabel(self)
-        self.clock_label.setAlignment(Qt.AlignCenter)
+        self.clock_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.clock_label.setStyleSheet("font-size: 20px; color: white;")
         self.banner_layout.addWidget(self.clock_label)
-
-        # Create input fields for train initialization
-        self.train_number_input = QLineEdit(self)
-        self.number_of_passengers_input = QLineEdit(self)
-        self.beacon_input = QLineEdit(self)
-        self.baud_input = QLineEdit(self)
 
         # Create button to initialize train
         self.init_train_button = QPushButton('Initialize Train', self)
@@ -72,16 +66,10 @@ class MyApp(QWidget):
         self.ebrake_button.clicked.connect(self.toggle_ebrake)
         self.ebrake_button.setEnabled(False)
 
-        # Create labels for input fields
-        self.train_number_label = QLabel("Train Number:", self)
-        self.number_of_passengers_label = QLabel("Number of Passengers:", self)
-        self.beacon_input_label = QLabel("Beacon:", self)
-        self.baud_input_label = QLabel("Baud Line:", self)
         
         # Create labels for train variables
         self.Train_Beacon_ID_Label = QLabel("Baud ID: 0", self)
         self.authority_label = QLabel("authority(m): 0", self)
-        self.velocity_label = QLabel("Velocity: N/A", self)
         self.kph_velocity_label = QLabel("Velocity(KPH): N/A", self)
         self.acceleration_label = QLabel("Acceleration: N/A", self)
         self.distance_travelled_label = QLabel("Distance Travelled: N/A", self)
@@ -136,14 +124,9 @@ class MyApp(QWidget):
         self.timer.timeout.connect(self.update_train)
 
     def initialize_train(self):
-        if self.train_number_input.text() == "":
-            train_number = 1
-        else:
-            train_number = int(self.train_number_input.text())
-        if self.number_of_passengers_input.text() == "":
-            number_of_passengers = 3
-        else:
-            number_of_passengers = int(self.number_of_passengers_input.text())
+        
+        train_number = 1
+        number_of_passengers = 3
 
         self.train = train_class.Train(train_number, number_of_passengers)
         self.train.beacon_parse("000011010111010100110100101111UVSZSTA1STA2")
@@ -181,11 +164,10 @@ class MyApp(QWidget):
 
     # Function to upload and display an image on the banner
     def upload_image(self):
-        options = QFileDialog.Options()
-        file_name, _ = QFileDialog.getOpenFileName(self, "Upload Banner Image", "", "Images (*.png *.xpm *.jpg);;All Files (*)", options=options)
+        file_name, _ = QFileDialog.getOpenFileName(self, "Upload Banner Image", "", "Images (*.png *.xpm *.jpg);;All Files (*)")
         if file_name:
             pixmap = QPixmap(file_name)
-            pixmap = pixmap.scaled(100, 100, Qt.KeepAspectRatio)  # Scale image to fit the banner
+            pixmap = pixmap.scaled(100, 100, Qt.AspectRatioMode.KeepAspectRatio)  # Scale image to fit the banner
             self.banner_image_label.setPixmap(pixmap)
             self.upload_image_button.deleteLater()  # Delete the button after clicking
 
@@ -217,4 +199,4 @@ class MyApp(QWidget):
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     ex = MyApp()
-    sys.exit(app.exec_())
+    sys.exit(app.exec())
