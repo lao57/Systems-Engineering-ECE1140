@@ -1,5 +1,6 @@
 import sys
-from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QVBoxLayout, QLabel, QLineEdit, QHBoxLayout
+from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QVBoxLayout, QLabel, QLineEdit, QHBoxLayout, QSlider
+from PyQt5.QtCore import Qt
 import train_class
 
 class MyApp(QWidget):
@@ -9,22 +10,18 @@ class MyApp(QWidget):
         self.initUI()
 
     def initUI(self):
-
-
         ####################################################################################################################
         """
-        Create the input fields for vairables to store text input
+        Create the input fields for variables to store text input
         """
         ####################################################################################################################
         # Create input fields for train initialization
         self.train_number_input = QLineEdit(self)
         self.number_of_passengers_input = QLineEdit(self)
         self.beacon_input = QLineEdit(self)
+        self.gradevec_input = QLineEdit(self)
+        self.blockvec_input = QLineEdit(self)
         self.baud_input = QLineEdit(self)
-
-
-
-
 
         ####################################################################################################################
         """
@@ -67,9 +64,6 @@ class MyApp(QWidget):
         self.ebrake_button.clicked.connect(self.toggle_ebrake)
         self.ebrake_button.setEnabled(False)
 
-
-
-
         ####################################################################################################################
         """
         Create the labels
@@ -80,6 +74,8 @@ class MyApp(QWidget):
         self.train_number_label = QLabel("Train Number:", self)
         self.number_of_passengers_label = QLabel("Number of Passengers:", self)
         self.beacon_input_label = QLabel("Beacon:", self)
+        self.gradevec_input_label = QLabel("Grade Vector:", self)
+        self.blockvec_input_label = QLabel("Block Vector:", self)
         self.baud_input_label = QLabel("Baud Line:", self)
         
         # Create labels for train variables
@@ -93,7 +89,31 @@ class MyApp(QWidget):
         self.speeds_vector_label = QLabel("Speeds Vector: N/A", self)
         self.underground_vector_label = QLabel("Underground Vector: N/A", self)
         self.at_station_vector_label = QLabel("At Station Vector: N/A", self)
-        self.extra_bit_vector_label = QLabel("Extra Bit Vector: N/A", self)
+        self.extra_bit_vector_label = QLabel("Station Vector: N/A", self)
+        self.grade_vector_label = QLabel("Grade Vector: N/A", self)
+        self.blocknumbervector_label = QLabel("Block Number Vector: N/A", self)
+        self.power_label = QLabel("Power: 0", self)  # Label to display the power value
+        self.service_brake_label = QLabel("Service Brake: 0.0", self)  # Label to display the service brake value
+
+        ####################################################################################################################
+        """
+        Create the slider
+        """
+        ####################################################################################################################
+        
+        # Create slider for power input
+        self.power_slider = QSlider(Qt.Horizontal, self)
+        self.power_slider.setMinimum(0)
+        self.power_slider.setMaximum(120)
+        self.power_slider.setValue(0)
+        self.power_slider.valueChanged.connect(self.update_power_label)
+
+        # Create slider for service brake input
+        self.service_brake_slider = QSlider(Qt.Horizontal, self)
+        self.service_brake_slider.setMinimum(0)
+        self.service_brake_slider.setMaximum(100)
+        self.service_brake_slider.setValue(0)
+        self.service_brake_slider.valueChanged.connect(self.update_service_brake_label)
 
         ####################################################################################################################
         """
@@ -101,7 +121,6 @@ class MyApp(QWidget):
         """
         ####################################################################################################################
        
-
         # Layout for input fields
         input_layout = QVBoxLayout()
         input_layout.addWidget(self.train_number_label)
@@ -111,12 +130,18 @@ class MyApp(QWidget):
         input_layout.addWidget(self.init_train_button)
         input_layout.addWidget(self.beacon_input_label)
         input_layout.addWidget(self.beacon_input)
+        input_layout.addWidget(self.gradevec_input_label)
+        input_layout.addWidget(self.gradevec_input)
+        input_layout.addWidget(self.blockvec_input_label)
+        input_layout.addWidget(self.blockvec_input)
         input_layout.addWidget(self.parse_beacon_button)
         input_layout.addWidget(self.baud_input_label)
         input_layout.addWidget(self.baud_input)
-
-
-
+        input_layout.addWidget(self.power_label)  # Add power label to layout
+        input_layout.addWidget(self.power_slider)  # Add power slider to layout
+        input_layout.addWidget(QLabel("Service Brake:", self))  # Add label for service brake slider
+        input_layout.addWidget(self.service_brake_slider)  # Add service brake slider to layout
+        input_layout.addWidget(self.service_brake_label)  # Add service brake label to layout
 
         # Layout for train variables
         train_layout = QVBoxLayout()
@@ -131,6 +156,8 @@ class MyApp(QWidget):
         train_layout.addWidget(self.underground_vector_label)
         train_layout.addWidget(self.at_station_vector_label)
         train_layout.addWidget(self.extra_bit_vector_label)
+        train_layout.addWidget(self.grade_vector_label)
+        train_layout.addWidget(self.blocknumbervector_label)
         train_layout.addWidget(self.update_train_button)
 
         # Layout for train controls
@@ -152,14 +179,12 @@ class MyApp(QWidget):
         self.setGeometry(300, 300, 600, 400)
         self.show()
 
-
     ####################################################################################################################
     """
     Button Functions
     """
     ####################################################################################################################
        
-
     def initialize_train(self):
         if self.train_number_input.text() == "":
             train_number = 1
@@ -182,12 +207,17 @@ class MyApp(QWidget):
 
     def parse_beacon(self):
         beacon = self.beacon_input.text()
-        self.train.beacon_parse(beacon)
+        gradevec = [float(x) for x in self.gradevec_input.text().split(',')]
+        blockvec = [int(x) for x in self.blockvec_input.text().split(',')]
+        self.train.beacon_parse(beacon, gradevec, blockvec)
         self.update_train_labels()
 
     def update_train(self):
+        power = self.power_slider.value()  # Get the value from the power slider
+        brake_signal = self.service_brake_slider.value() / 100.0  # Get the value from the service brake slider
         self.train.baud_read(self.baud_input.text())
-        self.train.update_train(120, 0)
+        self.train.brake_signal = brake_signal
+        self.train.update_train(power)
         self.update_train_labels()
 
     def update_train_labels(self):
@@ -202,11 +232,16 @@ class MyApp(QWidget):
         self.underground_vector_label.setText(f"Underground Vector: {self.train.underground_vector}")
         self.at_station_vector_label.setText(f"At Station Vector: {self.train.at_station_vector}")
         self.extra_bit_vector_label.setText(f"Extra Bit Vector: {self.train.extra_bit_vector}")
+        self.grade_vector_label.setText(f"Grade Vector: {self.train.grade_vector}")
+        self.blocknumbervector_label.setText(f"Block Number Vector: {self.train.blocknumbervector}")
 
+    def update_power_label(self, value):
+        self.power_label.setText(f"Power: {value}")
 
+    def update_service_brake_label(self, value):
+        self.service_brake_label.setText(f"Service Brake: {value / 100.0}")
 
-
-    #TOGGLABLES
+    # TOGGLABLES
     def toggle_left_door(self):
         self.train.left_door = not self.train.left_door
         self.left_door_button.setText(f"Left Door: {'Open' if self.train.left_door else 'Closed'}")
@@ -227,7 +262,6 @@ class MyApp(QWidget):
         self.train.ebrake_signal = not self.train.ebrake_signal
         self.ebrake_button.setText(f"Emergency Brake: {'Engaged' if self.train.ebrake_signal else 'Disengaged'}")
 
-
 #################################################################################################################################################
 """
 MAIN FUNCTION
@@ -238,4 +272,33 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     ex = MyApp()
     sys.exit(app.exec_())
-    #000011010111010100110100101111UVSZSTA1STA2
+"""Blue line beacon
+
+110010 = 50 meters
+101 = 40 km/hr
+1 = underground
+0 = not at station
+
+
+two blocks:
+TID             Distance          Speed     Underground     At Station Station Name
+0000     1101011101 0100110100 | 101 111 |      U V       |    S Z    | STA1 STA2
+000011010111010100110100101111UVSZSTA1STA2
+
+0000 0001100100 0001100100 0001100100 0001100100 0001100100 101 101 101 101 101 0000000000 NONE NONE NONE NONE NONE
+LINE A:
+0000000110010000011001000001100100000110010000011001001011011011011010000000000NONENONENONENONENONE
+LINE AB:
+0000000110010000011001000001100100000110010000011001000001100100000110010000011001000001100100000110010010110110110110110110110110110100000000000000000011NONENONENONENONENONEStaBStaBStaBStaBStaB
+0,0,0,0,0,0,0,0,0,0
+1,2,3,4,5,6,7,8,9,10
+LINE AC:
+0000000110010000011001000001100100000110010000011001000001100100000110010000011001000001100100000110010010110110110110110110110110110100000000000000000011NONENONENONENONENONEStaCStaCStaCStaCStaC
+0,0,0,0,0,0,0,0,0,0
+1,2,3,4,5,11,12,13,14,15
+
+
+
+
+
+"""

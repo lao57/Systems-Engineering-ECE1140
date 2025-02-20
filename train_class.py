@@ -56,6 +56,11 @@ class Train:
         self.ebrake_signal = 0
         self.brake_signal = 0
 
+        #failures
+        self.signal_pickup = 1
+        self.brake_status = 1
+        self.engine_status = 1
+
         self.capacity = 75 #SET AS MAX VALUE
         self.numberOfCarts = 1 #according to profetta this is constant
         self.numberOfPassengers = numberOfPassengers #starts at 2 for the driver and the conductor
@@ -72,6 +77,8 @@ class Train:
         self.underground_vector = []
         self.at_station_vector = []
         self.extra_bit_vector = []
+        self.grade_vector = []
+        self.blocknumbervector = []
         
     def display_train(self):
         print("Distance Vector:", self.distance_vector)
@@ -80,11 +87,13 @@ class Train:
         print("At Station Vector:", self.at_station_vector)
         print("Extra Bit Vector:", self.extra_bit_vector)
 
-    def beacon_parse(self, beaconvector):
+    def beacon_parse(self, beaconvector, gradevector_REALSIM, blocknumbervector_REALSIM):
         n = len(beaconvector)
         self.Baud_ID = beaconvector[0:4] #takes the first for values and sets to ID
         number_of_blocks = (n - 4)/19
         num_blocks = int(number_of_blocks)
+        self.grade_vector.extend(gradevector_REALSIM) #adds the grade to the grade vector
+        self.blocknumbervector.extend(blocknumbervector_REALSIM) #adds the block number to the block number vector
         for i in range(0, num_blocks):#adds all block distances to the distance vector
             number_str = beaconvector[4 + 10*i:14 + 10*i]
             number =number_str[0:(len(number_str)-1)] # equals the first 9
@@ -110,17 +119,17 @@ class Train:
 
 
     #this function is used to update the speed acceleration and distance travelled of the train over a one second interval
-    def update_train(self, power, grade): #power in watts, grade in percentage
+    def update_train(self, power): #power in watts, grade in percentage
         power = power *1000 #converts kW to Watts
-        gravitational_acceleration = (g * np.sin(np.arctan(grade/100)))
+        gravitational_acceleration = (g * np.sin(np.arctan(self.grade_vector[0]/100)))
         self.previous_acceleration = self.acceleration
         if self.ebrake_signal == True:
             self.acceleration = (0 - self.brake_signal*service_brake_deceleration - self.ebrake_signal*emergency_brake_deceleration - gravitational_acceleration)
         else:
             if(self.velocity <= 0):#see Ipad for notes on this derivation but avoids divide by zero error
-                self.acceleration = (np.sqrt((2*power)/(self.weight))-self.brake_signal*service_brake_deceleration - self.ebrake_signal*emergency_brake_deceleration - gravitational_acceleration)
+                self.acceleration =(self.engine_status*np.sqrt((2*power)/(self.weight))-self.brake_status*self.brake_signal*service_brake_deceleration - self.ebrake_signal*emergency_brake_deceleration - gravitational_acceleration)
             else:#normal acceleration calculation
-                self.acceleration = (power/(self.weight*self.velocity) - self.brake_signal*service_brake_deceleration - self.ebrake_signal*emergency_brake_deceleration - gravitational_acceleration)
+                self.acceleration = (self.engine_status*power/(self.weight*self.velocity) - self.brake_status*self.brake_signal*service_brake_deceleration - self.ebrake_signal*emergency_brake_deceleration - gravitational_acceleration)
         velocity_holder = self.velocity
         self.velocity = self.previous_velocity + (1/2)*(self.acceleration + self.previous_acceleration)
         if(self.velocity < 0):
@@ -140,6 +149,8 @@ class Train:
             self.underground_vector.pop(0)
             self.at_station_vector.pop(0)
             self.extra_bit_vector.pop(0)
+            self.grade_vector.pop(0)
+            self.blocknumbervector.pop(0)
         #update time flag to move to the next second
 
 """
@@ -157,24 +168,56 @@ if __name__ == "__main__":
     print("Testing Train Class ----------------------------------------------------------")
     train1 = Train(0)
     #####################0000,1101011101,010,
-    train1.beacon_parse("000011010111010100110100101111UVSZE3")
+    train1.beacon_parse("000011010111010100110100101111UVSZSTA1STA2",[-15,1.5], [1,2])
     train1.display_train()
     i = 1
     summer = 0
     while train1.distance_vector[0] > 0:
-        train1.update_train(120, 0)
+        train1.update_train(120)
         print("----------------------------------------------------------")
         print(f"Time: {i} seconds")
         print(f"The speed is: {train1.velocity * 3.6} (km/hr)")
         print(f"The acceleration is: {train1.acceleration} (m/s^2), Distance traveled: {train1.distance_travelled} (m)")
         print(f"Distance traveled: {train1.distance_travelled} (m)")
         print(f"The distance remaing in the block is:{train1.distance_vector[0]} (m)")
+        print(f"the grade is currently: {train1.grade_vector[0]}")
+        print(f"the block number is currently: {train1.blocknumbervector[0]}")
         summer += train1.acceleration
         avgaccel = summer/i
         print()
         print(f"The average acceleration is: {avgaccel} (m/s^2)")
 
         i += 1
-        time.sleep(1)
+        time.sleep(.01)
 
 
+"""Blue line beacon
+
+110010 = 50 meters
+101 = 40 km/hr
+1 = underground
+0 = not at station
+
+
+two blocks:
+TID             Distance          Speed     Underground     At Station Station Name
+0000     1101011101 0100110100 | 101 111 |      U V       |    S Z    | STA1 STA2
+000011010111010100110100101111UVSZSTA1STA2
+
+0000 0001100100 0001100100 0001100100 0001100100 0001100100 101 101 101 101 101 0000000000 NONE NONE NONE NONE NONE
+LINE A:
+0000000110010000011001000001100100000110010000011001001011011011011010000000000NONENONENONENONENONE
+LINE AB:
+0000000110010000011001000001100100000110010000011001000001100100000110010000011001000001100100000110010010110110110110110110110110110100000000000000000000NONENONENONENONENONEStaBStaBStaBStaBStaB
+0,0,0,0,0,0,0,0,0,0
+1,2,3,4,5,6,7,8,9,10
+LINE AC:
+0000000110010000011001000001100100000110010000011001000001100100000110010000011001000001100100000110010010110110110110110110110110110100000000000000000000NONENONENONENONENONEStaBStaBStaBStaBStaB
+0,0,0,0,0,0,0,0,0,0
+1,2,3,4,5,11,12,13,14,15
+
+
+
+
+
+"""

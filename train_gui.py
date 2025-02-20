@@ -73,6 +73,19 @@ class MyApp(QWidget):
         self.ebrake_button.clicked.connect(self.toggle_ebrake)
         self.ebrake_button.setEnabled(False)
 
+        # Create toggle buttons for new train controls
+        self.signal_pickup_button = QPushButton('Toggle Signal Pickup', self)
+        self.signal_pickup_button.clicked.connect(self.toggle_signal_pickup)
+        self.signal_pickup_button.setEnabled(False)
+
+        self.brake_status_button = QPushButton('Toggle Brake Status', self)
+        self.brake_status_button.clicked.connect(self.toggle_brake_status)
+        self.brake_status_button.setEnabled(False)
+
+        self.engine_status_button = QPushButton('Toggle Engine Status', self)
+        self.engine_status_button.clicked.connect(self.toggle_engine_status)
+        self.engine_status_button.setEnabled(False)
+
         # Create labels for train variables
         self.Train_Beacon_ID_Label = QLabel("Baud ID: 0", self)
         self.authority_label = QLabel("authority(m): 0", self)
@@ -117,6 +130,9 @@ class MyApp(QWidget):
         control_layout.addWidget(self.exterior_light_button)
         control_layout.addWidget(self.ebrake_button)
         control_layout.addWidget(self.velocity_dial)  # Add the dial to the control layout
+        control_layout.addWidget(self.signal_pickup_button)  # Add the new buttons
+        control_layout.addWidget(self.brake_status_button)
+        control_layout.addWidget(self.engine_status_button)
 
         # Main layout
         main_layout = QVBoxLayout()
@@ -142,7 +158,7 @@ class MyApp(QWidget):
         number_of_passengers = 3
 
         self.train = train_class.Train(train_number, number_of_passengers)
-        self.train.beacon_parse("000011010111010100110100101111UVSZSTA1STA2")
+        self.train.beacon_parse("0000000110010000011001000001100100000110010000011001000001100100000110010000011001000001100100000110010010110110110110110110110110110100000000000000000011NONENONENONENONENONEStaBStaBStaBStaBStaB", [0,0,0,0,0,0,0,0,0,0], [1,2,3,4,5,6,7,8,9,10])
         self.update_train_labels()
         self.left_door_button.setEnabled(True)
         self.right_door_button.setEnabled(True)
@@ -150,13 +166,16 @@ class MyApp(QWidget):
         self.exterior_light_button.setEnabled(True)
         self.ebrake_button.setEnabled(True)
         self.velocity_dial.setEnabled(True)  # Enable the dial
+        self.signal_pickup_button.setEnabled(True)
+        self.brake_status_button.setEnabled(True)
+        self.engine_status_button.setEnabled(True)
 
         # Start the timer to update the train every second
         self.timer.start(1000)
 
     def update_train(self):
         self.train.baud_read("0000101111")
-        self.train.update_train(120, 0)
+        self.train.update_train(120)
         self.update_train_labels()
         self.update_clock()  # Update the clock each time the train is updated
 
@@ -212,6 +231,21 @@ class MyApp(QWidget):
     def toggle_ebrake(self):
         self.train.ebrake_signal = not self.train.ebrake_signal
         self.ebrake_button.setText(f"Emergency Brake: {'Engaged' if self.train.ebrake_signal else 'Disengaged'}")
+
+    # Function to toggle signal pickup
+    def toggle_signal_pickup(self):
+        self.train.signal_pickup = not self.train.signal_pickup
+        self.signal_pickup_button.setText(f"Signal Pickup: {'On' if self.train.signal_pickup else 'Off'}")
+
+    # Function to toggle brake status
+    def toggle_brake_status(self):
+        self.train.brake_status = not self.train.brake_status
+        self.brake_status_button.setText(f"Brake Status: {'Engaged' if self.train.brake_status else 'Disengaged'}")
+
+    # Function to toggle engine status
+    def toggle_engine_status(self):
+        self.train.engine_status = not self.train.engine_status
+        self.engine_status_button.setText(f"Engine Status: {'On' if self.train.engine_status else 'Off'}")
 
 
 if __name__ == '__main__':
