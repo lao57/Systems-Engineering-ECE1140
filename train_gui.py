@@ -1,5 +1,5 @@
 import sys
-from PyQt6.QtWidgets import QApplication, QWidget, QPushButton, QVBoxLayout, QLabel, QLineEdit, QHBoxLayout, QFileDialog, QFrame
+from PyQt6.QtWidgets import QApplication, QWidget, QPushButton, QVBoxLayout, QLabel, QLineEdit, QHBoxLayout, QFileDialog, QFrame, QDial
 from PyQt6.QtGui import QPixmap
 from PyQt6.QtCore import Qt, QTimer
 import train_class
@@ -66,7 +66,6 @@ class MyApp(QWidget):
         self.ebrake_button.clicked.connect(self.toggle_ebrake)
         self.ebrake_button.setEnabled(False)
 
-        
         # Create labels for train variables
         self.Train_Beacon_ID_Label = QLabel("Baud ID: 0", self)
         self.authority_label = QLabel("authority(m): 0", self)
@@ -77,7 +76,13 @@ class MyApp(QWidget):
         self.speeds_vector_label = QLabel("Speeds Vector: N/A", self)
         self.underground_vector_label = QLabel("Underground Vector: N/A", self)
         self.at_station_vector_label = QLabel("At Station Vector: N/A", self)
-        self.extra_bit_vector_label = QLabel("Extra Bit Vector: N/A", self)
+        self.extra_bit_vector_label = QLabel("Next Station: N/A", self)
+
+        # Create a dial for velocity
+        self.velocity_dial = QDial(self)
+        self.velocity_dial.setRange(0, 75)  # Assuming max velocity is 70 mph
+        self.velocity_dial.setNotchesVisible(True)
+        self.velocity_dial.setEnabled(False)
 
         # Layout for input fields
         input_layout = QVBoxLayout()
@@ -104,6 +109,7 @@ class MyApp(QWidget):
         control_layout.addWidget(self.interior_light_button)
         control_layout.addWidget(self.exterior_light_button)
         control_layout.addWidget(self.ebrake_button)
+        control_layout.addWidget(self.velocity_dial)  # Add the dial to the control layout
 
         # Main layout
         main_layout = QVBoxLayout()
@@ -136,6 +142,7 @@ class MyApp(QWidget):
         self.interior_light_button.setEnabled(True)
         self.exterior_light_button.setEnabled(True)
         self.ebrake_button.setEnabled(True)
+        self.velocity_dial.setEnabled(True)  # Enable the dial
 
         # Start the timer to update the train every second
         self.timer.start(1000)
@@ -148,15 +155,19 @@ class MyApp(QWidget):
 
     def update_train_labels(self):
         self.Train_Beacon_ID_Label.setText(f"Baud ID: {self.train.Baud_ID}")
-        self.authority_label.setText(f"Authority: {self.train.authority * 3.2808399} ft")
-        self.kph_velocity_label.setText(f"Velocity: {self.train.velocity * 2.23693629} mph")
-        self.acceleration_label.setText(f"Acceleration: {self.train.acceleration * 0.81} miles/h^2")
-        self.distance_travelled_label.setText(f"Distance Travelled: {self.train.distance_travelled * 3.2808399} ft")
-        self.distance_vector_label.setText(f"Distance Vector: {self.train.imperial_distance_vector}")
-        self.speeds_vector_label.setText(f"Speeds Vector: {self.train.speeds_vector}")
-        self.underground_vector_label.setText(f"Underground Vector: {self.train.underground_vector}")
-        self.at_station_vector_label.setText(f"At Station Vector: {self.train.at_station_vector}")
-        self.extra_bit_vector_label.setText(f"Extra Bit Vector: {self.train.extra_bit_vector}")
+        self.authority_label.setText(f"Authority: {self.train.authority * 3.2808399:.1f} ft")
+        self.kph_velocity_label.setText(f"Velocity: {self.train.velocity * 2.23693629:.1f} mph")
+        self.velocity_dial.setValue(int(self.train.velocity * 2.23693629))  # Update the dial with the velocity
+        self.acceleration_label.setText(f"Acceleration: {self.train.acceleration * 0.81:.1f} miles/h^2")
+        self.distance_travelled_label.setText(f"Distance Travelled: {self.train.distance_travelled * 3.2808399:.1f} ft")
+        
+        # Display only the first value of each vector
+        self.distance_vector_label.setText(f"Distance Vector: {self.train.imperial_distance_vector[0]:.1f}")
+        self.speeds_vector_label.setText(f"Speeds Vector: {self.train.speeds_vector[0]:.1f}")
+        self.underground_vector_label.setText(f"Underground Vector: {self.train.underground_vector[0]}")
+        self.at_station_vector_label.setText(f"At Station Vector: {self.train.at_station_vector[0]}")
+        self.extra_bit_vector_label.setText(f"Next Station: {self.train.extra_bit_vector[0]}")
+        
         self.toggle_left_door()
         self.toggle_right_door()
         self.toggle_interior_light()

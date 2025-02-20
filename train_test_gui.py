@@ -238,4 +238,4 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     ex = MyApp()
     sys.exit(app.exec_())
-    #000011010111010100110100101111UVSZE3
+    #000011010111010100110100101111UVSZSTA1STA2

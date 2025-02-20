@@ -60,9 +60,9 @@ class Train:
         self.numberOfCarts = 1 #according to profetta this is constant
         self.numberOfPassengers = numberOfPassengers #starts at 2 for the driver and the conductor
 
-        self.left_door = False
+        self.left_door = True
         self.right_door = False
-        self.exterior_light = False
+        self.exterior_light = True
         self.interior_light = False
         self.weight = self.numberOfCarts * 40000 + numberOfPassengers * 70 #40 tons per cart plus 70 kg per person
 
@@ -129,10 +129,13 @@ class Train:
         distance_over_interval = (1/2)*(self.velocity + self.previous_velocity)#one second times the average velocity
         self.distance_travelled += distance_over_interval
         self.distance_vector[0] -= distance_over_interval
+        self.imperial_distance_vector[0] -= distance_over_interval * 3.2808399
         self.authority -= distance_over_interval
         while self.distance_vector[0] < 0:
             self.distance_vector[1] += self.distance_vector[0] #applying extra distance into the next block
             self.distance_vector.pop(0)
+            self.imperial_distance_vector.pop(0)
+            self.imperial_distance_vector[0] = self.distance_vector[0] * 3.2808399
             self.speeds_vector.pop(0)
             self.underground_vector.pop(0)
             self.at_station_vector.pop(0)
