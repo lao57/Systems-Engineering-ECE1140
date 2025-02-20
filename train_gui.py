@@ -15,7 +15,7 @@ class MyApp(QWidget):
         # Create the blue banner at the top
         self.banner_frame = QFrame(self)
         self.banner_frame.setStyleSheet("background-color: #001573; height: 100px;")
-        self.banner_layout = QVBoxLayout()
+        self.banner_layout = QHBoxLayout()
         self.banner_frame.setLayout(self.banner_layout)
 
         # Add the group3logo.png image to the top left
@@ -25,22 +25,22 @@ class MyApp(QWidget):
         self.logo_label.setPixmap(pixmap)
         self.banner_layout.addWidget(self.logo_label, alignment=Qt.AlignmentFlag.AlignLeft)
 
-        # Create a label to hold the uploaded image
-        self.banner_image_label = QLabel(self)
-        self.banner_image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.banner_layout.addWidget(self.banner_image_label)
-        
         # Create an upload image button for the banner
         self.upload_image_button = QPushButton('Upload Image', self)
         self.upload_image_button.setStyleSheet("color: white; background-color: #333; padding: 5px; border-radius: 5px;")
         self.upload_image_button.clicked.connect(self.upload_image)
-        self.banner_layout.addWidget(self.upload_image_button)
+        self.banner_layout.addWidget(self.upload_image_button, alignment=Qt.AlignmentFlag.AlignLeft)
 
+        # Create a label to hold the uploaded image
+        self.banner_image_label = QLabel(self)
+        self.banner_image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.banner_layout.addWidget(self.banner_image_label, alignment=Qt.AlignmentFlag.AlignCenter)
+        
         # Create a clock label
         self.clock_label = QLabel(self)
         self.clock_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.clock_label.setStyleSheet("font-size: 20px; color: white;")
-        self.banner_layout.addWidget(self.clock_label)
+        self.banner_layout.addWidget(self.clock_label, alignment=Qt.AlignmentFlag.AlignRight)
 
         # Create button to initialize train
         self.init_train_button = QPushButton('Initialize Train', self)
