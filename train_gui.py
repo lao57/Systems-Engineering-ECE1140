@@ -97,6 +97,11 @@ class MyApp(QWidget):
         self.underground_vector_label = QLabel("Underground Vector: N/A", self)
         self.at_station_vector_label = QLabel("At Station Vector: N/A", self)
         self.extra_bit_vector_label = QLabel("Next Station: N/A", self)
+        
+        # Add new labels for weight, number of carts, and length of the train
+        self.weight_label = QLabel("Weight: N/A", self)
+        self.num_carts_label = QLabel("Number of Carts: N/A", self)
+        self.length_label = QLabel("Length: N/A", self)
 
         # Create a dial for velocity
         self.velocity_dial = QDial(self)
@@ -120,6 +125,9 @@ class MyApp(QWidget):
         train_layout.addWidget(self.underground_vector_label)
         train_layout.addWidget(self.at_station_vector_label)
         train_layout.addWidget(self.extra_bit_vector_label)
+        train_layout.addWidget(self.weight_label)  # Add the new labels
+        train_layout.addWidget(self.num_carts_label)
+        train_layout.addWidget(self.length_label)
         train_layout.addWidget(self.update_train_button)
 
         # Layout for train controls
@@ -153,7 +161,6 @@ class MyApp(QWidget):
         self.timer.timeout.connect(self.update_train)
 
     def initialize_train(self):
-        
         train_number = 1
         number_of_passengers = 3
 
@@ -193,6 +200,11 @@ class MyApp(QWidget):
         self.underground_vector_label.setText(f"Underground Vector: {self.train.underground_vector[0]}")
         self.at_station_vector_label.setText(f"At Station Vector: {self.train.at_station_vector[0]}")
         self.extra_bit_vector_label.setText(f"Next Station: {self.train.extra_bit_vector[0]}")
+        
+        # Update the new labels
+        self.weight_label.setText(f"Weight: {int(self.train.weight_imperial)} lbs")
+        self.num_carts_label.setText(f"Number of Carts: {self.train.numberOfCarts}")
+        self.length_label.setText(f"Length: {int(self.train.length_imperial)} ft")
         
         self.toggle_left_door()
         self.toggle_right_door()

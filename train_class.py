@@ -62,7 +62,7 @@ class Train:
         self.engine_status = 1
 
         self.capacity = 75 #SET AS MAX VALUE
-        self.numberOfCarts = 1 #according to profetta this is constant
+        self.numberOfCarts = 5 #according to profetta this is constant
         self.numberOfPassengers = numberOfPassengers #starts at 2 for the driver and the conductor
 
         self.left_door = True
@@ -70,6 +70,9 @@ class Train:
         self.exterior_light = True
         self.interior_light = False
         self.weight = self.numberOfCarts * 40000 + numberOfPassengers * 70 #40 tons per cart plus 70 kg per person
+        self.weight_imperial = self.weight * 2.20462
+        self.length = 32.3 * self.numberOfCarts
+        self.length_imperial = self.length * 3.2808399
 
         self.distance_vector = []
         self.imperial_distance_vector = []
