@@ -18,6 +18,13 @@ class MyApp(QWidget):
         self.banner_layout = QVBoxLayout()
         self.banner_frame.setLayout(self.banner_layout)
 
+        # Add the group3logo.png image to the top left
+        self.logo_label = QLabel(self)
+        pixmap = QPixmap("group3logo.png")
+        pixmap = pixmap.scaled(100, 100, Qt.AspectRatioMode.KeepAspectRatio)  # Scale image to fit the banner
+        self.logo_label.setPixmap(pixmap)
+        self.banner_layout.addWidget(self.logo_label, alignment=Qt.AlignmentFlag.AlignLeft)
+
         # Create a label to hold the uploaded image
         self.banner_image_label = QLabel(self)
         self.banner_image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
