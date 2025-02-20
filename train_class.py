@@ -67,6 +67,7 @@ class Train:
         self.weight = self.numberOfCarts * 40000 + numberOfPassengers * 70 #40 tons per cart plus 70 kg per person
 
         self.distance_vector = []
+        self.imperial_distance_vector = []
         self.speeds_vector = [] #holds initial speed until beacon where then those are pushed to the back of the vector
         self.underground_vector = []
         self.at_station_vector = []
@@ -82,13 +83,14 @@ class Train:
     def beacon_parse(self, beaconvector):
         n = len(beaconvector)
         self.Baud_ID = beaconvector[0:4] #takes the first for values and sets to ID
-        number_of_blocks = (n - 4)/16
+        number_of_blocks = (n - 4)/19
         num_blocks = int(number_of_blocks)
         for i in range(0, num_blocks):#adds all block distances to the distance vector
             number_str = beaconvector[4 + 10*i:14 + 10*i]
             number =number_str[0:(len(number_str)-1)] # equals the first 9
             distance_value = int(number,2) + 0.6*float(number_str[len(number_str)-1]) #adds the first 9 bits to 0.6 times the last bit to account for one block that is 86.6 meters
             self.distance_vector.append(distance_value)
+            self.imperial_distance_vector.append(distance_value * 3.2808399)    #converts meters to feet
 
             speed_str = beaconvector[4+num_blocks*10 + 3*i:7+num_blocks*10 + 3*i]
             speed_limit = binary_to_value[speed_str]
@@ -96,12 +98,12 @@ class Train:
 
             self.underground_vector.append(beaconvector[4+num_blocks*13+i])
             self.at_station_vector.append(beaconvector[4+num_blocks*14+i])
-            self.extra_bit_vector.append(beaconvector[4+num_blocks*15+i])
+            self.extra_bit_vector.append(beaconvector[4 + num_blocks * 15 + 4 * i:4 + num_blocks * 15 + 4 * (i + 1)])
 
     def baud_read(self,baud_signal):
-        # Print the values to debug
+        """ Print the values to debug
         print(f"baud_signal[0:4]: '{baud_signal[0:4]}' (type: {type(baud_signal[0:4])})")
-        print(f"self.Baud_ID: '{self.Baud_ID}' (type: {type(self.Baud_ID)})")
+        print(f"self.Baud_ID: '{self.Baud_ID}' (type: {type(self.Baud_ID)})")"""
 
         if baud_signal[0:4] == self.Baud_ID:
             self.authority = authority_decoder[baud_signal[-4:]]

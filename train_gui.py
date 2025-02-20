@@ -8,15 +8,10 @@ class MyApp(QWidget):
     def __init__(self):
         super().__init__()
         self.train = None
+        self.elapsed_seconds = 0  # Initialize elapsed time
         self.initUI()
 
     def initUI(self):
-        ####################################################################################################################
-        """
-        Create the main layout with a blue banner on top
-        """
-        ####################################################################################################################
-
         # Create the blue banner at the top
         self.banner_frame = QFrame(self)
         self.banner_frame.setStyleSheet("background-color: #001573; height: 100px;")
@@ -34,23 +29,18 @@ class MyApp(QWidget):
         self.upload_image_button.clicked.connect(self.upload_image)
         self.banner_layout.addWidget(self.upload_image_button)
 
-        ####################################################################################################################
-        """
-        Create the input fields for variables to store text input
-        """
-        ####################################################################################################################
+        # Create a clock label
+        self.clock_label = QLabel(self)
+        self.clock_label.setAlignment(Qt.AlignCenter)
+        self.clock_label.setStyleSheet("font-size: 20px; color: white;")
+        self.banner_layout.addWidget(self.clock_label)
+
         # Create input fields for train initialization
         self.train_number_input = QLineEdit(self)
         self.number_of_passengers_input = QLineEdit(self)
         self.beacon_input = QLineEdit(self)
         self.baud_input = QLineEdit(self)
 
-        ####################################################################################################################
-        """
-        Create the Buttons
-        """
-        ####################################################################################################################
-        
         # Create button to initialize train
         self.init_train_button = QPushButton('Initialize Train', self)
         self.init_train_button.clicked.connect(self.initialize_train)
@@ -82,12 +72,6 @@ class MyApp(QWidget):
         self.ebrake_button.clicked.connect(self.toggle_ebrake)
         self.ebrake_button.setEnabled(False)
 
-        ####################################################################################################################
-        """
-        Create the labels
-        """
-        ####################################################################################################################
-        
         # Create labels for input fields
         self.train_number_label = QLabel("Train Number:", self)
         self.number_of_passengers_label = QLabel("Number of Passengers:", self)
@@ -107,23 +91,15 @@ class MyApp(QWidget):
         self.at_station_vector_label = QLabel("At Station Vector: N/A", self)
         self.extra_bit_vector_label = QLabel("Extra Bit Vector: N/A", self)
 
-        ####################################################################################################################
-        """
-        GUI Layout
-        """
-        ####################################################################################################################
-       
         # Layout for input fields
         input_layout = QVBoxLayout()
         input_layout.addWidget(self.init_train_button)
-
 
         # Layout for train variables
         train_layout = QVBoxLayout()
         input_layout.addWidget(self.authority_label)
         input_layout.addWidget(self.Train_Beacon_ID_Label)
-        train_layout.addWidget(self.velocity_label)
-        train_layout.addWidget(self.kph_velocity_label)
+        train_layout.addWidget(self.kph_velocity_label) #now mph
         train_layout.addWidget(self.acceleration_label)
         train_layout.addWidget(self.distance_travelled_label)
         train_layout.addWidget(self.distance_vector_label)
@@ -151,19 +127,13 @@ class MyApp(QWidget):
         main_layout.addLayout(content_layout)
 
         self.setLayout(main_layout)
-        self.setWindowTitle('PyQt5 GUI with Train Variables')
+        self.setWindowTitle('Train GUI')
         self.setGeometry(300, 300, 600, 400)
         self.show()
 
         # Initialize the timer
         self.timer = QTimer()
         self.timer.timeout.connect(self.update_train)
-
-    ####################################################################################################################
-    """
-    Button Functions
-    """
-    ####################################################################################################################
 
     def initialize_train(self):
         if self.train_number_input.text() == "":
@@ -176,7 +146,7 @@ class MyApp(QWidget):
             number_of_passengers = int(self.number_of_passengers_input.text())
 
         self.train = train_class.Train(train_number, number_of_passengers)
-        self.train.beacon_parse("000011010111010100110100101111UVSZE3")
+        self.train.beacon_parse("000011010111010100110100101111UVSZSTA1STA2")
         self.update_train_labels()
         self.left_door_button.setEnabled(True)
         self.right_door_button.setEnabled(True)
@@ -191,19 +161,23 @@ class MyApp(QWidget):
         self.train.baud_read("0000101111")
         self.train.update_train(120, 0)
         self.update_train_labels()
+        self.update_clock()  # Update the clock each time the train is updated
 
     def update_train_labels(self):
         self.Train_Beacon_ID_Label.setText(f"Baud ID: {self.train.Baud_ID}")
-        self.authority_label.setText(f"Authority: {self.train.authority} m")
-        self.velocity_label.setText(f"Velocity: {self.train.velocity} m/s")
-        self.kph_velocity_label.setText(f"Velocity(KPH): {self.train.velocity * 3.6} km/h")
-        self.acceleration_label.setText(f"Acceleration: {self.train.acceleration} m/s^2")
-        self.distance_travelled_label.setText(f"Distance Travelled: {self.train.distance_travelled} m")
-        self.distance_vector_label.setText(f"Distance Vector: {self.train.distance_vector}")
+        self.authority_label.setText(f"Authority: {self.train.authority * 3.2808399} ft")
+        self.kph_velocity_label.setText(f"Velocity: {self.train.velocity * 2.23693629} mph")
+        self.acceleration_label.setText(f"Acceleration: {self.train.acceleration * 0.81} miles/h^2")
+        self.distance_travelled_label.setText(f"Distance Travelled: {self.train.distance_travelled * 3.2808399} ft")
+        self.distance_vector_label.setText(f"Distance Vector: {self.train.imperial_distance_vector}")
         self.speeds_vector_label.setText(f"Speeds Vector: {self.train.speeds_vector}")
         self.underground_vector_label.setText(f"Underground Vector: {self.train.underground_vector}")
         self.at_station_vector_label.setText(f"At Station Vector: {self.train.at_station_vector}")
         self.extra_bit_vector_label.setText(f"Extra Bit Vector: {self.train.extra_bit_vector}")
+        self.toggle_left_door()
+        self.toggle_right_door()
+        self.toggle_interior_light()
+        self.toggle_exterior_light()
 
     # Function to upload and display an image on the banner
     def upload_image(self):
@@ -215,34 +189,30 @@ class MyApp(QWidget):
             self.banner_image_label.setPixmap(pixmap)
             self.upload_image_button.deleteLater()  # Delete the button after clicking
 
+    # Function to update the clock
+    def update_clock(self):
+        self.elapsed_seconds += 1
+        hours, remainder = divmod(self.elapsed_seconds, 3600)
+        minutes, seconds = divmod(remainder, 60)
+        self.clock_label.setText(f"{hours:02}:{minutes:02}:{seconds:02}")
 
     # TOGGLABLES
     def toggle_left_door(self):
-        self.train.left_door = not self.train.left_door
         self.left_door_button.setText(f"Left Door: {'Open' if self.train.left_door else 'Closed'}")
 
     def toggle_right_door(self):
-        self.train.right_door = not self.train.right_door
         self.right_door_button.setText(f"Right Door: {'Open' if self.train.right_door else 'Closed'}")
 
     def toggle_interior_light(self):
-        self.train.interior_light = not self.train.interior_light
         self.interior_light_button.setText(f"Interior Light: {'On' if self.train.interior_light else 'Off'}")
 
     def toggle_exterior_light(self):
-        self.train.exterior_light = not self.train.exterior_light
         self.exterior_light_button.setText(f"Exterior Light: {'On' if self.train.exterior_light else 'Off'}")
 
     def toggle_ebrake(self):
         self.train.ebrake_signal = not self.train.ebrake_signal
         self.ebrake_button.setText(f"Emergency Brake: {'Engaged' if self.train.ebrake_signal else 'Disengaged'}")
 
-
-####################################################################################################################
-"""
-MAIN FUNCTION
-"""
-####################################################################################################################
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
