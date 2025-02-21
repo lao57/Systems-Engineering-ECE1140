@@ -118,6 +118,7 @@ class Simulator:
         self.gui.update_speed_limit(self.train_controller.speed_limit)
         self.gui.update_authority(self.authority)
         self.gui.update_failure_modes(self.failure_modes)
+        self.gui.update_underground(self.underground)
 
         e_brake_decel = self.train_controller.max_ebrake_decel if ebrake else 0.0
 

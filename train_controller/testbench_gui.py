@@ -107,7 +107,7 @@ class TestbenchGUI(QWidget):
         self.underground_slider.setSingleStep(1)  # Ensures the slider moves in steps of 1
         self.underground_slider.setFixedWidth(40)
         self.underground_lbl = QLabel(f"Underground", self)
-        self.underground_slider.valueChanged.connect(self.update_sbrake_fail)
+        self.underground_slider.valueChanged.connect(self.update_underground)
 
         self.cabin_temp_lbl = QLabel(f"Cabin temperature (F): {self.cabin_temp}", self)
         self.cabin_temp_textbox = QLineEdit(self)
@@ -266,7 +266,7 @@ class TestbenchGUI(QWidget):
 
     def update_underground(self, value):
         self.underground = True if value == 1 else False
-        self.failure_mode_event = True
+        self.underground_event = True
 
     def update_cabin_temp(self):
         self.cabin_temp = float(self.cabin_temp_textbox.text())

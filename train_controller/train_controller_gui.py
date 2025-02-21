@@ -314,3 +314,7 @@ class TrainControllerGUI(QWidget):
         self.train_engine_fail_icon.setPixmap(pixmap_list[0])
         self.signal_pickup_fail_icon.setPixmap(pixmap_list[1])
         self.sbrake_fail_icon.setPixmap(pixmap_list[2])
+
+    def update_underground(self, underground):
+        self.underground = underground
+        self.underground_lbl.setText(f"Underground: {'True' if self.underground else 'False'}")
