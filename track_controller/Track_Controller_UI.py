@@ -4,7 +4,11 @@ from PyQt6.QtWidgets import (
     QHBoxLayout, QLineEdit, QComboBox, QCheckBox, QGridLayout, QScrollArea, QHeaderView
 )
 from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QFont
 
+
+app = QApplication(sys.argv)
+app.setFont(QFont("Arial", 14))
 class TestBench(QMainWindow):
     def __init__(self, controller):
         super().__init__()
@@ -38,7 +42,7 @@ class TestBench(QMainWindow):
         layout.addWidget(scroll_area)
         
         self.occupancy_dropdown = QComboBox()
-        self.occupancy_dropdown.addItems(["Train", "Maintenance", "Error"])
+        self.occupancy_dropdown.addItems(["Train", "Maintenance/Error"])
         self.occupancy_dropdown.currentIndexChanged.connect(self.update_occupancy_type)
         
         self.authority_input = QLineEdit()
@@ -61,13 +65,11 @@ class TestBench(QMainWindow):
             if occupancy_type == "Train":
                 self.occupancy_dropdown.setCurrentText("Train")
                 self.authority_input.setVisible(True)
-                self.authority_input.setText(str(self.controller.train_authority[block]))
-            elif occupancy_type == "Maintenance":
-                self.occupancy_dropdown.setCurrentText("Maintenance")
+                self.authority_input.setText(str(self.controller.section_authority[self.controller.get_section(block)]))
+            elif occupancy_type == "Maintenance/Error":
+                self.occupancy_dropdown.setCurrentText("Maintenance/Error")
                 self.authority_input.setVisible(False)
-            elif occupancy_type == "Error":
-                self.occupancy_dropdown.setCurrentText("Error")
-                self.authority_input.setVisible(False)
+
         else:
             self.occupancy_dropdown.setCurrentIndex(-1)
             self.authority_input.setVisible(False)
@@ -75,7 +77,7 @@ class TestBench(QMainWindow):
         self.controller.block_occupancy[block] = self.occupancy_buttons[block].isChecked()
         
         if not self.controller.block_occupancy[block]:
-            self.controller.train_authority[block] = None
+            self.controller.section_authority[self.controller.get_section(block)] = None
             self.authority_input.clear()
         
         self.controller.update_plc_states()
@@ -88,7 +90,7 @@ class TestBench(QMainWindow):
             if occupancy_type == "Empty":
                 self.controller.block_occupancy[self.current_block] = False
                 self.controller.occupancy_type[self.current_block] = None
-                self.controller.train_authority[self.current_block] = None  
+                self.controller.section_authority[self.controller.get_section(self.current_block)] = None  
                 self.authority_input.clear()
             else:
                 self.controller.occupancy_type[self.current_block] = occupancy_type
@@ -98,7 +100,7 @@ class TestBench(QMainWindow):
     def update_authority(self):
         if self.current_block is not None and self.controller.occupancy_type[self.current_block] == "Train":
             authority = self.authority_input.text()
-            self.controller.train_authority[self.current_block] = int(authority) if authority.isdigit() else None
+            self.controller.section_authority[self.controller.get_section(self.current_block)] = int(authority) if authority.isdigit() else None
             self.controller.update_plc_states()
             self.controller.update_ui()
     
@@ -107,11 +109,10 @@ class TestBench(QMainWindow):
             btn.setEnabled(not manual_mode)
 
 class TrackController(QMainWindow):
-    def __init__(self, line_name, num_blocks, num_switches, num_lights, num_crossings):
+    def __init__(self, num_blocks, num_switches, num_lights, num_crossings):
         super().__init__()
         self.setWindowTitle("Track Controller")
         self.setGeometry(100, 100, 300, 600)
-        self.line_name = line_name
         self.num_blocks = num_blocks
         self.num_switches = num_switches
         self.num_lights = num_lights
@@ -119,23 +120,30 @@ class TrackController(QMainWindow):
         
         self.block_occupancy = [False] * num_blocks
         self.occupancy_type = [None] * num_blocks
-        self.train_authority = [None] * num_blocks
+        self.section_authority = {"A": None, "B": None, "C": None}  # Section authority
         self.switch_states = [False] * num_switches  
         self.light_states = [False] * num_lights  
         self.crossing_states = [False] * num_crossings 
         self.manual_mode = False
         self.initUI()
     
+    def get_section(self, block):
+        if block < 5:
+            return "A"
+        elif block < 10:
+            return "B"
+        else:
+            return "C"
+    
     def initUI(self):
         centralWidget = QWidget()
         self.setCentralWidget(centralWidget)
         layout = QVBoxLayout()
         
-        self.line_label = QLabel(self.line_name)
         self.manual_mode_checkbox = QCheckBox("Manual Mode")
         self.manual_mode_checkbox.stateChanged.connect(self.toggle_manual_mode)
         
-        self.block_table = QTableWidget(10, 2) 
+        self.block_table = QTableWidget(20, 2) 
         self.block_table.setHorizontalHeaderLabels(["Block", "Occupancy"])
         self.block_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         self.update_block_table()
@@ -148,7 +156,6 @@ class TrackController(QMainWindow):
         self.pagination_buttons.addWidget(self.prev_button)
         self.pagination_buttons.addWidget(self.next_button)
         
-        layout.addWidget(self.line_label)
         layout.addWidget(self.manual_mode_checkbox)
         layout.addWidget(QLabel("Block Occupancy"))
         layout.addWidget(self.block_table)
@@ -183,22 +190,18 @@ class TrackController(QMainWindow):
             self.crossing_buttons.append(btn)
             crossing_layout.addWidget(btn)
         
-        self.train_table = QTableWidget(10, 2)   
-        self.train_table.setHorizontalHeaderLabels(["Block", "Authority"])
-        self.train_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
-        self.update_train_table()
-        
+        self.section_table = QTableWidget(3, 2)  # Only 3 rows for sections A, B, C
+        self.section_table.setHorizontalHeaderLabels(["Section", "Authority"])
+        self.section_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        self.section_table.setMaximumHeight(150)  # Limit the height to make it compact
+                
         layout.addWidget(QLabel("Outputs"))
         layout.addLayout(switch_layout)
         layout.addLayout(light_layout)
         layout.addWidget(self.crossing_label)
         layout.addLayout(crossing_layout)
-        layout.addWidget(QLabel("Train Authority"))
-        layout.addWidget(self.train_table)
-        
-        self.testbench_button = QPushButton("Open Test Bench")
-        self.testbench_button.clicked.connect(self.open_testbench)
-        layout.addWidget(self.testbench_button)
+        layout.addWidget(QLabel("Section Authority"))
+        layout.addWidget(self.section_table)
         
         centralWidget.setLayout(layout)
     
@@ -303,7 +306,7 @@ class TrackController(QMainWindow):
     def update_ui(self):
         self.update_block_table()
         
-        self.update_train_table()
+        self.update_section_table()
         
         for i, state in enumerate(self.switch_states):
             self.switch_buttons[i].setText(f"Switch {i+1}: {'On' if state else 'Off'}")
@@ -318,66 +321,76 @@ class TrackController(QMainWindow):
             self.crossing_buttons[i].setStyleSheet(f"background-color: {'red' if state else 'green'}")
 
     def update_block_table(self, start_block=0):
-        self.block_table.setRowCount(10)
-        for i in range(10):
+        self.block_table.setRowCount(20)  
+        for i in range(20):
             block_num = start_block + i
             if block_num < self.num_blocks:
+                # Block number
                 block_item = QTableWidgetItem(f"{block_num+1}")
-                block_item.setFlags(Qt.ItemFlag.ItemIsEnabled)  # Make it read-only
+                block_item.setFlags(Qt.ItemFlag.ItemIsEnabled)
                 self.block_table.setItem(i, 0, block_item)
 
-                occupancy_text = "Occupied" if self.block_occupancy[block_num] else "Empty"
-                occupancy_item = QTableWidgetItem(occupancy_text)
-                occupancy_item.setFlags(Qt.ItemFlag.ItemIsEnabled) 
+                # Occupancy status
+                if self.block_occupancy[block_num]:
+                    occupancy_type = self.occupancy_type[block_num]
+                    if occupancy_type == "Train":
+                        occupancy_display = "Train"
+                        background_color = Qt.GlobalColor.lightGray  # Highlight for Train
+                    elif occupancy_type == "Maintenance/Error":
+                        occupancy_display = "Maintenance/Error"
+                        background_color = Qt.GlobalColor.darkRed  # Highlight for Maintenance/Error
+                    else:
+                        occupancy_display = "Occupied"  # Fallback for other cases
+                        background_color = Qt.GlobalColor.lightGray  # Default highlight
+                else:
+                    occupancy_display = "Unoccupied"
+                    background_color = Qt.GlobalColor.transparent  # No highlight for unoccupied
+
+                # Set the occupancy item with the appropriate background color
+                occupancy_item = QTableWidgetItem(occupancy_display)
+                occupancy_item.setFlags(Qt.ItemFlag.ItemIsEnabled)
+                occupancy_item.setBackground(background_color)
                 self.block_table.setItem(i, 1, occupancy_item)
             else:
-                # Empty rows
+                # Empty cells for blocks beyond the range
                 empty_item = QTableWidgetItem("")
-                empty_item.setFlags(Qt.ItemFlag.ItemIsEnabled) 
+                empty_item.setFlags(Qt.ItemFlag.ItemIsEnabled)
                 self.block_table.setItem(i, 0, empty_item)
-                self.block_table.setItem(i, 1, empty_item)
+                self.block_table.setItem(i, 1, empty_item)      
 
-    def update_train_table(self, start_block=0):
-        self.train_table.setRowCount(10)
-        for i in range(10):
-            block_num = start_block + i
-            if block_num < self.num_blocks:
-                block_item = QTableWidgetItem(f"{block_num+1}")
-                block_item.setFlags(Qt.ItemFlag.ItemIsEnabled)  
-                self.train_table.setItem(i, 0, block_item)
+    def update_section_table(self):
+        self.section_table.setRowCount(3)
+        sections = ["A", "B", "C"]
+        for i, section in enumerate(sections):
+            section_item = QTableWidgetItem(section)
+            section_item.setFlags(Qt.ItemFlag.ItemIsEnabled)  
+            self.section_table.setItem(i, 0, section_item)
 
-                authority_text = str(self.train_authority[block_num]) if self.train_authority[block_num] is not None else ""
-                authority_item = QTableWidgetItem(authority_text)
-                authority_item.setFlags(Qt.ItemFlag.ItemIsEnabled)  
-                self.train_table.setItem(i, 1, authority_item)
-            else:
-                empty_item = QTableWidgetItem("")
-                empty_item.setFlags(Qt.ItemFlag.ItemIsEnabled) 
-                self.train_table.setItem(i, 0, empty_item)
-                self.train_table.setItem(i, 1, empty_item)
-    
+            authority_text = str(self.section_authority[section]) if self.section_authority[section] is not None else ""
+            authority_item = QTableWidgetItem(authority_text)
+            authority_item.setFlags(Qt.ItemFlag.ItemIsEnabled)  
+            self.section_table.setItem(i, 1, authority_item)
+
     def prev_page(self):
-        current_start = self.block_table.item(0, 0).text()
-        if current_start:
-            start_block = max(int(current_start) - 10, 0)
-            self.update_block_table(start_block)
-            self.update_train_table(start_block)
-    
+        current_start = int(self.block_table.item(0, 0).text()) if self.block_table.item(0, 0).text() else 1
+        start_block = max(current_start - 20, 0)
+        self.update_block_table(start_block)
+
     def next_page(self):
-        current_start = self.block_table.item(0, 0).text()
-        if current_start:
-            start_block = min(int(current_start) + 10, self.num_blocks - 10)
-            self.update_block_table(start_block)
-            self.update_train_table(start_block)
-    
+        current_start = int(self.block_table.item(0, 0).text()) if self.block_table.item(0, 0).text() else 1
+        start_block = min(current_start + 19, self.num_blocks)  # Ensure start_block doesn't exceed the last block
+        self.update_block_table(start_block)
+
     def open_testbench(self):
         self.testbench = TestBench(self)
         self.testbench.show()
 
 def main():
     app = QApplication(sys.argv)
-    window = TrackController("Red Line", 155, 1, 2, 1)  # blocks, switch, lights, crossings
+    window = TrackController(15, 1, 2, 1)  # blocks, switch, lights, crossings
     window.show()
+    window2 = TestBench(window)  # blocks, switch, lights, crossings
+    window2.show()
     sys.exit(app.exec())
 
 if __name__ == "__main__":
