@@ -189,6 +189,9 @@ class TrainControllerGUI(QWidget):
         main_layout.addLayout(bottom_right_panel, 1, 1)  # Bottom-right
         self.setLayout(main_layout)
 
+        font = QFont("Arial", 16)  # Set font family and size
+        self.setFont(font)
+
     def update_world_time(self, world_time):
         self.world_time = world_time
         self.world_time_lbl.setText(f"World time (24-hr): Day {self.world_time['day']} "
