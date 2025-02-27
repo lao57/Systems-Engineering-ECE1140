@@ -21,7 +21,7 @@ class TrainController:
         self.cmd_speed = 0
         self.cur_speed = 0
         self.authority = 1000
-        self.most_recent_station = None
+        self.most_recent_station = 'Dormont'
         self.doors_status = [False, False]  # [left_doors_open, right_doors_open]
         self.lights_status = [False, False]  # [interior_lights_open, exterior_lights_open]
         self.underground = False

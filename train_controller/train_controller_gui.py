@@ -243,6 +243,7 @@ class TrainControllerGUI(QWidget):
         self.cur_speed_lbl.setText(f"Current speed (m/s): {self.cur_speed:.2f}")
 
     def update_cmd_speed(self, cmd_speed):
+        print(f"updating cmd_speed to {cmd_speed}")
         self.cmd_speed = cmd_speed
         self.cmd_speed_lbl.setText(f"Commanded speed (m/s): {self.cmd_speed:.2f}")
 

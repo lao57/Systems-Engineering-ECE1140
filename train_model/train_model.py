@@ -48,22 +48,20 @@ class TrainModel:
         self.Baud_ID = 0
         self.train_number = train_number
 
-        self.cmd_velocity = 0
+        self.cmd_velocity = 13
         self.velocity = 0
         self.previous_velocity = 0
         self.acceleration = 0
         self.previous_acceleration = 0
         self.distance_travelled = 0
-        self.authority = 0
+        self.authority = 100
 
         self.power = 0
-        self.ebrake_signal = 0
-        self.brake_signal = 0
+        self.ebrake = False
+        self.sbrake_decel = 0.0
+        self.announcement = False
 
         # failure modes
-        self.signal_pickup = True
-        self.brake_status = True
-        self.engine_status = True
         self.failure_modes = [False, False, False]  # [train engine failure, signal pickup failure, brake failure]
 
         self.capacity = 75  # SET AS MAX VALUE
@@ -142,67 +140,103 @@ class TrainModel:
     def iterate(self, world_time):
         """
         :param world_time: world time dict: {'day', 'hour', 'min'}
-        :return:
         """
-        failure_modes = [not self.engine_status, not self.signal_pickup, not self.ebrake_signal]
-        print("about to enter train controller iter")
         # TODO: parse underground_vector, at_station_vector
         ebrake, sbrake_decel, cmd_power, modified_cabin_temp, open_doors, open_lights, announcement = \
-            self.train_controller.iterate(self.cmd_velocity, self.authority, self.velocity, failure_modes,
+            self.train_controller.iterate(self.cmd_velocity, self.authority, self.velocity, self.failure_modes,
                                           self.underground_vector, self.cabin_temp, self.doors_status,
                                           self.lights_status, self.at_station_vector, world_time)
-        print("fin train controller iter")
 
-        print("entering update train model")
-        self.update_train(cmd_power)
-        print("fin update train model")
+        self.power = cmd_power
+        print(f"self.cmd_velocity: {self.cmd_velocity}")
+        print(f"self.cmd_power: {self.power}")
+        self.ebrake = ebrake
+        self.sbrake_decel = sbrake_decel
+        self.cabin_temp = self.cabin_temp
+        self.doors_status = open_doors
+        self.lights_status = open_lights
+        self.announcement = announcement    # TODO: Change bool to string val
+
+        self.update_train()
+
+        self.update_gui()
 
         # update gui
 
     # this function is used to update the speed acceleration and distance travelled of the train over a one second interval
-    def update_train(self, power):  # power in watts, grade in percentage
-        power = power * 1000  # converts kW to Watts
-        gravitational_acceleration = (g * np.sin(np.arctan(self.grade_vector[0] / 100)))
+    def update_train(self):
+        # TODO: Add gravitational accel back
+        # gravitational_acceleration = (g * np.sin(np.arctan(self.grade_vector[0] / 100)))
         self.previous_acceleration = self.acceleration
-        if self.ebrake_signal:
+        # failure_modes: [train engine failure, signal pickup failure, brake failure]
+        if self.ebrake:
+            # self.acceleration = (
+            #         0 - self.brake_signal * service_brake_deceleration - self.ebrake_signal * emergency_brake_deceleration - gravitational_acceleration)
             self.acceleration = (
-                    0 - self.brake_signal * service_brake_deceleration - self.ebrake_signal * emergency_brake_deceleration - gravitational_acceleration)
+                    0 - self.sbrake_decel - self.ebrake * emergency_brake_deceleration)
         else:
             # if self.velocity <= 0:  # see Ipad for notes on this derivation but avoids divide by zero error
             #     self.acceleration = (self.engine_status * np.sqrt((2 * power) / (
             #         self.weight)) - self.brake_status * self.brake_signal * service_brake_deceleration - self.ebrake_signal * emergency_brake_deceleration - gravitational_acceleration)
             # else:  # normal acceleration calculation
-            self.acceleration = (self.engine_status * power / (self.weight * self.velocity + 1e-12) -
-                                 self.brake_status * self.brake_signal *
-                                 service_brake_deceleration - self.ebrake_signal *
-                                 emergency_brake_deceleration - gravitational_acceleration)
+            # self.acceleration = (self.engine_status * self.power / (self.weight * self.velocity + 1e-12) -
+            #                      self.brake_status * self.brake_signal *
+            #                      service_brake_deceleration - self.ebrake_signal *
+            #                      emergency_brake_deceleration - gravitational_acceleration)
+            self.acceleration = ((not self.failure_modes[0]) * self.power / (self.weight * self.velocity + 1e-12) -
+                                 (not self.failure_modes[2]) * self.sbrake_decel - self.ebrake *
+                                 emergency_brake_deceleration)
 
         # calculate authority
-        velocity_holder = self.velocity
-        self.velocity = self.previous_velocity + (1 / 2) * (self.acceleration + self.previous_acceleration)
-        if self.velocity < 0:
-            self.velocity = 0
-        self.previous_velocity = velocity_holder
-        distance_over_interval = (1 / 2) * (
-                self.velocity + self.previous_velocity)  # one second times the average velocity
-        self.distance_travelled += distance_over_interval
-        self.distance_vector[0] -= distance_over_interval
-        self.imperial_distance_vector[0] -= distance_over_interval * 3.2808399
-        self.authority -= distance_over_interval
+        # velocity_holder = self.velocity
+        # self.velocity = self.previous_velocity + (1 / 2) * (self.acceleration + self.previous_acceleration)
+        # if self.velocity < 0:
+        #     self.velocity = 0
+        # self.previous_velocity = velocity_holder
 
-        print("computing dist vec")
-        while self.distance_vector[0] < 0:
-            self.distance_vector[1] += self.distance_vector[0]  # applying extra distance into the next block
-            self.distance_vector.pop(0)
-            self.imperial_distance_vector.pop(0)
-            self.imperial_distance_vector[0] = self.distance_vector[0] * 3.2808399
-            self.speeds_vector.pop(0)
-            self.underground_vector.pop(0)
-            self.at_station_vector.pop(0)
-            self.extra_bit_vector.pop(0)
-            self.grade_vector.pop(0)
-            self.blocknumbervector.pop(0)
+        # distance_over_interval = (1 / 2) * (
+        #         self.velocity + self.previous_velocity)  # one second times the average velocity
+        # self.distance_travelled += distance_over_interval
+        # self.distance_vector[0] -= distance_over_interval
+        # self.imperial_distance_vector[0] -= distance_over_interval * 3.2808399
+        # self.authority -= distance_over_interval
+        #
+        # print("computing dist vec")
+        # while self.distance_vector[0] < 0:
+        #     self.distance_vector[1] += self.distance_vector[0]  # applying extra distance into the next block
+        #     self.distance_vector.pop(0)
+        #     self.imperial_distance_vector.pop(0)
+        #     self.imperial_distance_vector[0] = self.distance_vector[0] * 3.2808399
+        #     self.speeds_vector.pop(0)
+        #     self.underground_vector.pop(0)
+        #     self.at_station_vector.pop(0)
+        #     self.extra_bit_vector.pop(0)
+        #     self.grade_vector.pop(0)
+        #     self.blocknumbervector.pop(0)
         # update time flag to move to the next second
+
+        # stub velocity calc
+        dt = 1.0
+
+        mass = 50000  # Train mass (kg) (assume 50 tons)
+        rolling_resistance = 1000  # Constant rolling resistance (N)
+
+        # Calculate force: F = P / v (if v > 0 to avoid divide by zero)
+        if self.velocity > 0:
+            force = self.power / self.velocity
+        else:
+            force = self.power / 1
+
+        # Apply rolling resistance
+        force = force - rolling_resistance
+
+        # Calculate acceleration: a = F / m - (brake decel)
+        acceleration = force / mass - (emergency_brake_deceleration * self.ebrake + self.sbrake_decel)
+
+        # Update speed: v = u + at
+        self.velocity += acceleration * dt
+
+        return max(self.velocity, 0)
 
     def get_user_inputs(self):
         """
@@ -212,4 +246,20 @@ class TrainModel:
         self.train_controller.get_user_inputs()
 
         # Train model testbench
+
+    def update_gui(self):
+        # Update train controller GUI
+        self.train_controller_gui.update_power_cmd(self.power)
+        self.train_controller_gui.update_cur_speed(self.velocity)
+        self.train_controller_gui.update_cmd_speed(self.cmd_velocity)
+        self.train_controller_gui.update_sbrake_decel(self.sbrake_decel)
+        self.train_controller_gui.update_ebrake(self.ebrake)
+        self.train_controller_gui.update_cabin_temp(self.cabin_temp)
+        self.train_controller_gui.update_doors_status(self.doors_status)
+        self.train_controller_gui.update_lights_status(self.lights_status)
+        # self.train_controller_gui.update_most_recent_station(self.station_to_be_reached)
+        self.train_controller_gui.update_speed_limit(self.train_controller.speed_limit)
+        self.train_controller_gui.update_authority(self.authority)
+        self.train_controller_gui.update_failure_modes(self.failure_modes)
+        # self.train_controller_gui.update_underground(self.underground)
 
