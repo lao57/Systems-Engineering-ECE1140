@@ -21,6 +21,8 @@ class TrainController:
         self.cmd_speed = 0
         self.cur_speed = 0
         self.authority = 1000
+        self.distance_travelled = 0
+
         self.most_recent_station = 'Dormont'
         self.doors_status = [False, False]  # [left_doors_open, right_doors_open]
         self.lights_status = [False, False]  # [interior_lights_open, exterior_lights_open]
@@ -31,7 +33,7 @@ class TrainController:
         self.announce_station = False
         self.set_cabin_temp = comfortable_temp
         self.driver_inputs = {'ebrake': False, 'sbrake': 0.0}
-        self.failure_modes = [False, False, False]     # [train engine failure, signal pickup failure, brake failure]
+        self.failure_modes = [False, False, False]  # [train engine failure, signal pickup failure, brake failure]
 
         # manual/automatic mode
         self.train_controller_mode = "auto"
@@ -69,6 +71,7 @@ class TrainController:
         """
         # Start of Safety critical section
         self.failure_modes = failure_modes
+        self.authority = authority
         # Check for any failure modes
         if True in self.failure_modes:
             # train engine failure (pull emergence brake)
@@ -94,7 +97,7 @@ class TrainController:
                     self.set_cabin_temp, self.doors_status, self.lights_status, self.announce_station
 
         # check if train directly in front or low authority (risk of crashing)
-        if authority <= 20:  # 20 m
+        if self.authority <= 20:  # 20 m
             self.e_brake_on = True
             self.service_brake_decel = 0.0
             self.cmd_power = 0
@@ -104,6 +107,7 @@ class TrainController:
         # End of safety critical section
 
         # about to reach station
+        # TODO: Parse beacon signal
         # if station_to_be_reached != self.most_recent_station and station_to_be_reached in self.stations:
         #     self.most_recent_station = station_to_be_reached
         #     # For now, open both doors
@@ -138,6 +142,7 @@ class TrainController:
             self.cmd_power = self.k_p * self.speed_error[-1] + self.k_i * cur_integrated_error
 
         # Check if underground (turn on exterior lights)
+        # TODO: Parse beacon signal
         # if underground:
         #     self.lights_status[1] = True
 
@@ -157,6 +162,9 @@ class TrainController:
 
         # take testbench inputs as priority
         self.lights_status = lights_status
+
+        # perform state estimation
+        self.estimate_state(cur_speed)
 
         return self.e_brake_on, self.service_brake_decel, self.cmd_power, self.set_cabin_temp, self.doors_status, \
             self.lights_status, self.announce_station
@@ -198,6 +206,18 @@ class TrainController:
             self.e_brake_on = False
 
         self.set_cabin_temp = cabin_temp
+
+    def estimate_state(self, cur_speed):
+        """State estimation: distance travelled estimation using speed."""
+        # TODO: Use this info to know if underground, station name
+        self.distance_travelled += cur_speed * self.T  # compute distance by summation
+        self.authority -= self.distance_travelled
+        self.authority = max(self.authority, 0)
+        # compute position using beacon (to check if we have arrived at the desired station/block)
+        self.__use_beacon_info__()
+
+    def __use_beacon_info__(self):
+        pass
 
     def get_user_inputs(self):
         """
@@ -249,4 +269,3 @@ class TrainController:
         # if self.train_controller_testbench.station_to_be_reached_event:
         #     self.station_to_be_reached = self.train_controller_testbench.station_to_be_reached
         #     self.train_controller_testbench.station_to_be_reached_event = False
-

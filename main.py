@@ -13,8 +13,8 @@ from simulator.simulator import Simulator
 
 
 def main():
-    k_p = 50000
-    k_i = 5000
+    k_p = 2e5
+    k_i = 2e4
 
     sim_time = int(1e3)
     app = QApplication(sys.argv)
