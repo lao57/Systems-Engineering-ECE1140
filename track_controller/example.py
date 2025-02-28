@@ -1,7 +1,7 @@
 import sys
 from PyQt6.QtWidgets import (
-    QApplication, QMainWindow, QWidget, QVBoxLayout, QLabel, QTableWidget, QTableWidgetItem, QPushButton, 
-    QHBoxLayout, QCheckBox, QHeaderView, QLineEdit, QComboBox, QGridLayout, QScrollArea
+    QApplication, QMainWindow, QWidget, QVBoxLayout, QLabel, QTableWidget, QTableWidgetItem, QPushButton,
+    QHBoxLayout, QCheckBox, QHeaderView
 )
 from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtGui import QFont
@@ -11,20 +11,29 @@ from plc_logic import update_plc_logic, update_plc_logic2
 
 class CTC:
     def __init__(self):
-        self.maintenance = [False] * 155  # Example: 155 blocks
-        self.block_authority = [10] * 155  # Example: block authority values
+        self.maintenance = [False] * 15  # Example: 15 blocks
+        self.maintenance = [False, False, False, False, False, True, False, False, False, False, False, False, False, False, False]
+        self.block_authority = [10] * 15  # Example: block authority values
+        self.track_controller = None  # Will be set later
+
+    def set_track_controller(self, track_controller):
+        self.track_controller = track_controller
 
     def get_maintenance_status(self):
         return self.maintenance
-    
+
     def get_block_authority(self):
         return self.block_authority
 
 
 class TrackModel:
     def __init__(self):
-        self.block_occupancy = [False] * 155  # Example: 155 blocks
-        self.errors = [False] * 155  # Example: 155 blocks with errors
+        self.block_occupancy = [False] * 15  # Example: 15 blocks
+        self.errors = [False] * 15  # Example: 15 blocks with errors
+        self.track_controller = None  # Will be set later
+
+    def set_track_controller(self, track_controller):
+        self.track_controller = track_controller
 
     def get_block_occupancy(self):
         return self.block_occupancy
@@ -40,7 +49,7 @@ class TrackController(QMainWindow):
         self.track_model = track_model
 
         # Initialize internal states
-        self.num_blocks = 155
+        self.num_blocks = 15
         self.num_switches = 1
         self.num_lights = 2
         self.num_crossings = 1
@@ -53,17 +62,18 @@ class TrackController(QMainWindow):
 
         # Initialize the wayside controllers
         self.wayside = WAYSIDE(
-            start_block=0,
-            end_block=155,
-            num_switches=1,
+            start_block=1,
+            end_block=3,
+            num_switches=0,
             num_lights=0,
             num_crossings=1,
             logic_function=update_plc_logic
         )
+        
         self.wayside2 = WAYSIDE(
-            start_block=0,
-            end_block=155,
-            num_switches=0,
+            start_block=4,
+            end_block=15,
+            num_switches=1,
             num_lights=2,
             num_crossings=0,
             logic_function=update_plc_logic2
@@ -73,6 +83,8 @@ class TrackController(QMainWindow):
         self.setWindowTitle("Track Controller")
         self.setGeometry(100, 100, 300, 600)
         self.initUI()
+
+        self.update_ui_elements()
 
         # Set up a timer to periodically update the UI with external data
         self.update_timer = QTimer()
@@ -109,7 +121,7 @@ class TrackController(QMainWindow):
         # Switch Button
         self.switch_button = QPushButton(f"Switch 1: {'On' if self.switch_state[0] else 'Off'}")
         self.switch_button.setStyleSheet(f"background-color: {'green' if self.switch_state[0] else 'red'}")
-        self.switch_button.clicked.connect(lambda: self.toggle_switch_state(0))
+        self.switch_button.clicked.connect(lambda: self.toggle_switch_state(0, ctc, track_model))
         layout.addWidget(self.switch_button)
 
         # Light Buttons
@@ -140,11 +152,12 @@ class TrackController(QMainWindow):
 
     def toggle_manual_mode(self):
         self.manual_mode = self.manual_mode_checkbox.isChecked()
-    def toggle_switch_state(self, idx):
+    
+    def toggle_switch_state(self, idx, ctc, track_model):
         if self.manual_mode:
-            block_occupancy = self.track_model.get_block_occupancy()
-            errors = self.track_model.get_errors()
-            maintenance = self.ctc.get_maintenance_status()
+            block_occupancy = track_model.get_block_occupancy()
+            errors = track_model.get_errors()
+            maintenance = ctc.get_maintenance_status()
             block_occupancy = [block_occupancy[i] or errors[i] or maintenance[i] for i in range(len(block_occupancy))]
 
             block_a_occupied = block_occupancy[0] or block_occupancy[1] or block_occupancy[2] or block_occupancy[3] or block_occupancy[4]
@@ -226,8 +239,10 @@ class TrackController(QMainWindow):
         maintenance = self.ctc.get_maintenance_status()
         block_occupancy = self.track_model.get_block_occupancy()
         errors = self.track_model.get_errors()
-        block_occupancy = [block_occupancy[i] or errors[i] or maintenance[i] for i in range(len(block_occupancy))]
 
+        # Combine block_occupancy, errors, and maintenance
+        block_occupancy = [block_occupancy[i] or errors[i] or maintenance[i] for i in range(len(block_occupancy))]
+        block_occupancy = block_occupancy or errors
         # Update internal states
         self.errors = errors
 
@@ -286,23 +301,24 @@ class TrackController(QMainWindow):
                 self.authority_table.setItem(i, 1, authority_item)
 
     def update_wayside_controllers(self, block_occupancy, errors, maintenance):
-        # Update wayside controllers
-        switch_states1, light_states1, crossing_states1 = self.wayside.update_plc_logic(
-            block_occupancy[self.wayside.start_block:self.wayside.end_block],
-            errors[self.wayside.start_block:self.wayside.end_block],
-            maintenance[self.wayside.start_block:self.wayside.end_block]
-        )
-        switch_states2, light_states2, crossing_states2 = self.wayside2.update_plc_logic(
-            block_occupancy[self.wayside2.start_block:self.wayside2.end_block],
-            errors[self.wayside2.start_block:self.wayside2.end_block],
-            maintenance[self.wayside2.start_block:self.wayside2.end_block]
-        )
+        if not self.manual_mode:
+            # Update wayside controllers
+            switch_states1, light_states1, crossing_states1 = self.wayside.update_plc_logic(
+                block_occupancy[self.wayside.start_block-1:self.wayside.end_block],
+                errors[self.wayside.start_block-1:self.wayside.end_block],
+                maintenance[self.wayside.start_block-1:self.wayside.end_block]
+            )
+            switch_states2, light_states2, crossing_states2 = self.wayside2.update_plc_logic(
+                block_occupancy[self.wayside2.start_block-1:self.wayside2.end_block],
+                errors[self.wayside2.start_block-1:self.wayside2.end_block],
+                maintenance[self.wayside2.start_block-1:self.wayside2.end_block]
+            )
 
-        # Combine states
-        self.switch_state = switch_states1 + switch_states2
-        self.light_state = light_states1 + light_states2
-        self.crossing_state = crossing_states1 + crossing_states2
-
+            # Combine states
+            self.switch_state = switch_states1 + switch_states2
+            self.light_state = light_states1 + light_states2
+            self.crossing_state = crossing_states1 + crossing_states2
+ 
     def prev_page(self):
         self.current_page = max(self.current_page - 1, 0)
         self.update_block_table(self.track_model.get_block_occupancy(), self.ctc.get_maintenance_status(), self.track_model.get_errors(), self.current_page * 20)
@@ -314,7 +330,7 @@ class TrackController(QMainWindow):
         self.update_authority_table(self.current_page * 20)
 
     def update_ui_elements(self):
-    # Update switch button
+        # Update switch button
         self.switch_button.setText(f"Switch 1: {'On' if self.switch_state[0] else 'Off'}")
         self.switch_button.setStyleSheet(f"background-color: {'green' if self.switch_state[0] else 'red'}")
 
@@ -326,7 +342,7 @@ class TrackController(QMainWindow):
         # Update crossing button
         self.crossing_button.setText(f"Crossing 1: {'Closed' if self.crossing_state[0] else 'Open'}")
         self.crossing_button.setStyleSheet(f"background-color: {'red' if self.crossing_state[0] else 'green'}")
-    
+        
     def get_block_occupancy(self):
         """Returns the current block occupancy status for CTC."""
         return self.track_model.get_block_occupancy()
@@ -347,21 +363,24 @@ class TrackController(QMainWindow):
         """Returns the current error status for all blocks for Track Model."""
         return self.track_model.get_errors()
 
-
 if __name__ == "__main__":
-    import sys
-    from PyQt6.QtWidgets import QApplication
-
-    # Create instances of CTC and TrackModel
-    ctc = CTC()
-    track_model = TrackModel()
-
-    # Create the application
     app = QApplication(sys.argv)
 
-    # Create the TrackController UI
-    controller_ui = TrackController(ctc, track_model)
-    controller_ui.show()
+    # Create instances of CTC, TrackModel, and TrackController
+    ctc = CTC()
+    track_model = TrackModel()
+    
+    track_controller = TrackController(ctc, track_model)
+
+
+    # Wire the dependencies together
+    ctc.set_track_controller(track_controller)
+    track_model.set_track_controller(track_controller)
+
+    # Show the TrackController UI
+    track_controller.show()
+    track_controller.update()
+        
 
     # Start the application loop
     sys.exit(app.exec())
