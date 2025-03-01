@@ -82,8 +82,9 @@ class TrainModel:
         self.underground_vector = []
         self.at_station_vector = []
         self.extra_bit_vector = []
-        self.grade_vector = []
-        self.blocknumbervector = []
+        self.grade_vector = [] 
+        self.blocknumbervector = [] #hold the next bunch of blocks given by the beacon
+        Track_model_vector = [] #holds the actualy track model blocks this is used for communication
 
         self.k_p = k_p
         self.k_i = k_i
@@ -109,26 +110,27 @@ class TrainModel:
 
     def beacon_parse(self, beaconvector, gradevector_REALSIM, blocknumbervector_REALSIM):
         n = len(beaconvector)
-        self.Baud_ID = beaconvector[0:4]  # takes the first for values and sets to ID
-        number_of_blocks = (n - 4) / 19
-        num_blocks = int(number_of_blocks)
-        self.grade_vector.extend(gradevector_REALSIM)  # adds the grade to the grade vector
-        self.blocknumbervector.extend(blocknumbervector_REALSIM)  # adds the block number to the block number vector
-        for i in range(0, num_blocks):  # adds all block distances to the distance vector
-            number_str = beaconvector[4 + 10 * i:14 + 10 * i]
-            number = number_str[0:(len(number_str) - 1)]  # equals the first 9
-            distance_value = int(number, 2) + 0.6 * float(number_str[
-                                                              len(number_str) - 1])  # adds the first 9 bits to 0.6 times the last bit to account for one block that is 86.6 meters
-            self.distance_vector.append(distance_value)
-            self.imperial_distance_vector.append(distance_value * 3.2808399)  # converts meters to feet
+        if beaconvector[0:4] != self.Baud_ID:
+            self.Baud_ID = beaconvector[0:4]  # takes the first for values and sets to ID
+            number_of_blocks = (n - 4) / 19
+            num_blocks = int(number_of_blocks)
+            self.grade_vector.extend(gradevector_REALSIM)  # adds the grade to the grade vector
+            self.blocknumbervector.extend(blocknumbervector_REALSIM)  # adds the block number to the block number vector
+            for i in range(0, num_blocks):  # adds all block distances to the distance vector
+                number_str = beaconvector[4 + 10 * i:14 + 10 * i]
+                number = number_str[0:(len(number_str) - 1)]  # equals the first 9
+                distance_value = int(number, 2) + 0.6 * float(number_str[
+                                                                len(number_str) - 1])  # adds the first 9 bits to 0.6 times the last bit to account for one block that is 86.6 meters
+                self.distance_vector.append(distance_value)
+                self.imperial_distance_vector.append(distance_value * 3.2808399)  # converts meters to feet
 
-            speed_str = beaconvector[4 + num_blocks * 10 + 3 * i:7 + num_blocks * 10 + 3 * i]
-            speed_limit = binary_to_value[speed_str]
-            self.speeds_vector.append(speed_limit)
+                speed_str = beaconvector[4 + num_blocks * 10 + 3 * i:7 + num_blocks * 10 + 3 * i]
+                speed_limit = binary_to_value[speed_str]
+                self.speeds_vector.append(speed_limit)
 
-            self.underground_vector.append(beaconvector[4 + num_blocks * 13 + i])
-            self.at_station_vector.append(beaconvector[4 + num_blocks * 14 + i])
-            self.extra_bit_vector.append(beaconvector[4 + num_blocks * 15 + 4 * i:4 + num_blocks * 15 + 4 * (i + 1)])
+                self.underground_vector.append(beaconvector[4 + num_blocks * 13 + i])
+                self.at_station_vector.append(beaconvector[4 + num_blocks * 14 + i])
+                self.extra_bit_vector.append(beaconvector[4 + num_blocks * 15 + 4 * i:4 + num_blocks * 15 + 4 * (i + 1)])
 
     def baud_read(self, baud_signal):
         """ Print the values to debug
@@ -193,7 +195,21 @@ class TrainModel:
 
         return max(self.velocity, 0)
 
+
     def pickup_beacon_signal(self):
+        beacon_signal = Track_model_vector[self.blocknumbervector[0]].get_beacon_from_block()#there will be some function from the track
+        if beacon_signal[0:4] != self.Baud_ID:
+            grade_vector_holder = Track_model_vector[self.blocknumbervector[0]].get_grade_from_block()#there will be some function from the track
+            blocknumbervector_holder = Track_model_vector[self.blocknumbervector[0]].get_block_vector_from_block()#there will be some function from the track
+            self.beacon_parse(beacon_signal, grade_vector_holder, blocknumbervector_holder)
+            """
+            the idea here is that I will be pinging the block that I am currently on
+            then I make sure that I have not already read this beacon if I have not
+            then I parse it plus the grade and block number vector
+            """
+        
+
+        
         # TODO: Add beacon signal pickup back
         # while self.distance_vector[0] < 0:
         #     self.distance_vector[1] += self.distance_vector[0]  # applying extra distance into the next block
@@ -206,6 +222,10 @@ class TrainModel:
         #     self.extra_bit_vector.pop(0)
         #     self.grade_vector.pop(0)
         #     self.blocknumbervector.pop(0)
+        """change name of baud stuff
+        udate baud pickup
+        add gravitational acceleration
+        """
         pass
 
     def pickup_transponder_signal(self):
