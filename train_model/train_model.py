@@ -21,7 +21,7 @@ binary_to_value = {
     '111': 70
 }
 
-# static dictionary for authority
+# static dictionary for authority (NOT REALLY NEEDED ANYMORE)
 authority_decoder = {
     '0000': 0,
     '0001': 65,
@@ -45,7 +45,6 @@ authority_decoder = {
 class TrainModel:
     def __init__(self, k_p, k_i, train_controller_gui, train_controller_testbench, train_number=1,
                  numberOfPassengers=2):
-        self.Baud_ID = 0
         self.train_number = train_number
 
         self.cmd_velocity = 13
@@ -83,8 +82,8 @@ class TrainModel:
         self.at_station_vector = []
         self.extra_bit_vector = []
         self.grade_vector = [] 
-        self.blocknumbervector = [] #hold the next bunch of blocks given by the beacon
-        Track_model_vector = [] #holds the actualy track model blocks this is used for communication
+        self.blocknumbervector = [1] #hold the next bunch of blocks given by the beacon stars on block one
+        Track_model = None #holds the actual track information
 
         self.k_p = k_p
         self.k_i = k_i
@@ -101,6 +100,7 @@ class TrainModel:
                                                 self.comfortable_temp, train_controller_gui,
                                                 train_controller_testbench)
 
+
     def display_train(self):
         print("Distance Vector:", self.distance_vector)
         print("Speeds Vector:", self.speeds_vector)
@@ -108,10 +108,15 @@ class TrainModel:
         print("At Station Vector:", self.at_station_vector)
         print("Extra Bit Vector:", self.extra_bit_vector)
 
+
+    def add_classes(self, Track_model):
+        self.Track_model = Track_model
+
+
     def beacon_parse(self, beaconvector, gradevector_REALSIM, blocknumbervector_REALSIM):
         n = len(beaconvector)
-        if beaconvector[0:4] != self.Baud_ID:
-            self.Baud_ID = beaconvector[0:4]  # takes the first for values and sets to ID
+        #[0:4] are not being used
+        if beaconvector[0] != None:
             number_of_blocks = (n - 4) / 19
             num_blocks = int(number_of_blocks)
             self.grade_vector.extend(gradevector_REALSIM)  # adds the grade to the grade vector
@@ -132,13 +137,15 @@ class TrainModel:
                 self.at_station_vector.append(beaconvector[4 + num_blocks * 14 + i])
                 self.extra_bit_vector.append(beaconvector[4 + num_blocks * 15 + 4 * i:4 + num_blocks * 15 + 4 * (i + 1)])
 
-    def baud_read(self, baud_signal):
+
+    def baud_read(self):
         """ Print the values to debug
         print(f"baud_signal[0:4]: '{baud_signal[0:4]}' (type: {type(baud_signal[0:4])})")
         print(f"self.Baud_ID: '{self.Baud_ID}' (type: {type(self.Baud_ID)})")"""
-
-        if baud_signal[0:4] == self.Baud_ID:
-            self.authority = authority_decoder[baud_signal[-4:]]
+        baud_signal = self.Track_model.get_baud_sig(self.blocknumbervector[0])
+        #baud_signal.append(0)  | Potentail add if we are not getting enough range
+        self.authority = int(baud_signal,2)
+    
 
     def iterate(self, world_time):
         """
@@ -162,6 +169,7 @@ class TrainModel:
 
         # update gui
         self.update_gui(world_time)
+
 
     def update_train(self):
         # Failure modes: [train engine failure, signal pickup failure, brake failure]
@@ -190,17 +198,17 @@ class TrainModel:
         self.velocity += acceleration * self.dt
 
         if not self.failure_modes[1]:
-            self.pickup_transponder_signal()
             self.pickup_beacon_signal()
+            self.baud_read()
 
         return max(self.velocity, 0)
 
 
     def pickup_beacon_signal(self):
-        beacon_signal = Track_model_vector[self.blocknumbervector[0]].get_beacon_from_block()#there will be some function from the track
-        if beacon_signal[0:4] != self.Baud_ID:
-            grade_vector_holder = Track_model_vector[self.blocknumbervector[0]].get_grade_from_block()#there will be some function from the track
-            blocknumbervector_holder = Track_model_vector[self.blocknumbervector[0]].get_block_vector_from_block()#there will be some function from the track
+        beacon_signal = self.Track_model.get_beacon_from_block(self.blocknumbervector[0])
+        if beacon_signal[0] != None:
+            grade_vector_holder = self.Track_model.get_grade_from_block(self.blocknumbervector[0])
+            blocknumbervector_holder = self.Track_model.get_block_vector_from_block(self.blocknumbervector[0])#there will be some function from the track
             self.beacon_parse(beacon_signal, grade_vector_holder, blocknumbervector_holder)
             """
             the idea here is that I will be pinging the block that I am currently on
@@ -228,8 +236,6 @@ class TrainModel:
         """
         pass
 
-    def pickup_transponder_signal(self):
-        pass
 
     def get_user_inputs(self):
         """
@@ -239,6 +245,7 @@ class TrainModel:
         self.train_controller.get_user_inputs()
 
         # Train model testbench
+
 
     def update_gui(self, world_time):
         # Update train controller GUI
