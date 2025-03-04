@@ -1,39 +1,28 @@
 class WAYSIDE:
-    def __init__(self, start_block, end_block, num_switches, num_lights, num_crossings, logic_function):
+    def __init__(self, switches, lights, crossings, logic_function, prev_switch_states, block_authorities):
         """
         Initialize the PLC for a specific section of the track.
-        :param start_block: First block in the section.
-        :param end_block: Last block in the section.
-        :param num_switches: Number of switches in the section.
-        :param num_lights: Number of lights in the section.
-        :param num_crossings: Number of crossings in the section.
+        :param switches: List of switch indices controlled by this wayside.
+        :param lights: List of light indices controlled by this wayside.
+        :param crossings: List of crossing indices controlled by this wayside.
         :param logic_function: The logic function for this wayside controller.
+        :param prev_switch_states: The previous states of the switches.
+        :param block_authorities: The block authorities for the blocks controlled by this wayside.
         """
-        self.start_block = start_block
-        self.end_block = end_block
-        self.num_switches = num_switches
-        self.num_lights = num_lights
-        self.num_crossings = num_crossings
+        self.switches = switches
+        self.lights = lights
+        self.crossings = crossings
         self.logic_function = logic_function
+        self.prev_switch_states = prev_switch_states
+        self.block_authorities = block_authorities
 
-    def update_plc_logic(self, block_occupancy, errors, maintenance):
+    def update_wayside(self, block_occupancy, maintenance):
         """
         Execute the PLC logic to generate outputs.
         """
         return self.logic_function(
             block_occupancy,
-            self.num_switches,
-            self.num_lights,
-            self.num_crossings
-        )
-
-    def update_plc_logic2(self, block_occupancy, errors, maintenance):
-        """
-        Execute the PLC logic to generate outputs.
-        """
-        return self.logic_function(
-            block_occupancy,
-            self.num_switches,
-            self.num_lights,
-            self.num_crossings
+            self.prev_switch_states,
+            self.block_authorities,
+            maintenance
         )

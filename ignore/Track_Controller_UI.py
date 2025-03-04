@@ -6,6 +6,10 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont
 
+# Import the external logic
+from plc_logic import update_plc_logic
+from plc_logic import update_plc_logic2
+from wayside import WAYSIDE
 
 app = QApplication(sys.argv)
 app.setFont(QFont("Arial", 14))
@@ -125,6 +129,25 @@ class TrackController(QMainWindow):
         self.light_states = [False] * num_lights  
         self.crossing_states = [False] * num_crossings 
         self.manual_mode = False
+
+        # Initialize the wayside controller
+        self.wayside = WAYSIDE(
+            start_block=0,
+            end_block=15,
+            num_switches=1,
+            num_lights=0,
+            num_crossings=1,
+            logic_function=update_plc_logic
+        )
+        self.wayside2 = WAYSIDE(
+            start_block=0,
+            end_block= 15,
+            num_switches=0,
+            num_lights=2,
+            num_crossings=0,
+            logic_function=update_plc_logic2
+        )
+
         self.initUI()
     
     def get_section(self, block):
@@ -271,7 +294,6 @@ class TrackController(QMainWindow):
 
     def toggle_crossing_state(self, idx):
         if self.manual_mode:
-
             crossing_occupied = self.block_occupancy[1] or self.block_occupancy[2] or self.block_occupancy[3]
             
             if crossing_occupied and self.crossing_states[idx]:
@@ -283,26 +305,33 @@ class TrackController(QMainWindow):
             self.update_ui()
     
     def update_plc_states(self):
-        self.switch_states, self.light_states, self.crossing_states = self.update_plc_logic(self.block_occupancy)
-    
-    def update_plc_logic(self, block_occupancy):
-        switch_states = [False] * self.num_switches 
-        light_states = [False] * self.num_lights  
-        crossing_states = [False] * self.num_crossings  
+        # Extract block occupancy for each wayside controller
+        block_occupancy_wayside1 = [
+            self.block_occupancy[block] for block in range(self.wayside.start_block, self.wayside.end_block)
+        ]
+        block_occupancy_wayside2 = [
+            self.block_occupancy[block] for block in range(self.wayside2.start_block, self.wayside2.end_block)
+        ]
 
-        block_a_occupied = block_occupancy[0] or block_occupancy[1] or  block_occupancy[2] or  block_occupancy[3] or  block_occupancy[4] 
-        block_b_occupied = block_occupancy[5] or block_occupancy[6] or  block_occupancy[7] or  block_occupancy[8] or  block_occupancy[9] 
-        block_c_occupied = block_occupancy[10] or block_occupancy[11] or  block_occupancy[12] or  block_occupancy[13] or  block_occupancy[14] 
+        # Use the first wayside controller to update the PLC states for its blocks
+        switch_states1, light_states1, crossing_states1 = self.wayside.update_plc_logic(
+            block_occupancy=block_occupancy_wayside1,
+            errors=None,  # You can pass errors if needed
+            maintenance=None  # You can pass maintenance if needed
+        )
 
-        switch_states[0] = block_a_occupied and block_b_occupied
+        # Use the second wayside controller to update the PLC states for its blocks
+        switch_states2, light_states2, crossing_states2 = self.wayside2.update_plc_logic(
+            block_occupancy=block_occupancy_wayside2,
+            errors=None,  # You can pass errors if needed
+            maintenance=None  # You can pass maintenance if needed
+        )
 
-        light_states[0] = not((block_a_occupied and  block_b_occupied) or (block_a_occupied and  block_b_occupied and block_c_occupied))
-        light_states[1] = not((block_a_occupied and  block_c_occupied) or (block_a_occupied and  block_b_occupied and block_c_occupied))
-
-        crossing_states[0] = block_occupancy[1] or block_occupancy[2] or  block_occupancy[3]
+        # Combine the states from both wayside controllers
+        self.switch_states = switch_states1 + switch_states2
+        self.light_states = light_states1 + light_states2
+        self.crossing_states = crossing_states1 + crossing_states2
         
-        return switch_states, light_states, crossing_states
-    
     def update_ui(self):
         self.update_block_table()
         
