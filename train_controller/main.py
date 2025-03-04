@@ -34,14 +34,14 @@ def main():
     test_params = [cmd_speed, authority, cur_speed, failure_modes, underground, cabin_temp, doors_status,
                    lights_status, station_to_be_reached]
 
-    train_controller = TrainController(k_p, k_i, max_engine_power, sample_period, comfortable_temp)
-
     sim_time = int(1e3)
     app = QApplication(sys.argv)
     gui = TrainControllerGUI(k_p, k_i)
     testbench = TestbenchGUI()
     gui.show()
     testbench.show()
+
+    train_controller = TrainController(k_p, k_i, max_engine_power, sample_period, comfortable_temp, gui, testbench)
 
     # Start the master simulation loop
     sim = Simulator(gui, testbench, train_controller, test_params, sim_time=sim_time, timer_interval=int(1e3))

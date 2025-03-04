@@ -2,7 +2,7 @@ class TrackModel:
     def __init__(self):
         self.blocks = {}  # Dictionary to store block information
 
-    def add_block(self, block_number, beacon_signal=0000, grade=None, block_vector=None):
+    def add_block(self, block_number, beacon_signal="0000", grade=None, block_vector=None):
         self.blocks[block_number] = {
             'beacon_signal': beacon_signal,
             'grade': grade,

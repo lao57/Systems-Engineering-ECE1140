@@ -20,7 +20,7 @@ def main():
     sim_time = int(1e3)
     app = QApplication(sys.argv)
     Blue_line = TrackModel()
-    Blue_line.add_block(1, '0000000110010000011001000001100100000110010000011001000001100100000110010000011001000001100100000110010010110110110110110110110110110100000000000000000NONENONENONENONENONEStaBStaBStaBStaBStaB', [0,0,0,0,0,0,0,0,0,0], [1,2,3,4,5,6,7,8,9,10])
+    Blue_line.add_block(1, '0000000110010000011001000001100100000110010000011001000001100100000110010000011001000001100100000110010010110110110110110110110110110100000000000000000000NONENONENONENONENONEStaBStaBStaBStaBStaB', [0,0,0,0,0,0,0,0,0,0], [1,2,3,4,5,6,7,8,9,10])
     Blue_line.add_block(2)
     Blue_line.add_block(3)
     Blue_line.add_block(4)
@@ -31,7 +31,7 @@ def main():
     Blue_line.add_block(9)
     Blue_line.add_block(10)
 
-    Blue_line.set_baud_sig(1, '0000100000')
+    Blue_line.set_baud_sig(1, "0100000000")
 
     train_controller_gui = TrainControllerGUI(k_p, k_i)
     train_controller_testbench = TestbenchGUI()
