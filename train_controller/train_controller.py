@@ -20,6 +20,7 @@ class TrainController:
         self.cmd_power = 0
         self.cmd_speed = 0
         self.cur_speed = 0
+        self.prev_speed = 0
         self.authority = 1000
         self.distance_travelled = 0
 
@@ -97,7 +98,8 @@ class TrainController:
                     self.set_cabin_temp, self.doors_status, self.lights_status, self.announce_station
 
         # check if train directly in front or low authority (risk of crashing)
-        if self.authority <= 20:  # 20 m
+        # if self.authority <= 20:  # 20 m
+        if self.authority <= 50:  # 50 m
             self.e_brake_on = True
             self.service_brake_decel = 0.0
             self.cmd_power = 0
@@ -164,7 +166,9 @@ class TrainController:
         self.lights_status = lights_status
 
         # perform state estimation
-        self.estimate_state(cur_speed)
+        self.estimate_state(cur_speed, self.prev_speed)
+
+        self.prev_speed = cur_speed
 
         return self.e_brake_on, self.service_brake_decel, self.cmd_power, self.set_cabin_temp, self.doors_status, \
             self.lights_status, self.announce_station
@@ -207,10 +211,10 @@ class TrainController:
 
         self.set_cabin_temp = cabin_temp
 
-    def estimate_state(self, cur_speed):
+    def estimate_state(self, cur_speed, prev_speed):
         """State estimation: distance travelled estimation using speed."""
         # TODO: Use this info to know if underground, station name
-        self.distance_travelled += cur_speed * self.T  # compute distance by summation
+        self.distance_travelled += 1/2 * (cur_speed + prev_speed) * self.T
         self.authority -= self.distance_travelled
         self.authority = max(self.authority, 0)
         # compute position using beacon (to check if we have arrived at the desired station/block)
