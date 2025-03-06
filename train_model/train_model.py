@@ -1,6 +1,8 @@
 import time
 import numpy as np
 from train_controller.train_controller import TrainController
+from train_controller.train_controller_gui import TrainControllerGUI
+from train_controller.testbench_gui import TestbenchGUI
 
 service_brake_deceleration = 1.2  # m/s^2
 emergency_brake_deceleration = 2.73  # m/s^2
@@ -44,8 +46,7 @@ authority_decoder = {
 
 
 class TrainModel:
-    def __init__(self, k_p, k_i, train_controller_gui, train_controller_testbench, train_number=1,
-                 numberOfPassengers=2):
+    def __init__(self, train_number=1, numberOfPassengers=3, k_p = 2e5, k_i = 2e4):
         
         #SPEED CALCULATION VARIABLES
         self.velocity = 0
@@ -103,14 +104,16 @@ class TrainModel:
         self.cmd_velocity = 0
 
         # GUI
-        self.train_controller_gui = train_controller_gui
-        self.train_controller_testbench = train_controller_testbench
+        self.train_controller_gui = TrainControllerGUI(self.k_p, self.k_i)
+        self.train_controller_testbench = TestbenchGUI()
 
         #OTHER MODULES
         self.Track_model = None #holds the actual track information
         self.train_controller = TrainController(self.k_p, self.k_i, self.max_engine_power, self.sample_period,
-                                                self.comfortable_temp, train_controller_gui,
-                                                train_controller_testbench)
+                                                self.comfortable_temp, self.train_controller_gui,
+                                                self.train_controller_testbench)
+        self.train_controller_gui.show()
+        self.train_controller_testbench.show()
 
 
     def display_train(self):

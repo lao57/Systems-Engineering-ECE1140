@@ -33,16 +33,16 @@ def main():
 
     Blue_line.set_baud_sig(1, "0100000000")
 
-    train_controller_gui = TrainControllerGUI(k_p, k_i)
-    train_controller_testbench = TestbenchGUI()
-    train_model = TrainModel(k_p, k_i, train_controller_gui, train_controller_testbench)
+    #train_controller_gui = TrainControllerGUI(k_p, k_i)
+    #train_controller_testbench = TestbenchGUI()
+    train_model = TrainModel()
     train_model.add_classes(Blue_line)
 
-    train_controller_gui.show()
-    train_controller_testbench.show()
+    #train_controller_gui.show() NOT NEEDED ANYMORE HANDLED INTERNALLY SO THAT THE CTC HAS LESS TO DO WHEN IT COMES TO TRAIN INITIALIZATION
+    #train_controller_testbench.show()
 
     # Start the master simulation loop
-    sim = Simulator(train_controller_gui, train_controller_testbench, train_model, sim_time=sim_time, timer_interval=int(1e3))
+    sim = Simulator(train_model.train_controller_gui, train_model.train_controller_testbench, train_model, sim_time=sim_time, timer_interval=int(1e3))
 
     sys.exit(app.exec())
 
