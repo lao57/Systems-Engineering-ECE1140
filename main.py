@@ -42,7 +42,7 @@ def main():
     #train_controller_testbench.show()
 
     # Start the master simulation loop
-    sim = Simulator(train_model.train_controller_gui, train_model.train_controller_testbench, train_model, sim_time=sim_time, timer_interval=int(1e3))
+    sim = Simulator(Blue_line, train_model.train_controller_gui, train_model.train_controller_testbench, train_model, sim_time=sim_time, timer_interval=int(1e3))
 
     sys.exit(app.exec())
 

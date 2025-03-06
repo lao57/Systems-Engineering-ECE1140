@@ -3,7 +3,7 @@ import train_model.train_model
 
 
 class Simulator:
-    def __init__(self, gui, testbench, train_model, sim_time=100, timer_interval=100):
+    def __init__(self, track_mod, gui, testbench, train_model, sim_time=100, timer_interval=100):
         # TODO: Extend to list of train_model objects
         self.gui = gui
         self.testbench = testbench
@@ -14,6 +14,7 @@ class Simulator:
         self.driver_speed = 10  # active in manual mode
         self.driver_inputs = {}
         self.cmd_power = 0
+        self.track_model = track_mod
 
         # Create the master clock timer
         self.timer = QTimer()
@@ -41,6 +42,7 @@ class Simulator:
         # Update all modules (1 train controller per train model)
         self.train_model.update_train(self.world_time)
         self.train_model.display_train()
+        self.track_model.display_track()
 
         # Increment step count
         self.current_step += 1

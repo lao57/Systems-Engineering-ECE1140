@@ -7,7 +7,8 @@ class TrackModel:
             'beacon_signal': beacon_signal,
             'grade': grade,
             'block_vector': block_vector,
-            'baud_sig': None
+            'baud_sig': None,
+            'occupied': False
         }
 
     def get_beacon_from_block(self, block_number):
@@ -33,6 +34,22 @@ class TrackModel:
     def set_baud_sig(self, block_number, baud_sig):
         if block_number in self.blocks:
             self.blocks[block_number]['baud_sig'] = baud_sig
+    
+    def train_occupy_block(self, block_number, block_number_mid, block_number_end):
+        for block in self.blocks:
+            self.blocks[block]['occupied'] = False
+        self.blocks[block_number]['occupied'] = True
+        if block_number_mid is not None:
+            self.blocks[block_number_mid]['occupied'] = True
+        if block_number_end is not None:
+            self.blocks[block_number_end]['occupied'] = True
+
+    def display_track(self):
+        for block in self.blocks:
+            if self.blocks[block]['occupied']:
+                print(f"[|^|]")
+            else:
+                print(f"[|=|]")
 
 # Example usage:
 
