@@ -2,11 +2,12 @@ from PyQt6.QtCore import Qt, pyqtSlot, QTimer
 
 
 class Simulator:
-    def __init__(self, gui, testbench, train_model, sim_time=100, timer_interval=100):
+    def __init__(self, gui, testbench, train_model, track_model, sim_time=100, timer_interval=100):
         # TODO: Extend to list of train_model objects
         self.gui = gui
         self.testbench = testbench
         self.train_model = train_model
+        self.track_model = track_model
         self.sim_time = sim_time
         self.current_step = 0
         self.world_time = {'day': 0, 'hour': 0, 'min': 0}
@@ -38,7 +39,10 @@ class Simulator:
             self.world_time['day'] += 1
 
         # Update all modules (1 train controller per train model)
-        self.train_model.iterate(self.world_time)
+        # self.train_model.iterate(self.world_time)
+        self.train_model.update_train(self.world_time)
+        self.train_model.display_train()
+        # self.track_model.display_track()
 
         # Increment step count
         self.current_step += 1

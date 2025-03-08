@@ -2,12 +2,13 @@ class TrackModel:
     def __init__(self):
         self.blocks = {}  # Dictionary to store block information
 
-    def add_block(self, block_number, beacon_signal=0000, grade=None, block_vector=None):
+    def add_block(self, block_number, beacon_signal="0000", grade=None, block_vector=None):
         self.blocks[block_number] = {
             'beacon_signal': beacon_signal,
             'grade': grade,
             'block_vector': block_vector,
-            'baud_sig': None
+            'baud_sig': None,
+            'occupied': False
         }
 
     def get_beacon_from_block(self, block_number):
@@ -24,21 +25,40 @@ class TrackModel:
         if block_number in self.blocks and self.blocks[block_number]['block_vector'] is not None:
             return self.blocks[block_number]['block_vector']
         return None
-    
+
     def get_baud_sig(self, block_number):
         if block_number in self.blocks and self.blocks[block_number]['baud_sig'] is not None:
             return self.blocks[block_number]['baud_sig']
         return None
-    
+
     def set_baud_sig(self, block_number, baud_sig):
         if block_number in self.blocks:
             self.blocks[block_number]['baud_sig'] = baud_sig
+
+    def train_occupy_block(self, block_number, block_number_mid, block_number_end):
+        for block in self.blocks:
+            self.blocks[block]['occupied'] = False
+        self.blocks[block_number]['occupied'] = True
+        if block_number_mid is not None:
+            self.blocks[block_number_mid]['occupied'] = True
+        if block_number_end is not None:
+            self.blocks[block_number_end]['occupied'] = True
+
+    def display_track(self):
+        for block in self.blocks:
+            if self.blocks[block]['occupied']:
+                print(f"[|^|]")
+            else:
+                print(f"[|=|]")
+
 
 # Example usage:
 
 if __name__ == '__main__':
     track_model = TrackModel()
-    track_model.add_block(1, '1000000110010000011001000001100100000110010000011001000001100100000110010000011001000001100100000110010010110110110110110110110110110100000000000000000NONENONENONENONENONEStaBStaBStaBStaBStaB', [0,0,0,0,0,0,0,0,0,0], [1,2,3,4,5,6,7,8,9,10])
+    track_model.add_block(1,
+                          '1000000110010000011001000001100100000110010000011001000001100100000110010000011001000001100100000110010010110110110110110110110110110100000000000000000NONENONENONENONENONEStaBStaBStaBStaBStaB',
+                          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
     track_model.add_block(2)
     track_model.add_block(3)
     track_model.add_block(4)
@@ -67,10 +87,6 @@ if __name__ == '__main__':
     print(f"Beacon Signal (Block 3): {beacon_signal_3}")
     print(f"Grade (Block 3): {grade_3}")
     print(f"Block Vector (Block 3): {block_vector_3}")
-
-
-
-
 
 """Blue line beacon
 
