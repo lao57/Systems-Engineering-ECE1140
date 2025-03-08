@@ -1,6 +1,6 @@
-<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36" version="26.0.11">
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36 Edg/134.0.0.0" version="26.1.0">
   <diagram name="Page-1" id="AawKH1NQSwZBxSg1J17e">
-    <mxGraphModel dx="1354" dy="1039" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel dx="825" dy="670" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -48,8 +48,8 @@
             <mxPoint x="120" y="459" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="OSFHzoRCtvVyblJh_R8Y-14" value="&lt;b&gt;Note: Only CTC office changes commanded speed&lt;/b&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
-          <mxGeometry x="-30" y="231" width="100" height="59" as="geometry" />
+        <mxCell id="OSFHzoRCtvVyblJh_R8Y-14" value="&lt;b&gt;Note:&amp;nbsp;&lt;/b&gt;&lt;div&gt;&lt;b&gt;(1) CTC only controls suggested signals which can be overridden by track controller due to hazards.&lt;/b&gt;&lt;/div&gt;&lt;div&gt;&lt;b&gt;(2) Authority takes precedent to speed when conflicting&lt;/b&gt;&lt;/div&gt;&lt;div&gt;&lt;div&gt;&lt;b&gt;&lt;br&gt;&lt;/b&gt;&lt;/div&gt;&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+          <mxGeometry x="-60" y="179" width="134" height="167" as="geometry" />
         </mxCell>
         <mxCell id="OSFHzoRCtvVyblJh_R8Y-15" value="" style="endArrow=classic;html=1;rounded=0;" parent="1" edge="1">
           <mxGeometry width="50" height="50" relative="1" as="geometry">
@@ -69,6 +69,19 @@
         <mxCell id="OSFHzoRCtvVyblJh_R8Y-18" value="&lt;div&gt;Train model&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
           <mxGeometry x="675" y="821" width="80" height="35" as="geometry" />
         </mxCell>
+        <mxCell id="JrQtR2p9CgWgqK3FSHQQ-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="OSFHzoRCtvVyblJh_R8Y-19" target="_6SJ3tFi278kqBmVkFti-1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="145" y="918" />
+              <mxPoint x="193" y="918" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="JrQtR2p9CgWgqK3FSHQQ-2" value="Has a" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="JrQtR2p9CgWgqK3FSHQQ-1">
+          <mxGeometry x="0.1979" relative="1" as="geometry">
+            <mxPoint x="-11" y="-2" as="offset" />
+          </mxGeometry>
+        </mxCell>
         <mxCell id="OSFHzoRCtvVyblJh_R8Y-19" value="" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
           <mxGeometry x="80" y="798.5" width="130" height="80" as="geometry" />
         </mxCell>
@@ -87,11 +100,11 @@
             <mxPoint x="129" y="790" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="OSFHzoRCtvVyblJh_R8Y-23" value="&lt;div&gt;Train Number/Commanded Speed&lt;/div&gt;&lt;div&gt;Authority (TBD)/power availibility/Track condition/Correct door side for each station/Number of Passengers&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+        <mxCell id="OSFHzoRCtvVyblJh_R8Y-23" value="&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;10 Baud: CMD speed, CMD Authority,&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;Physical: station/Number of Passengers, grade&lt;/span&gt;&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
           <mxGeometry x="314" y="719" width="218" height="117" as="geometry" />
         </mxCell>
-        <mxCell id="OSFHzoRCtvVyblJh_R8Y-24" value="&lt;div&gt;(TBD)&lt;/div&gt;Speed Limits&lt;div&gt;Distance until Next Beacon&lt;/div&gt;&lt;div&gt;Underground&amp;nbsp;&lt;/div&gt;&lt;div&gt;Grade&amp;nbsp;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
-          <mxGeometry x="685" y="906" width="206" height="117" as="geometry" />
+        <mxCell id="OSFHzoRCtvVyblJh_R8Y-24" value="&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;Speed Limits&lt;/span&gt;&lt;/div&gt;&lt;div&gt;Distance until Next Beacon&lt;/div&gt;&lt;div&gt;Underground (true or false per block)&lt;/div&gt;&lt;div&gt;At Station (true or false per block)&lt;/div&gt;&lt;div&gt;Station Names&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+          <mxGeometry x="365" y="952.44" width="206" height="117" as="geometry" />
         </mxCell>
         <mxCell id="OSFHzoRCtvVyblJh_R8Y-25" value="" style="endArrow=classic;html=1;rounded=0;" parent="1" edge="1">
           <mxGeometry width="50" height="50" relative="1" as="geometry">
@@ -111,13 +124,13 @@
         <mxCell id="OSFHzoRCtvVyblJh_R8Y-28" value="Train Controller" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
           <mxGeometry x="675" y="502" width="85" height="35" as="geometry" />
         </mxCell>
-        <mxCell id="OSFHzoRCtvVyblJh_R8Y-29" value="&lt;div&gt;Underground&amp;nbsp;&lt;/div&gt;&lt;div&gt;Failure Modes&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;Commanded Speed (comparing CTC CMD Speed to the Speed limit and selecting lowest)&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;Current Speed&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;Authority (TBD)&lt;/span&gt;&lt;/div&gt;&lt;div&gt;Cabin Temperature&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;&lt;/span&gt;&lt;/div&gt;Station about to be reached" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+        <mxCell id="OSFHzoRCtvVyblJh_R8Y-29" value="&lt;div&gt;Beacon Info&lt;/div&gt;&lt;div&gt;Baud Info:&lt;/div&gt;&lt;div&gt;[&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;CMD speed, CMD Authority]&lt;/span&gt;&lt;/div&gt;&lt;div&gt;Failure Modes[0:3]&lt;/div&gt;&lt;div&gt;Speed limit (compared with CMD speed)&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;Current Speed&lt;/span&gt;&lt;/div&gt;&lt;div&gt;Cabin Temperature&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;&lt;/span&gt;&lt;/div&gt;Upcoming Station" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
           <mxGeometry x="507" y="594" width="191" height="136" as="geometry" />
         </mxCell>
-        <mxCell id="OSFHzoRCtvVyblJh_R8Y-30" value="Power&amp;nbsp;&lt;div&gt;Service Brake Signal&amp;nbsp;&lt;/div&gt;&lt;div&gt;Interior/exterior Lights&lt;/div&gt;&lt;div&gt;Left/right Doors&lt;/div&gt;&lt;div&gt;Announcement&amp;nbsp;&lt;/div&gt;&lt;div&gt;E-Brake Signal&lt;/div&gt;&lt;div&gt;Cabin Temperature&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+        <mxCell id="OSFHzoRCtvVyblJh_R8Y-30" value="Power&amp;nbsp;&lt;div&gt;Service Brake Signal&amp;nbsp;&lt;/div&gt;&lt;div&gt;Interior/exterior Lights&lt;/div&gt;&lt;div&gt;Left/right Doors&lt;/div&gt;&lt;div&gt;Announcement&amp;nbsp;&lt;/div&gt;&lt;div&gt;E-Brake Signal&lt;/div&gt;&lt;div&gt;Cabin Temperature&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
           <mxGeometry x="725" y="603" width="150" height="117" as="geometry" />
         </mxCell>
-        <mxCell id="OSFHzoRCtvVyblJh_R8Y-38" value="Maintenance (open/close tracks)&lt;div&gt;Train Number/Commanded Speed (Break Signal Calculated via. Authority)&lt;/div&gt;&lt;div&gt;Schedule/Route (TBD might just be switch signal)&lt;/div&gt;&lt;div&gt;Authority (TBD)&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+        <mxCell id="OSFHzoRCtvVyblJh_R8Y-38" value="Maintenance (open/close tracks)&lt;div&gt;Suggested Speed (arrival time and following distance)&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;Suggested Authority&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
           <mxGeometry x="169" y="327" width="273" height="226" as="geometry" />
         </mxCell>
         <mxCell id="OSFHzoRCtvVyblJh_R8Y-39" value="Block Occupancy&lt;div&gt;Light State&lt;/div&gt;&lt;div&gt;Switch State&lt;/div&gt;&lt;div&gt;Crossing State&lt;/div&gt;&lt;div&gt;Track Failures&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
@@ -126,17 +139,17 @@
         <mxCell id="OSFHzoRCtvVyblJh_R8Y-49" value="&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;Block Occupancy&lt;/div&gt;&lt;div&gt;Track Failures&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
           <mxGeometry x="176" y="654" width="132" height="137" as="geometry" />
         </mxCell>
-        <mxCell id="OSFHzoRCtvVyblJh_R8Y-50" value="Train Number/Commanded Speed&#xa;Authority (TBD)&#xa;Switch State&#xa;Light State&#xa;Crossing State&#xa;" style="text;whiteSpace=wrap;align=center;" parent="1" vertex="1">
+        <mxCell id="OSFHzoRCtvVyblJh_R8Y-50" value="CMD Speed&#xa;CMD Authority&#xa;Switch State&#xa;Light State&#xa;Crossing State&#xa;" style="text;whiteSpace=wrap;align=center;" parent="1" vertex="1">
           <mxGeometry x="-70" y="692" width="214" height="132" as="geometry" />
         </mxCell>
-        <mxCell id="OSFHzoRCtvVyblJh_R8Y-52" value="" style="endArrow=classic;html=1;rounded=0;" parent="1" edge="1">
+        <mxCell id="OSFHzoRCtvVyblJh_R8Y-52" value="" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=1;entryDx=0;entryDy=0;" parent="1" edge="1" target="OSFHzoRCtvVyblJh_R8Y-17" source="_6SJ3tFi278kqBmVkFti-1">
           <mxGeometry width="50" height="50" relative="1" as="geometry">
             <mxPoint x="711" y="1013" as="sourcePoint" />
             <mxPoint x="710" y="878" as="targetPoint" />
           </mxGeometry>
         </mxCell>
         <mxCell id="_6SJ3tFi278kqBmVkFti-1" value="Beacon" style="ellipse;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-          <mxGeometry x="653" y="1011" width="120" height="80" as="geometry" />
+          <mxGeometry x="133" y="955" width="120" height="80" as="geometry" />
         </mxCell>
         <mxCell id="_6SJ3tFi278kqBmVkFti-9" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="_6SJ3tFi278kqBmVkFti-2" target="OSFHzoRCtvVyblJh_R8Y-17" edge="1">
           <mxGeometry relative="1" as="geometry" />
@@ -237,17 +250,20 @@
         <mxCell id="zTZPgpIWcizLbxXzgRys-2" value="Data upload/maitenance/data entry" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;rotation=-45;" parent="1" vertex="1">
           <mxGeometry x="12.56" y="952.44" width="98" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="fyCADjSMc1uUTPhCt_D3-1" value="Transit Dispatcher" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+        <mxCell id="fyCADjSMc1uUTPhCt_D3-1" value="Transit Dispatcher" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
           <mxGeometry x="335" y="213" width="30" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="fyCADjSMc1uUTPhCt_D3-2" value="" style="endArrow=classic;html=1;rounded=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" target="OSFHzoRCtvVyblJh_R8Y-3">
+        <mxCell id="fyCADjSMc1uUTPhCt_D3-2" value="" style="endArrow=classic;html=1;rounded=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" parent="1" target="OSFHzoRCtvVyblJh_R8Y-3" edge="1">
           <mxGeometry width="50" height="50" relative="1" as="geometry">
             <mxPoint x="320" y="256" as="sourcePoint" />
             <mxPoint x="264" y="256" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="fyCADjSMc1uUTPhCt_D3-3" value="Open/Close Tracks&lt;div&gt;Schedule Trains&lt;/div&gt;&lt;div&gt;Route Trains&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+        <mxCell id="fyCADjSMc1uUTPhCt_D3-3" value="Open/Close Tracks&lt;div&gt;Schedule Trains&lt;/div&gt;&lt;div&gt;Route Trains&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
           <mxGeometry x="226" y="208" width="109" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="JrQtR2p9CgWgqK3FSHQQ-4" value="&lt;b&gt;Note:&amp;nbsp;&lt;/b&gt;&lt;div&gt;&lt;b&gt;(1) Overwrites authoritywhen train must imediatly stop since CTC doesn&#39;t consider swtiches but rather predecided routes&lt;/b&gt;&lt;/div&gt;&lt;div&gt;&lt;div&gt;&lt;b&gt;&lt;br&gt;&lt;/b&gt;&lt;/div&gt;&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="-152" y="521" width="134" height="167" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
