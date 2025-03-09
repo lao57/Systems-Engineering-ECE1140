@@ -1,11 +1,3 @@
-This is the main GITHUB
-
-What this entails is that it should contain our final project along with seperate branches that everyone is working on seperatly.
-
-DO NOT ADD DIRECTLY TO THIS GITHUB
-\besides the final project and creating your branches.
-
-=======
-Team members: Noble Woodall, Samarth Chopra
-              
-
+THIS BRANCH IS NO LONER BEING USED AT THE MOMENT
+ALL CHANGEST ARE/WERE REFLECTED IN TRAIN_MODEL_CONTROLLER_INTEGRATION
+JUST GO THERE
