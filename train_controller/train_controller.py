@@ -20,6 +20,7 @@ class TrainController:
         self.cmd_power = 0
         self.cmd_speed = 0
         self.cur_speed = 0
+        self.prev_speed = 0
         self.authority = 1000
         self.distance_travelled = 0
 
@@ -50,7 +51,7 @@ class TrainController:
         self.gui = gui
         self.testbench = testbench
 
-    def iterate(self, cmd_speed: int | float, authority: int | float, cur_speed: int | float,
+    def iterate(self, cur_accel, prev_accel, cmd_speed: int | float, authority: int | float, cur_speed: int | float,
                 failure_modes: List[bool], underground: bool, cabin_temp: int | float,
                 doors_status: List[bool], lights_status: List[bool], station_to_be_reached: str,
                 world_time: dict):
@@ -72,6 +73,7 @@ class TrainController:
         # Start of Safety critical section
         self.failure_modes = failure_modes
         self.authority = authority
+        self.cur_speed = cur_speed
         # Check for any failure modes
         if True in self.failure_modes:
             # train engine failure (pull emergence brake)
@@ -97,9 +99,20 @@ class TrainController:
                     self.set_cabin_temp, self.doors_status, self.lights_status, self.announce_station
 
         # check if train directly in front or low authority (risk of crashing)
-        if self.authority <= 20:  # 20 m
+        # if self.authority <= 20:  # 20 m
+        # e_brake_stopping_distance = (self.cur_speed ** 2) / (2 * self.max_ebrake_decel) + 40
+
+        stopping_distance = (self.cur_speed ** 2) / (2 * abs(self.max_sbrake_decel))
+        if self.authority <= stopping_distance + 16:
+            self.e_brake_on = False
+            self.service_brake_decel = self.max_sbrake_decel
+            self.cmd_power = 0
+            return self.e_brake_on, self.service_brake_decel, self.cmd_power, \
+                self.set_cabin_temp, self.doors_status, self.lights_status, self.announce_station
+
+        if self.authority <= 70 and self.service_brake_decel == 0:    # 70 m
             self.e_brake_on = True
-            self.service_brake_decel = 0.0
+            self.service_brake_decel = 0
             self.cmd_power = 0
             return self.e_brake_on, self.service_brake_decel, self.cmd_power, \
                 self.set_cabin_temp, self.doors_status, self.lights_status, self.announce_station
@@ -164,7 +177,9 @@ class TrainController:
         self.lights_status = lights_status
 
         # perform state estimation
-        self.estimate_state(cur_speed)
+        self.estimate_state(cur_speed, self.prev_speed)
+
+        self.prev_speed = cur_speed
 
         return self.e_brake_on, self.service_brake_decel, self.cmd_power, self.set_cabin_temp, self.doors_status, \
             self.lights_status, self.announce_station
@@ -207,10 +222,10 @@ class TrainController:
 
         self.set_cabin_temp = cabin_temp
 
-    def estimate_state(self, cur_speed):
+    def estimate_state(self, cur_speed, prev_speed):
         """State estimation: distance travelled estimation using speed."""
         # TODO: Use this info to know if underground, station name
-        self.distance_travelled += cur_speed * self.T  # compute distance by summation
+        self.distance_travelled += 1/2 * (cur_speed + prev_speed) * self.T
         self.authority -= self.distance_travelled
         self.authority = max(self.authority, 0)
         # compute position using beacon (to check if we have arrived at the desired station/block)

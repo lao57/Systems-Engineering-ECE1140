@@ -48,7 +48,7 @@ authority_decoder = {
 
 class TrainModel:
     """INITIALIZATION"""
-    def __init__(self, train_number=1, numberOfPassengers=3, k_p = 2e5, k_i = 2e4):
+    def __init__(self, k_p = 1.5e5, k_i = 1.5e4, train_number=1, numberOfPassengers=3):
         
         #SPEED CALCULATION VARIABLES
         self.velocity = 0
@@ -113,7 +113,7 @@ class TrainModel:
 
         # GUI
         self.train_controller_gui = TrainControllerGUI(self.k_p, self.k_i)
-        self.train_controller_testbench = TestbenchGUI()
+        self.train_controller_testbench = None #TestbenchGUI()
 
         #OTHER MODULES
         self.Track_model = None #holds the actual track information
@@ -121,13 +121,14 @@ class TrainModel:
                                                 self.comfortable_temp, self.train_controller_gui,
                                                 self.train_controller_testbench)
         self.train_controller_gui.show()
-        self.train_controller_testbench.show()
+        #self.train_controller_testbench.show()
     
     def display_train(self):
         print("--------------------------TRAIN STATUS--------------------------")
         print("Authority: ", self.authority)
         print("velocity: ", self.velocity)
         print("Acceleration: ", self.acceleration)
+        print("Previous Acceleration: ", self.previous_acceleration)
         print("Begining block: ", self.blocknumbervector[0])
         print("Middle block: ", self.blocknumbervector_middle[0])
         print("End block: ", self.blocknumbervector_end[0])
@@ -165,27 +166,9 @@ class TrainModel:
             then I make sure that I have not already read this beacon if I have not
             then I parse it plus the grade and block number vector
             """
-        
-
-        
-        # TODO: Add beacon signal pickup back
-        # while self.distance_vector[0] < 0:
-        #     self.distance_vector[1] += self.distance_vector[0]  # applying extra distance into the next block
-        #     self.distance_vector.pop(0)
-        #     self.imperial_distance_vector.pop(0)
-        #     self.imperial_distance_vector[0] = self.distance_vector[0] * 3.2808399
-        #     self.speeds_vector.pop(0)
-        #     self.underground_vector.pop(0)
-        #     self.at_station_vector.pop(0)
-        #     self.extra_bit_vector.pop(0)
-        #     self.grade_vector.pop(0)
-        #     self.blocknumbervector.pop(0)
-        """change name of baud stuff
-        udate baud pickup
-        add gravitational acceleration
-        """
         pass
     
+
     def beacon_parse(self, beaconvector, gradevector_REALSIM, blocknumbervector_REALSIM):
         n = len(beaconvector)
         self.last_beacon = beaconvector[0:4]
@@ -254,17 +237,16 @@ class TrainModel:
         # update gui
         self.update_gui(world_time)
     
-    def update_train(self, world_time):
+    def update_train(self, world_time, delta_t = 1):
         
         #read from the track model
         self.pickup_beacon_signal()
         if not self.failure_modes[1]:
             self.baud_read()
 
-        #Should be replaced by iterate() in train model
         
         #calling Train Controller function (also will need to be able to send at_station_vector[0] so that you can check if you are at a station if you are stopping)
-        self.train_controller.iterate(min(int(self.speeds_vector[0]),max_speed,int(self.cmd_velocity)), self.authority, self.velocity, self.failure_modes, self.underground_vector[0], self.cabin_temp, self.doors_status, self.lights_status, self.Next_station_names[0],world_time)
+        self.train_controller.iterate(self.acceleration,self.previous_acceleration,min(int(self.speeds_vector[0]),max_speed,int(self.cmd_velocity)), self.authority, self.velocity, self.failure_modes, self.underground_vector[0], self.cabin_temp, self.doors_status, self.lights_status, self.Next_station_names[0],world_time,)
         #AFTER TRAIN CONTROLLER ITERATE -update the power, ebrake, sbrake_decel, and cabin_temp, etc
         self.power = self.train_controller.cmd_power
         self.ebrake = self.train_controller.e_brake_on
@@ -298,14 +280,13 @@ class TrainModel:
             else:#normal acceleration calculation
                 self.acceleration = ((not(self.failure_modes[0]))*self.power/(self.mass*self.velocity) - self.sbrake_decel*(not(self.failure_modes[2]))*service_brake_deceleration - self.ebrake*emergency_brake_deceleration - gravitational_acceleration)
         
-        velocity_holder = self.velocity
-        self.velocity = self.previous_velocity + (1/2)*(self.acceleration + self.previous_acceleration)
+        self.previous_velocity = self.velocity
+        self.velocity += (1/2)*(self.acceleration + self.previous_acceleration)*delta_t
         if(self.velocity < 0):
             self.velocity = 0
-        self.previous_velocity = velocity_holder
 
         #distance handling
-        distance_over_interval = (1/2)*(self.velocity + self.previous_velocity)#one second times the average velocity
+        distance_over_interval = (1/2)*(self.velocity + self.previous_velocity)*delta_t
         self.distance_travelled += distance_over_interval
         self.distance_travelled_middle += distance_over_interval
         self.distance_travelled_end += distance_over_interval
@@ -339,12 +320,14 @@ class TrainModel:
         # update gui
         self.update_gui(world_time)
    
-    def update_train_no_signal_pickup(self, world_time):
+    def update_train_no_signal_pickup(self, world_time, delta_t = 1):
+
+        #read from the track model
         self.pickup_beacon_signal()
-        #Should be replaced by iterate() in train model
+
         
         #calling Train Controller function (also will need to be able to send at_station_vector[0] so that you can check if you are at a station if you are stopping)
-        self.train_controller.iterate(min(self.speeds_vector[0],max_speed,self.cmd_velocity), self.authority, self.velocity, self.failure_modes, self.underground_vector[0], self.cabin_temp, self.doors_status, self.lights_status, self.Next_station_names[0],world_time)
+        self.train_controller.iterate(self.acceleration,self.previous_acceleration,min(int(self.speeds_vector[0]),max_speed,int(self.cmd_velocity)), self.authority, self.velocity, self.failure_modes, self.underground_vector[0], self.cabin_temp, self.doors_status, self.lights_status, self.Next_station_names[0],world_time,)
         #AFTER TRAIN CONTROLLER ITERATE -update the power, ebrake, sbrake_decel, and cabin_temp, etc
         self.power = self.train_controller.cmd_power
         self.ebrake = self.train_controller.e_brake_on
@@ -378,18 +361,19 @@ class TrainModel:
             else:#normal acceleration calculation
                 self.acceleration = ((not(self.failure_modes[0]))*self.power/(self.mass*self.velocity) - self.sbrake_decel*(not(self.failure_modes[2]))*service_brake_deceleration - self.ebrake*emergency_brake_deceleration - gravitational_acceleration)
         
-        velocity_holder = self.velocity
-        self.velocity = self.previous_velocity + (1/2)*(self.acceleration + self.previous_acceleration)
+        self.previous_velocity = self.velocity
+        self.velocity += (1/2)*(self.acceleration + self.previous_acceleration)*delta_t
         if(self.velocity < 0):
             self.velocity = 0
-        self.previous_velocity = velocity_holder
 
         #distance handling
-        distance_over_interval = (1/2)*(self.velocity + self.previous_velocity)#one second times the average velocity
+        distance_over_interval = (1/2)*(self.velocity + self.previous_velocity)*delta_t
         self.distance_travelled += distance_over_interval
         self.distance_travelled_middle += distance_over_interval
         self.distance_travelled_end += distance_over_interval
         self.distance_vector[0] -= distance_over_interval
+        self.distance_vector_middle[0] -= distance_over_interval
+        self.distance_vector_end[0] -= distance_over_interval
         self.imperial_distance_vector[0] -= distance_over_interval * 3.2808399
         self.authority -= distance_over_interval
         while self.distance_vector_end[0] < 0:
@@ -412,7 +396,8 @@ class TrainModel:
             self.grade_vector.pop(0)
             self.blocknumbervector.pop(0)
         #update time flag to move to the next second
-
+        #update occupancy
+        self.Track_model.train_occupy_block(self.blocknumbervector[0], self.blocknumbervector_middle[0], self.blocknumbervector_end[0])
         # update gui
         self.update_gui(world_time)
     

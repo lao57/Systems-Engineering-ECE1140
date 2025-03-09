@@ -40,7 +40,7 @@ class Simulator:
             self.world_time['day'] += 1
 
         # Update all modules (1 train controller per train model)
-        self.train_model.update_train(self.world_time)
+        self.train_model.update_train(self.world_time, 0.5) #dt = 0.5 seconds
         self.train_model.display_train()
         self.track_model.display_track()
 
