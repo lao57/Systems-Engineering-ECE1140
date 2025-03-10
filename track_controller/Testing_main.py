@@ -314,7 +314,6 @@ class TrackController(QMainWindow):
 
         self.count = self.count+1
 
-
     def update_block_table(self, block_occupancy, maintenance, start_block=0):
         self.block_table.setRowCount(20)  # Display 20 blocks at a time
         wayside_blocks = self.wayside_controllers[self.current_wayside]["blocks"]
