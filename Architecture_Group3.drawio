@@ -1,6 +1,6 @@
 <mxfile host="65bd71144e">
     <diagram name="Page-1" id="AawKH1NQSwZBxSg1J17e">
-        <mxGraphModel dx="2472" dy="1280" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="850" pageHeight="1100" background="#ffffff" math="0" shadow="0">
+        <mxGraphModel dx="2093" dy="1628" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" background="#ffffff" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
@@ -100,7 +100,7 @@
                         <mxPoint x="129" y="790" as="targetPoint"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="OSFHzoRCtvVyblJh_R8Y-23" value="&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;10 Baud: CMD speed, CMD Authority,&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;Physical: station/Number of Passengers, grade&lt;/span&gt;&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+                <mxCell id="OSFHzoRCtvVyblJh_R8Y-23" value="&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;10 Baud: CMD speed, Authority,&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;Physical: station/Number of Passengers, grade&lt;/span&gt;&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
                     <mxGeometry x="314" y="719" width="218" height="117" as="geometry"/>
                 </mxCell>
                 <mxCell id="OSFHzoRCtvVyblJh_R8Y-24" value="&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;Speed Limits&lt;/span&gt;&lt;/div&gt;&lt;div&gt;Distance until Next Beacon&lt;/div&gt;&lt;div&gt;Underground (true or false per block)&lt;/div&gt;&lt;div&gt;At Station (true or false per block)&lt;/div&gt;&lt;div&gt;Station Names&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
@@ -124,22 +124,22 @@
                 <mxCell id="OSFHzoRCtvVyblJh_R8Y-28" value="Train Controller" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
                     <mxGeometry x="675" y="502" width="85" height="35" as="geometry"/>
                 </mxCell>
-                <mxCell id="OSFHzoRCtvVyblJh_R8Y-29" value="&lt;div&gt;Beacon Info&lt;/div&gt;&lt;div&gt;Baud Info:&lt;/div&gt;&lt;div&gt;[&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;CMD speed, CMD Authority]&lt;/span&gt;&lt;/div&gt;&lt;div&gt;Failure Modes[0:3]&lt;/div&gt;&lt;div&gt;Speed limit (compared with CMD speed)&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;Current Speed&lt;/span&gt;&lt;/div&gt;&lt;div&gt;Cabin Temperature&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;&lt;/span&gt;&lt;/div&gt;Upcoming Station" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+                <mxCell id="OSFHzoRCtvVyblJh_R8Y-29" value="&lt;div&gt;Beacon Info&lt;/div&gt;&lt;div&gt;Baud Info:&lt;/div&gt;&lt;div&gt;[&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;CMD speed, Authority]&lt;/span&gt;&lt;/div&gt;&lt;div&gt;Failure Modes[0:3]&lt;/div&gt;&lt;div&gt;Speed limit (compared with CMD speed)&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;Current Speed&lt;/span&gt;&lt;/div&gt;&lt;div&gt;Cabin Temperature&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;&lt;/span&gt;&lt;/div&gt;Upcoming Station" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
                     <mxGeometry x="507" y="594" width="191" height="136" as="geometry"/>
                 </mxCell>
                 <mxCell id="OSFHzoRCtvVyblJh_R8Y-30" value="Power&amp;nbsp;&lt;div&gt;Service Brake Signal&amp;nbsp;&lt;/div&gt;&lt;div&gt;Interior/exterior Lights&lt;/div&gt;&lt;div&gt;Left/right Doors&lt;/div&gt;&lt;div&gt;Announcement&amp;nbsp;&lt;/div&gt;&lt;div&gt;E-Brake Signal&lt;/div&gt;&lt;div&gt;Cabin Temperature&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
                     <mxGeometry x="725" y="603" width="150" height="117" as="geometry"/>
                 </mxCell>
-                <mxCell id="OSFHzoRCtvVyblJh_R8Y-38" value="Maintenance (open/close tracks)&lt;div&gt;Suggested Speed (arrival time and following distance)&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;Suggested Authority&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+                <mxCell id="OSFHzoRCtvVyblJh_R8Y-38" value="Maintenance (open/close tracks)&lt;div&gt;&lt;span style=&quot;background-color: transparent;&quot;&gt;Authority&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
                     <mxGeometry x="152" y="315" width="273" height="226" as="geometry"/>
                 </mxCell>
-                <mxCell id="OSFHzoRCtvVyblJh_R8Y-39" value="Block Occupancy&lt;div&gt;Light State&lt;/div&gt;&lt;div&gt;Switch State&lt;/div&gt;&lt;div&gt;Crossing State&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+                <mxCell id="OSFHzoRCtvVyblJh_R8Y-39" value="Block Occupancy&lt;div&gt;Light State&lt;/div&gt;&lt;div&gt;Switch State&lt;/div&gt;&lt;div&gt;Crossing State&lt;/div&gt;&lt;div&gt;Stop Signals&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
                     <mxGeometry x="-10" y="298" width="134" height="209" as="geometry"/>
                 </mxCell>
                 <mxCell id="OSFHzoRCtvVyblJh_R8Y-49" value="&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;Block Occupancy&amp;nbsp;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
                     <mxGeometry x="176" y="654" width="132" height="137" as="geometry"/>
                 </mxCell>
-                <mxCell id="OSFHzoRCtvVyblJh_R8Y-50" value="Suggested Speed&#xa;CMD Authority&#xa;Switch State&#xa;Light State&#xa;Crossing State&#xa;" style="text;whiteSpace=wrap;align=center;" parent="1" vertex="1">
+                <mxCell id="OSFHzoRCtvVyblJh_R8Y-50" value="Suggested Speed&#xa;Authority&#xa;Switch State&#xa;Light State&#xa;Crossing State&#xa;" style="text;whiteSpace=wrap;align=center;" parent="1" vertex="1">
                     <mxGeometry x="-50" y="676" width="214" height="132" as="geometry"/>
                 </mxCell>
                 <mxCell id="OSFHzoRCtvVyblJh_R8Y-52" value="" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=1;entryDx=0;entryDy=0;" parent="1" source="_6SJ3tFi278kqBmVkFti-1" target="OSFHzoRCtvVyblJh_R8Y-17" edge="1">
