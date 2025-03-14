@@ -1,4 +1,5 @@
 import sys
+import pandas as pd
 import importlib.util
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QLabel, QTableWidget, QTableWidgetItem, QPushButton,
@@ -8,89 +9,11 @@ from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtGui import QFont
 from wayside import WAYSIDE
 
-
-class CTC:
-    def __init__(self):
-        self.maintenance = [False] * 150  # Maintenance status for all blocks
-        self.block_authority = [0b0000001010] * 150  # Example: block authority values
-        self.track_controller = None  # Will be set later
-
-    def set_track_controller(self, track_controller):
-        self.track_controller = track_controller
-
-    def get_maintenance_status(self):
-        return self.maintenance
-
-    def get_block_authority(self):
-        return self.block_authority
-
-
-class TrackModel:
-    def __init__(self):
-        self.block_occupancy = [False] * 150  # Occupancy status for all blocks
-        self.track_controller = None  # Will be set later
-
-    def set_track_controller(self, track_controller):
-        self.track_controller = track_controller
-
-    def get_block_occupancy(self):
-        return self.block_occupancy
-
-
-class TestBench(QMainWindow):
-    def __init__(self, ctc, track_model):
-        super().__init__()
-        self.ctc = ctc
-        self.track_model = track_model
-        self.setWindowTitle("Test Bench")
-        self.setGeometry(200, 200, 800, 600)
-        self.initUI()
-
-    def initUI(self):
-        centralWidget = QWidget()
-        self.setCentralWidget(centralWidget)
-        layout = QVBoxLayout()
-
-        # Scroll Area for the grid of buttons
-        scroll_area = QScrollArea()
-        scroll_widget = QWidget()
-        self.grid_layout = QGridLayout()
-        self.grid_layout.setSpacing(5)
-
-        # Create 150 buttons in a grid
-        self.block_buttons = []
-        for block_num in range(1, 151):
-            btn = QPushButton(f"Block {block_num}")
-            btn.setCheckable(True)
-            btn.clicked.connect(lambda checked, block=block_num - 1: self.toggle_block(block))
-            self.block_buttons.append(btn)
-            self.grid_layout.addWidget(btn, (block_num - 1) // 10, (block_num - 1) % 10)
-
-        scroll_widget.setLayout(self.grid_layout)
-        scroll_area.setWidget(scroll_widget)
-        scroll_area.setWidgetResizable(True)
-        layout.addWidget(scroll_area)
-
-        centralWidget.setLayout(layout)
-
-    def toggle_block(self, block_num):
-        """Toggle occupancy and maintenance status for the selected block."""
-        self.track_model.occupancy_status[block_num] = not self.track_model.occupancy_status[block_num]
-        self.ctc.maintenance[block_num] = 0
-
-        # Update button color
-        btn = self.block_buttons[block_num]
-        if self.track_model.occupancy_status[block_num]:
-            btn.setStyleSheet("background-color: lightGray")
-        else:
-            btn.setStyleSheet("")
-
-
 class TrackController(QMainWindow):
-    def __init__(self, ctc, track_model):
+    def __init__(self):
         super().__init__()
-        self.ctc = ctc
-        self.track_model = track_model
+        self.ctc = None
+        self.track_model = None
 
         # Initialize global states
         self.switch_states = [False] * 6  # Total switches across all waysides
@@ -99,7 +22,7 @@ class TrackController(QMainWindow):
         self.block_occupancy = [False] * 150  # Block occupancy for all blocks
         self.block_authority = [0] * 150  # Block authority for all blocks
 
-        self.count = 0 # get rid of later
+        self.count = 0  # get rid of later
 
         # Define wayside controllers and their block assignments
         self.wayside_controllers = {
@@ -125,13 +48,13 @@ class TrackController(QMainWindow):
             },
             "wayside3": {
                 "blocks": list(range(74, 104)),  # Blocks 74-103
-                "switches": [4, 5], 
-                "lights": [4, 5],  
-                "crossings": [],  
-                "logic_function": None,  
-                "switch_states": [False] * 2, 
-                "light_states": [False] * 2,  
-                "crossing_states": [False] * 0, 
+                "switches": [4, 5],
+                "lights": [4, 5],
+                "crossings": [],
+                "logic_function": None,
+                "switch_states": [False] * 2,
+                "light_states": [False] * 2,
+                "crossing_states": [False] * 0,
             }
         }
 
@@ -146,11 +69,6 @@ class TrackController(QMainWindow):
         self.initUI()
 
         self.update_ui_elements()
-
-        # Set up a timer to periodically update the UI with external data
-        self.update_timer = QTimer()
-        self.update_timer.timeout.connect(self.update)
-        self.update_timer.start(1000)  # Update every 1 second
 
     def initUI(self):
         centralWidget = QWidget()
@@ -261,7 +179,7 @@ class TrackController(QMainWindow):
         """Switch the displayed wayside controller."""
         self.current_wayside = wayside_name
         self.current_page = 0
-        self.update_block_table(self.track_model.get_block_occupancy(), self.ctc.get_maintenance_status(), 0)
+        self.update_block_table(self.track_model.occupancy_status, self.ctc.get_maintenance_status(), 0)
         self.update_authority_table(0)
         self.update_ui_elements()  # Refresh UI to show correct switches and lights
 
@@ -293,7 +211,7 @@ class TrackController(QMainWindow):
         # Fetch data from CTC and Track Model
         self.maintenance = self.ctc.get_maintenance_status()
         self.block_authorities = self.ctc.get_block_authority()
-        self.block_occupancy = self.track_model.get_block_occupancy()
+        self.block_occupancy = self.track_model.occupancy_status
 
         self.block_occupancy = [self.block_occupancy[i] or self.maintenance[i] for i in range(len(self.block_occupancy))]
 
@@ -416,7 +334,7 @@ class TrackController(QMainWindow):
     def prev_page(self):
         """Move to the previous page of blocks."""
         self.current_page = max(self.current_page - 1, 0)
-        self.update_block_table(self.track_model.get_block_occupancy(), self.ctc.get_maintenance_status(), self.current_page * 20)
+        self.update_block_table(self.track_model.occupancy_status, self.ctc.get_maintenance_status(), self.current_page * 20)
         self.update_authority_table(self.current_page * 20)
 
     def next_page(self):
@@ -425,7 +343,7 @@ class TrackController(QMainWindow):
         max_page = (total_blocks + 19) // 20 - 1
         self.current_page = min(self.current_page + 1, max_page)
         self.update_block_table(
-            self.track_model.get_block_occupancy(),
+            self.track_model.occupancy_status,
             self.ctc.get_maintenance_status(),  # Pass maintenance status from CTC
             self.current_page * 20
         )
@@ -464,45 +382,12 @@ class TrackController(QMainWindow):
                 else:
                     btn.hide()
     
-    def get_switch_state(self):
-        """Return the combined switch states for all waysides."""
-        return self.switch_states
-
-    def get_light_state(self):
-        """Return the combined light states for all waysides."""
-        return self.light_states
-
-    def get_crossing_state(self):
-        """Return the combined crossing states for all waysides."""
-        return self.crossing_states
-
-    def get_block_occupancy(self):
-        """Return the combined block occupancy for all blocks."""
-        return self.block_occupancy #self.track_model.get_block_occupancy() if I decide to do that
-
     def get_block_authority(self):
         """Return the combined block authority for all blocks."""
         return self.block_authority
 
-if __name__ == "__main__":
-    app = QApplication(sys.argv)
-
-    # Create instances of CTC, TrackModel, and TrackController
-    ctc = CTC()
-    track_model = TrackModel()
-    track_controller = TrackController(ctc, track_model)
-
-    # Wire the dependencies together
-    ctc.set_track_controller(track_controller)
-    track_model.set_track_controller(track_controller)
-
-    # Show the TrackController UI
-    track_controller.show()
-    track_controller.update()
-
-    # Show the Test Bench UI
-    test_bench = TestBench(ctc, track_model)
-    test_bench.show()
-
-    # Start the application loop
-    sys.exit(app.exec())
+    def set_ctc(self, ctc):
+        self.ctc = ctc
+    
+    def set_track_model(self, track_model):
+        self.track_model = track_model
