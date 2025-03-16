@@ -3,6 +3,7 @@ import numpy as np
 from train_controller.train_controller import TrainController
 from train_controller.train_controller_gui import TrainControllerGUI
 from train_controller.testbench_gui import TestbenchGUI
+from train_model.train_gui import Train_GUI
 
 service_brake_deceleration = 1.2  # m/s^2
 emergency_brake_deceleration = 2.73  # m/s^2
@@ -78,7 +79,7 @@ class TrainModel:
         self.numberOfPassengers = numberOfPassengers  # starts at 2 for the driver and the conductor
         self.train_number = train_number
         self.mass = self.numberOfCars * 40900 + numberOfPassengers * 70  # 40 tons per cart plus 70 kg per person
-        self.mass_imperial = self.mass * 2.20462
+        self.weight_imperial = self.mass * 2.20462
         self.length = 32.3 * self.numberOfCars
         self.length_imperial = self.length * 3.2808399
         self.capacity = 75  # SET AS MAX VALUE
@@ -114,6 +115,7 @@ class TrainModel:
         # GUI
         self.train_controller_gui = TrainControllerGUI(self.k_p, self.k_i)
         self.train_controller_testbench = None #TestbenchGUI()
+        self.train_gui = Train_GUI(self)
 
         #OTHER MODULES
         self.Track_model = None #holds the actual track information
@@ -121,6 +123,7 @@ class TrainModel:
                                                 self.comfortable_temp, self.train_controller_gui,
                                                 self.train_controller_testbench)
         self.train_controller_gui.show()
+        self.train_gui.show()
         #self.train_controller_testbench.show()
     
     def display_train(self):
@@ -319,6 +322,7 @@ class TrainModel:
         self.Track_model.train_occupy_block(self.blocknumbervector[0], self.blocknumbervector_middle[0], self.blocknumbervector_end[0])
         # update gui
         self.update_gui(world_time)
+        self.train_gui.update_train_model_GUI(delta_t)
    
     def update_train_no_signal_pickup(self, world_time, delta_t = 1):
 
@@ -414,6 +418,12 @@ class TrainModel:
         # Train model testbench
 
     def update_gui(self, world_time):
+
+        # Update train GUI
+
+
+
+
         # Update train controller GUI
         self.train_controller_gui.update_world_time(world_time)
         self.train_controller_gui.update_power_cmd(self.power)
