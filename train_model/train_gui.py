@@ -172,10 +172,10 @@ class Train_GUI(QWidget):
         self.num_cars_label.setText(f"Number of Carts: {self.train.numberOfCars}")
         self.length_label.setText(f"Length: {int(self.train.length_imperial)} ft")
         
-        #self.toggle_left_door()
-        #self.toggle_right_door()
-        #self.toggle_interior_light()
-        #self.toggle_exterior_light()
+        self.toggle_left_door()
+        self.toggle_right_door()
+        self.toggle_interior_light()
+        self.toggle_exterior_light()
 
     # Function to upload and display an image on the banner
     def upload_image(self):
@@ -215,21 +215,25 @@ class Train_GUI(QWidget):
 
 
 
-    """ Functions for failures"""
+    """ Functions for failures
+    
+    self.failure_modes = [False, False, False]  # [train engine failure, signal pickup failure, brake failure]
+    
+    """
     # Function to toggle signal pickup
     def toggle_signal_pickup(self):
-        self.train.signal_pickup = not self.train.signal_pickup
-        self.signal_pickup_button.setText(f"Signal Pickup: {'On' if self.train.signal_pickup else 'Off'}")
+        self.train.failure_modes[1] = not self.train.failure_modes[1]
+        self.signal_pickup_button.setText(f"Signal Pickup Status: {'Failure' if self.train.failure_modes[1] else 'Normal'}")
 
     # Function to toggle brake status
     def toggle_brake_status(self):
-        self.train.brake_status = not self.train.brake_status
-        self.brake_status_button.setText(f"Brake Status: {'Engaged' if self.train.brake_status else 'Disengaged'}")
+        self.train.failure_modes[2] = not self.train.failure_modes[2]
+        self.brake_status_button.setText(f"Brake Status: {'Failure' if self.train.failure_modes[2] else 'Normal'}")
 
     # Function to toggle engine status
     def toggle_engine_status(self):
-        self.train.engine_status = not self.train.engine_status
-        self.engine_status_button.setText(f"Engine Status: {'On' if self.train.engine_status else 'Off'}")
+        self.train.failure_modes[0] = not self.train.failure_modes[0]
+        self.engine_status_button.setText(f"Engine Status: {'Failure' if self.train.failure_modes[0] else 'Normal'}")
 
 
 if __name__ == '__main__':
