@@ -45,37 +45,37 @@ class Train_GUI(QWidget):
         # Create toggle buttons for train controls
         self.left_door_button = QPushButton('Toggle Left Door', self)
         self.left_door_button.clicked.connect(self.toggle_left_door)
-        self.left_door_button.setEnabled(False)
+        self.left_door_button.setEnabled(True)
 
         self.right_door_button = QPushButton('Toggle Right Door', self)
         self.right_door_button.clicked.connect(self.toggle_right_door)
-        self.right_door_button.setEnabled(False)
+        self.right_door_button.setEnabled(True)
 
         self.interior_light_button = QPushButton('Toggle Interior Light', self)
         self.interior_light_button.clicked.connect(self.toggle_interior_light)
-        self.interior_light_button.setEnabled(False)
+        self.interior_light_button.setEnabled(True)
 
         self.exterior_light_button = QPushButton('Toggle Exterior Light', self)
         self.exterior_light_button.clicked.connect(self.toggle_exterior_light)
-        self.exterior_light_button.setEnabled(False)
+        self.exterior_light_button.setEnabled(True)
 
         self.ebrake_button = QPushButton('Emergency Brake', self)
         self.ebrake_button.setStyleSheet("background-color: red")
         self.ebrake_button.clicked.connect(self.toggle_ebrake)
-        self.ebrake_button.setEnabled(False)
+        self.ebrake_button.setEnabled(True)
 
         # Create toggle buttons for new train controls
         self.signal_pickup_button = QPushButton('Toggle Signal Pickup', self)
         self.signal_pickup_button.clicked.connect(self.toggle_signal_pickup)
-        self.signal_pickup_button.setEnabled(False)
+        self.signal_pickup_button.setEnabled(True)
 
         self.brake_status_button = QPushButton('Toggle Brake Status', self)
         self.brake_status_button.clicked.connect(self.toggle_brake_status)
-        self.brake_status_button.setEnabled(False)
+        self.brake_status_button.setEnabled(True)
 
         self.engine_status_button = QPushButton('Toggle Engine Status', self)
         self.engine_status_button.clicked.connect(self.toggle_engine_status)
-        self.engine_status_button.setEnabled(False)
+        self.engine_status_button.setEnabled(True)
 
         # Create labels for train variables
         self.Train_Beacon_ID_Label = QLabel("Baud ID: 0", self)
@@ -98,7 +98,7 @@ class Train_GUI(QWidget):
         self.velocity_dial = QDial(self)
         self.velocity_dial.setRange(0, 75)  # Assuming max velocity is 70 mph
         self.velocity_dial.setNotchesVisible(True)
-        self.velocity_dial.setEnabled(False)
+        self.velocity_dial.setEnabled(True)
 
         # Layout for input fields
         input_layout = QVBoxLayout()
@@ -172,10 +172,10 @@ class Train_GUI(QWidget):
         self.num_cars_label.setText(f"Number of Carts: {self.train.numberOfCars}")
         self.length_label.setText(f"Length: {int(self.train.length_imperial)} ft")
         
-        self.toggle_left_door()
-        self.toggle_right_door()
-        self.toggle_interior_light()
-        self.toggle_exterior_light()
+        #self.toggle_left_door()
+        #self.toggle_right_door()
+        #self.toggle_interior_light()
+        #self.toggle_exterior_light()
 
     # Function to upload and display an image on the banner
     def upload_image(self):
@@ -210,8 +210,8 @@ class Train_GUI(QWidget):
         self.exterior_light_button.setText(f"Exterior Light: {'On' if self.train.lights_status[1] else 'Off'}")
 
     def toggle_ebrake(self):
-        self.train.ebrake_signal = not self.train.ebrake_signal
-        self.ebrake_button.setText(f"Emergency Brake: {'Engaged' if self.train.ebrake_signal else 'Disengaged'}")
+        self.train.ebrake_gui_signal = not self.train.ebrake_gui_signal
+        self.ebrake_button.setText(f"Emergency Brake: {'Engaged' if self.train.ebrake_gui_signal else 'Disengaged'}")
 
 
 

@@ -116,6 +116,7 @@ class TrainModel:
         self.train_controller_gui = TrainControllerGUI(self.k_p, self.k_i)
         self.train_controller_testbench = None #TestbenchGUI()
         self.train_gui = Train_GUI(self)
+        self.ebrake_gui_signal = False
 
         #OTHER MODULES
         self.Track_model = None #holds the actual track information
@@ -258,6 +259,11 @@ class TrainModel:
         self.doors_status = self.train_controller.doors_status
         self.lights_status = self.train_controller.lights_status
         self.announcement = self.train_controller.announce_station
+        if self.ebrake == False:
+            if self.ebrake_gui_signal == True:
+                self.ebrake = True
+
+
 
         #handling announcments
         if self.announcement:
