@@ -161,10 +161,12 @@ class Train_GUI(QWidget):
         self.distance_travelled_label.setText(f"Distance Travelled: {self.train.distance_travelled * 3.2808399:.1f} ft")
         
         # Display only the first value of each vector
-        self.distance_vector_label.setText(f"Distance Vector: {self.train.imperial_distance_vector[0]:.1f}")
-        self.speeds_vector_label.setText(f"Speeds Vector: {self.train.speeds_vector[0]:.1f}")
-        self.underground_vector_label.setText(f"Underground Vector: {self.train.underground_vector[0]}")
-        self.at_station_vector_label.setText(f"At Station Vector: {self.train.at_station_vector[0]}")
+        self.distance_vector_label.setText(f"Distance Left on Block: {self.train.imperial_distance_vector[0]:.1f}")
+        self.speeds_vector_label.setText(f"Speed Limit: {self.train.speeds_vector[0]:.1f}")
+        self.underground_vector_label.setText(f"Underground(1 = yes): {self.train.underground_vector[0]}")
+        self.at_station_vector_label.setText(f"At Station(1 = yes): {self.train.at_station_vector[0]}")
+        if self.train.announcement == True:
+            self.station_name_vector_label.setText(f"Now Arriving at: {self.train.Next_station_names[0]}")
         self.station_name_vector_label.setText(f"Next Station: {self.train.Next_station_names[0]}")
         
         # Update the new labels
