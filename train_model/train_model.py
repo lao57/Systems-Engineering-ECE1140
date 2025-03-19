@@ -72,7 +72,6 @@ class TrainModel:
         self.lights_status = [False, False]  # interior light on, exterior light on
         self.cabin_temp = 70
         self.announcement = False
-        self.announcement_text = ""
 
         #TRAIN PHYSICAL VARIABLES
         self.numberOfCars = 5  # according to profetta this is constant
