@@ -11,8 +11,7 @@ from wayside import WAYSIDE
 import TrackController 
 import TrackModelBackend
 #import TrackModelUI
-import testbench
-import Track_Model_GUI
+import track_gui_and_testbench_unified
 import testbench_track_controller
 
 
@@ -52,14 +51,15 @@ if __name__ == "__main__":
     track_model.set_track_controller(track_controller)
     track_model.set_train_model(train_model)
 
-    # Show the TrackController UI
-    track_controller.show()
-    track_model.gui.show()
-    
     # Show the Test Bench UI
-
     test_bench = testbench_track_controller.TestBench(ctc, track_model)
     test_bench.show()
+
+    track_controller.show()
+
+    window = track_gui_and_testbench_unified.UnifiedInterface()
+    window.show()
+    
 
     # Create a QTimer to update track controller and model continuously
     update_timer = QTimer()
