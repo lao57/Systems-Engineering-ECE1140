@@ -1,0 +1,280 @@
+from typing import List, Dict
+from ctc import CTC
+
+class TrackBlock:
+    def __init__(self, block_number: int, block_length: float):
+        self.block_number = block_number
+        self.block_length = block_length
+        self.next = None #pointer to next block in route
+
+class Train:
+    def __init__(
+        self, train_id: int, route_head: TrackBlock, scheduled_stops: List[int] = None,
+        current_block: TrackBlock = None, next_stop_index: int = 0,
+        authority_meters: float = 0.0, last_stop_passed: int = None
+    ):
+        self.train_id = train_id #unique train id
+        self.route_head = route_head #head node of L.L representing route
+        self.scheduled_stops = scheduled_stops if scheduled_stops else [] #list of block nums to stop
+        self.current_block = current_block #current block train on
+        self.next_stop_index = next_stop_index #index into scheduled_stops indicating next stop
+        self.authority_meters = authority_meters #remaining distance before reaching next stop
+        self.last_stop_passed = last_stop_passed #block num of most recent scheduled stop passed
+
+    @property
+    def route_blocks(self) -> List[int]:
+        blocks = [] #init empty list to hold block nums
+        node = self.route_head #start at head of L.L. representing route
+
+        #traverse whole L.L.
+        while node:
+
+            blocks.append(node.block_number)  #add block num of current node to list
+            node = node.next #move to next node in L.L
+
+        return blocks # return list of block nums that form the route
+
+    @property
+    def current_block_index(self) -> int:
+        index = 0 #init index counter @ 0
+        node = self.route_head #start at head of L.L. representing route
+
+        #traverse L.L. until curr. block found
+        while node:
+
+            #if current node matches train's current block, return index
+            if node == self.current_block:
+                return index
+
+            #Move to next node & increment index
+            node = node.next
+            index += 1
+        #if curr block not found (shouldn't happen)
+        return -1
+
+class CTCOffice:
+
+    #default green line route
+    green_line_route = [
+        62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80,
+        81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100,
+        85, 84, 83, 82, 81, 80, 79, 78, 77, 101, 102, 103, 104, 105, 106, 107, 108, 109,
+        110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125,
+        126, 127, 128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141,
+        142, 143, 144, 145, 146, 147, 148, 149, 150, 28, 27, 26, 25, 24, 23, 22, 21,
+        20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 13, 14,
+        15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34,
+        35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54,
+        55, 56, 57, 58
+    ]
+
+    def __init__(self, track_layout: Dict[str, List[dict]], schedules: Dict[str, List]):
+        self.track_layout = track_layout #save track layout
+        self.schedules = schedules #save schedule
+        self.ctc: CTC = None #set later
+        self.active_trains: List[Train] = [] #list to keep track of active trains
+        self.green_blocks = {b['block_number']: b for b in track_layout.get('Green Line', [])} #dict mapping blk nums. to blk data. Easier to find lengths
+
+
+    def set_ctc(self, ctc: CTC):
+        self.ctc = ctc #assign ctc
+
+
+    def build_linked_route(self, route_numbers: List[int]) -> TrackBlock:
+
+        head = None #1st block in route
+        curr = None #track current end of L.L.
+
+        #iterate thru each block num. in route
+        for num in route_numbers:
+
+            #look up block length from green_blocks dict. if none default 0.
+            length = self.green_blocks[num]['block_length'] if num in self.green_blocks else 0.0
+            node = TrackBlock(num, length) #create new TrackBlock instance
+
+            if head is None: #if first node set as head of list
+                head = node
+                curr = node
+
+            #otherwise link curr. node to new node
+            else:
+                curr.next = node
+                curr = node #update curr pointer to new node
+        return head #return head of L.L. representing route
+
+    def schedule_train(self, line: str, train_index: int):
+        #get schedule for line and train index.
+        try:
+            schedule = self.schedules[line][train_index]
+        except (KeyError, IndexError):
+            return
+
+        # Get stops from schedule
+        stops = [item['block'] for item in schedule.stops]
+
+        # Build route from yard exit (62) to each stop in order.
+        route_numbers = []
+        current_position = 62  # always start from yard exit on Green
+
+        #go through each stop block in route
+        for stop_block in stops:
+            if stop_block not in self.green_line_route:
+                print(f"Stop block {stop_block} not in green_line_route. Skipping.")
+                return
+
+            try:
+                start_index = self.green_line_route.index(current_position) #find index for current position
+                target_index = self.green_line_route.index(stop_block) #find index for end position
+            except ValueError:
+                print(f"Error: {current_position} or {stop_block} not found in route array.")
+                return
+
+            #if stop coming up, take segment directly.
+            if target_index >= start_index:
+                segment = self.green_line_route[start_index:target_index+1]
+            else:
+                # Reverse slice if desired stop already passed.
+                segment = self.green_line_route[target_index:start_index+1][::-1]
+
+            #add segment to route_numbers list and avoid duplicating current block if last element
+            if route_numbers and route_numbers[-1] == current_position:
+                route_numbers += segment[1:]
+            else:
+                route_numbers += segment
+
+            current_position = stop_block #update current pos to stop
+
+        # Convert list of route numbers to linked list
+        route_head = self.build_linked_route(route_numbers)
+
+        #create new train instance with route and schedule
+        train = Train(
+            train_id=schedule.train_id,
+            route_head=route_head,
+            scheduled_stops=stops,
+            current_block=route_head,
+            next_stop_index=0
+        )
+
+        self.update_authority(train) #calculate authority
+        self.active_trains.append(train) #add train to active list of trains
+        print(f"Scheduled Train {train.train_id} with route {route_numbers}")
+
+    @staticmethod
+    def update_authority(train: Train):
+        print(f"Calculating authority for Train {train.train_id}:")
+
+        #check if any stops left. if not, set train's auth. to 0.
+        if train.next_stop_index >= len(train.scheduled_stops):
+            train.authority_meters = 0.0
+            print("No next stop; authority = 0.0")
+            return
+
+        #get next scheduled stop's block number.
+        target_stop = train.scheduled_stops[train.next_stop_index]
+        total = 0.0 #init accumulator for total allowed distance
+        node = train.current_block #start @ train's current position in route.
+
+        #sum lengths of blocks in route until target stop is reached
+        while node and node.block_number != target_stop:
+            total += node.block_length
+            node = node.next
+
+        #include target block's length if reached.
+        if node:
+            total += node.block_length
+
+        #update train's authority
+        train.authority_meters = total
+        print(f"Authority from {train.current_block.block_number if train.current_block else '??'} to {target_stop} = {total} m")
+
+    def update_train_positions(self):
+        if not self.ctc:
+            return
+
+        #create list of blocks that are currently occupied
+        occupied_blocks = [i+1 for i, occ in enumerate(self.ctc.block_occupancy) if occ]
+
+        #iterate over all active trains.
+        for train in self.active_trains:
+            if train.current_block is None:
+                continue
+
+            #get block num of train's current block
+            curr_num = train.current_block.block_number
+
+            # If current block is still occupied, do nothing
+            if curr_num in occupied_blocks:
+                continue
+
+            # Check next block
+            nxt = train.current_block.next
+
+            #if no next block, end of route
+            if not nxt:
+                print(f"Train {train.train_id} finished route at block {curr_num}.")
+                continue
+
+            #get block num of next block
+            nxt_num = nxt.block_number
+
+            #if next block occupied, means train moved.
+            if nxt_num in occupied_blocks:
+                train.current_block = nxt  #update current block to next block
+
+
+                # If there are still stops:
+                if train.next_stop_index < len(train.scheduled_stops):
+
+                    #check if reached next stop
+                    if nxt_num == train.scheduled_stops[train.next_stop_index]:
+                        train.last_stop_passed = nxt_num #store that train passed stop
+                        train.next_stop_index += 1 #increment to point to next scheduled stop
+
+                        print(f"Train {train.train_id} arrived at stop {nxt_num}. Next stop index = {train.next_stop_index}")
+                        self.update_authority(train) #recalculate authority
+
+
+    def update_maintenance(self, maintenance_list):
+        if self.ctc:
+            self.ctc.maintenance = maintenance_list.copy()
+
+
+    def update(self):
+        if not self.ctc:
+            return
+
+        # Reset each block's authority to a 10-bit array of [False].
+        self.ctc.block_authority = [[False]*10 for _ in range(150)]
+        max_auth = 1023 # max val of 10 bits
+
+        #for each active train, update authority for route.
+        for train in self.active_trains:
+            remaining = train.authority_meters #remaining allowed travel distance
+            node = train.current_block #start from train's current block
+
+            #traverse route until no remaining auth. or route ends
+            while remaining > 0 and node:
+
+                #determine auth. for this block, caps at max.
+                auth_value = min(int(remaining), max_auth)
+
+                # Convert to 10 bits (MSB first)
+                bits = [(auth_value >> i) & 1 == 1 for i in range(9, -1, -1)]
+
+                #Calculate the index for this block in the CTC auth. list
+                index = node.block_number - 1
+                if 0 <= index < 150:
+                    self.ctc.block_authority[index] = bits  #assign 10 bit list to block
+
+                #sub length of block from remaining auth.
+                remaining -= node.block_length
+                node = node.next #move to next block in route.
+
+        # Overwrite blocks under maintenance
+        for i, m in enumerate(self.ctc.maintenance):
+            if m:
+                self.ctc.block_authority[i] = [False]*10
+
+        self.ctc.send_to_track_controller() #updates track controller with latest values
+        self.update_train_positions()
