@@ -17,7 +17,6 @@ def main():
     k_p = 2e5
     k_i = 2e4
 
-    sim_time = int(1e3)
     app = QApplication(sys.argv)
     Blue_line = TrackModel()
     Blue_line.add_block(1, '0000000110010000011001000001100100000110010000011001000001100100000110010000011001000001100100000110010010110110110110110110110110110100000000000000000000NONENONENONENONENONEStaBStaBStaBStaBStaB', [0,0,0,0,0,0,0,0,0,0], [1,2,3,4,5,6,7,8,9,10])
@@ -33,16 +32,13 @@ def main():
 
     Blue_line.set_baud_sig(1, "0100000000")
 
-    #train_controller_gui = TrainControllerGUI(k_p, k_i)
-    #train_controller_testbench = TestbenchGUI()
-    train_model = TrainModel()
+    train_model = TrainModel(k_p=k_p, k_i=k_i)
     train_model.add_classes(Blue_line)
 
-    #train_controller_gui.show() NOT NEEDED ANYMORE HANDLED INTERNALLY SO THAT THE CTC HAS LESS TO DO WHEN IT COMES TO TRAIN INITIALIZATION
-    #train_controller_testbench.show()
-
     # Start the master simulation loop
-    sim = Simulator(Blue_line, train_model.train_controller_gui, train_model.train_controller_testbench, train_model, sim_time=sim_time, timer_interval=int(1e3))
+    sim_speed = 1e3
+    sim_duration = 1e3
+    sim = Simulator(Blue_line, train_model.train_controller_gui, train_model.train_controller_testbench, train_model, sim_time=int(sim_duration), timer_interval=int(sim_speed))
 
     sys.exit(app.exec())
 
