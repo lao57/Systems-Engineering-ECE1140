@@ -4,6 +4,7 @@ from train_controller.train_controller import TrainController
 from train_controller.train_controller_gui import TrainControllerGUI
 from train_controller.testbench_gui import TestbenchGUI
 from train_model.train_gui import Train_GUI
+from train_controller.train_controller_gui_v2 import TrainControllerGUIv2
 
 service_brake_deceleration = 1.2  # m/s^2
 emergency_brake_deceleration = 2.73  # m/s^2
@@ -104,12 +105,13 @@ class TrainModel:
         self.k_p = k_p
         self.k_i = k_i
         self.dt = 1  # sampling time
-        self.max_engine_power = 1000
+        self.max_engine_power = 120e3  # 4 motors; each can supply up to max 120 kW
         self.sample_period = 1
         self.comfortable_temp = 70
 
         # GUI
-        self.train_controller_gui = TrainControllerGUI(self.k_p, self.k_i)
+        # self.train_controller_gui = TrainControllerGUI(self.k_p, self.k_i)
+        self.train_controller_gui = TrainControllerGUIv2(self.k_p, self.k_i)
         self.train_controller_testbench = None  # TestbenchGUI()
         self.train_gui = Train_GUI(self)
         self.ebrake_gui_signal = False
@@ -244,6 +246,21 @@ class TrainModel:
         self.pickup_beacon_signal()
         if not self.failure_modes[1]:
             self.baud_read()
+
+        # Update train controller mode (interaction from train driver)
+        self.train_controller.train_controller_mode = self.train_controller_gui.train_controller_mode
+
+        if self.train_controller.train_controller_mode == 'Manual':
+            self.cmd_velocity = self.train_controller_gui.driver_speed
+            self.train_controller.train_controller_mode = 'manual'
+            # self.driver_inputs = {'ebrake': self.train_controller_gui.e_brake_on,
+            #                       'sbrake': self.train_controller_gui.service_brake_decel}
+            self.train_controller.e_brake_on = self.train_controller_gui.e_brake_on
+            self.train_controller.service_brake_decel = self.train_controller_gui.service_brake_decel
+            self.cabin_temp = self.train_controller_gui.cur_cabin_temp
+            self.lights_status[0] = self.train_controller_gui.lights_status[0]
+        else:
+            self.train_controller.train_controller_mode = 'auto'
 
         # calling Train Controller function (also will need to be able to send at_station_vector[0] so that you can check if you are at a station if you are stopping)
         self.train_controller.iterate(self.acceleration, self.previous_acceleration,

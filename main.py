@@ -36,7 +36,7 @@ def main():
     train_model.add_classes(Blue_line)
 
     # Start the master simulation loop
-    sim_speed = 1e3
+    sim_speed = 1e2
     sim_duration = 1e3
     sim = Simulator(Blue_line, train_model.train_controller_gui, train_model.train_controller_testbench, train_model, sim_time=int(sim_duration), timer_interval=int(sim_speed))
 

@@ -24,8 +24,6 @@ class TrainController:
         self.authority = 1000
         self.distance_travelled = 0
 
-        self.nudge_train_fwd = False
-
         self.most_recent_station = 'Dormont'
         self.doors_status = [False, False]  # [left_doors_open, right_doors_open]
         self.lights_status = [False, False]  # [interior_lights_open, exterior_lights_open]
@@ -44,7 +42,6 @@ class TrainController:
         self.max_sbrake_decel = 1.2  # 1.2 m/s
         self.max_ebrake_decel = 2.73  # 2.73 m/s
         self.max_train_speed = 19.4  # 19.4 m/s
-        self.max_power = 120e3
         # station speed limits (stored as a dict in train controller module)
         self.stations = {'Dormont': {'speed_limit': 18}, 'Edgebrook': {'speed_limit': 18.5},
                          'Pioneer': {'speed_limit': 18.5}}
@@ -101,9 +98,9 @@ class TrainController:
                 return self.e_brake_on, self.service_brake_decel, self.cmd_power, \
                     self.set_cabin_temp, self.doors_status, self.lights_status, self.announce_station
 
-        # check if train directly in front or low authority (risk of crashing)
-        # if self.authority <= 20:  # 20 m
-        # e_brake_stopping_distance = (self.cur_speed ** 2) / (2 * self.max_ebrake_decel) + 40
+        if self.e_brake_on and self.train_controller_mode != 'auto':     # driver input
+            return self.e_brake_on, self.service_brake_decel, self.cmd_power, \
+                self.set_cabin_temp, self.doors_status, self.lights_status, self.announce_station
 
         # if stopped prematurely, nudge train ahead, until authority is approx 0
         ovr_world_time = world_time['day'] + world_time['hour'] + world_time['min']
@@ -118,7 +115,8 @@ class TrainController:
                 return self.e_brake_on, self.service_brake_decel, self.cmd_power, \
                     self.set_cabin_temp, self.doors_status, self.lights_status, self.announce_station
 
-            if self.authority <= 70 and self.service_brake_decel == 0:    # 70 m
+            # if self.authority <= 70 and self.service_brake_decel == 0:    # 70 m
+            if self.authority <= 40 and self.service_brake_decel == 0:  # 70 m
                 self.e_brake_on = True
                 self.service_brake_decel = 0
                 self.cmd_power = 0
@@ -179,8 +177,9 @@ class TrainController:
                              doors_status, lights_status, station_to_be_reached,
                              self.driver_inputs, world_time)
 
+        # clamp cmd_power
         self.cmd_power = max(self.cmd_power, 0)
-        # self.cmd_power = min(self.cmd_power, self.max_power)
+        self.cmd_power = min(self.cmd_power, self.max_engine_power)
 
         # take testbench inputs as priority
         self.lights_status = lights_status
