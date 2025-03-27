@@ -31,9 +31,6 @@ class CTCGUI(QMainWindow, Ui_MainWindow):
         self.setup_connections()
         self.update_block_combobox()
 
-        self.ui_update_timer = QTimer(self)
-        self.ui_update_timer.timeout.connect(self.update_all)
-        self.ui_update_timer.start(1000)
         self.count = 0
 
     def setup_connections(self):
@@ -79,6 +76,7 @@ class CTCGUI(QMainWindow, Ui_MainWindow):
         self.maintBlock.addItems([f"Block {b}" for b in blocks[:6]])
 
     def update_all(self):
+        self.ctc.block_occupancy = self.track_controller.block_occupancy
         self.ctc_office.update()
         self.update_train_table()
         self.update_block_occupancy_table()
