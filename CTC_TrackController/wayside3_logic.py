@@ -51,35 +51,4 @@ def update_wayside(block_occupancy, prev_switch_states, block_authorities, maint
     light_states[0] = allow_M  # Stop M if it's not allowed to move
     light_states[1] = allow_Q  # Stop Q if it's not allowed to move
 
-    
-
-    block_authorities[0][0] = block_authorities[0][0] and light_states[0]
-    block_authorities[0][1] = block_authorities[0][1] and light_states
-    block_authorities[0][2] = block_authorities[0][3] and light_states
-    block_authorities[0][10] = block_authorities[0][10] and light_states
-
-    block_authorities[1][0] = block_authorities[1][0] and light_states
-    block_authorities[1][1] = block_authorities[1][1] and light_states
-    block_authorities[1][2] = block_authorities[1][3] and light_states
-    block_authorities[1][10] = block_authorities[1][10] and light_states[0]
-
-    block_authorities[0][0] = block_authorities[0][0] and light_states[1]
-    block_authorities[0][1] = block_authorities[0][1] and light_states
-    block_authorities[0][2] = block_authorities[0][3] and light_states
-    block_authorities[0][10] = block_authorities[0][10] and light_states
-
-    block_authorities[1][0] = block_authorities[1][0] and light_states
-    block_authorities[1][1] = block_authorities[1][1] and light_states
-    block_authorities[1][2] = block_authorities[1][3] and light_states
-    block_authorities[1][10] = block_authorities[1][10] and light_states[1]
-
-
-
-
-
-
-
-
-
-
     return switch_states, light_states, crossing_states 

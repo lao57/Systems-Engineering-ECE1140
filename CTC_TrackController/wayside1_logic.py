@@ -1,4 +1,4 @@
-def update_wayside(block_occupancy, prev_switch_states, block_authorities, maintainence, exit_blocks):
+def update_wayside(block_occupancy, prev_switch_states, block_authorities, maintainence):
     # Initialize outputs
     switch_states = [False] * 2  # 2 switches: one on 12, one on 28
     light_states = [False] * 2  # 2 lights: stopping A and stopping Z

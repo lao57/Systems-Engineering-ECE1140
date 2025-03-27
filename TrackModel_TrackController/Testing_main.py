@@ -57,9 +57,10 @@ if __name__ == "__main__":
 
     track_controller.show()
 
-    window = track_gui_and_testbench_unified.UnifiedInterface()
+    backend = TrackModelBackend.TrackModelBackend()
+    window = track_gui_and_testbench_unified.UnifiedInterface(backend)
     window.show()
-    
+
 
     # Create a QTimer to update track controller and model continuously
     update_timer = QTimer()

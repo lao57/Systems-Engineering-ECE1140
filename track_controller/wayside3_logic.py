@@ -2,6 +2,7 @@ def update_wayside(block_occupancy, prev_switch_states, block_authorities, maint
     switch_states = [False] * 2  # 2 switches
     light_states = [False] * 2  # 2 lights: M and O
     crossing_states = [False] * 0  # 0 crossings (not used)
+    stop_signals = [False] * 150
 
     offset = 74  # Offset for block numbering
 
@@ -73,13 +74,4 @@ def update_wayside(block_occupancy, prev_switch_states, block_authorities, maint
     block_authorities[1][2] = block_authorities[1][3] and light_states
     block_authorities[1][10] = block_authorities[1][10] and light_states[1]
 
-
-
-
-
-
-
-
-
-
-    return switch_states, light_states, crossing_states 
+    return switch_states, light_states, crossing_states, stop_signals
