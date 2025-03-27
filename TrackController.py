@@ -234,31 +234,7 @@ class TrackController(QMainWindow):
                 wayside["crossing_states"][idx] = not wayside["crossing_states"][idx]
                 self.update_ui_elements()
 
-    def update(self):
-        # Fetch data from CTC and Track Model
-        self.maintenance = self.ctc.get_maintenance_status()
-        self.block_authorities = self.ctc.get_block_authority()
-        self.block_occupancy = self.track_model.occupancy_status
 
-        self.block_occupancy = [self.block_occupancy[i] or self.maintenance[i] for i in
-                                range(len(self.block_occupancy))]
-
-        # Update the UI
-        self.update_block_table(self.block_occupancy, self.maintenance, self.current_page * 20)
-        self.update_authority_table(self.current_page * 20)
-
-        # Skip wayside logic update if in manual mode
-        if not self.manual_mode:
-            self.update_wayside_controllers(self.block_occupancy, self.maintenance, self.block_authorities)
-
-        # Update UI elements (buttons) based on wayside logic
-        self.update_ui_elements()
-
-        if self.count >= 5:
-            # print(self.switch_states)
-            self.count = 0
-
-        self.count = self.count + 1
 
     def update_block_table(self, block_occupancy, maintenance, start_block=0):
         self.block_table.setRowCount(20)  # Display 20 blocks at a time
