@@ -1,25 +1,18 @@
 import sys
 import importlib.util
-from PyQt6.QtWidgets import (
-    QApplication, QMainWindow, QWidget, QVBoxLayout, QLabel, QTableWidget, QTableWidgetItem, QPushButton,
-    QHBoxLayout, QCheckBox, QHeaderView, QComboBox, QScrollArea, QGridLayout, QFileDialog
-)
-from PyQt6.QtCore import Qt, QTimer
-from PyQt6.QtGui import QFont
-from wayside import WAYSIDE
-
-import TrackController 
+from PyQt6.QtWidgets import QApplication
+from PyQt6.QtCore import QTimer
+import TrackController
 import TrackModelBackend
-#import TrackModelUI
 import track_gui_and_testbench_unified
 import testbench_track_controller
 
 
 class CTC:
     def __init__(self):
-        self.maintenance = [False] * 150  # Maintenance status for all blocks
-        self.block_authority = [0b0000001010] * 150  # Example: block authority values
-        self.track_controller = None  # Will be set later
+        self.maintenance = [False] * 150
+        self.block_authority = [0b0000001010] * 150
+        self.track_controller = None
 
     def set_track_controller(self, track_controller):
         self.track_controller = track_controller
@@ -30,44 +23,71 @@ class CTC:
     def get_block_authority(self):
         return self.block_authority
 
+
 class TrainModel:
     def __init__(self):
-        self.block_occupancy = [False] * 150  # Maintenance status for all blocks
+        self.block_occupancy = [False] * 150
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
 
-    # Create instances of CTC, TrackModel, and TrackController
+    # --- Create core modules ---
     ctc = CTC()
     track_model = TrackModelBackend.TrackModelBackend()
     train_model = TrainModel()
-
     track_controller = TrackController.TrackController()
-    
-    # Wire the dependencies together
+
+    # --- Wire components ---
     ctc.set_track_controller(track_controller)
     track_controller.set_ctc(ctc)
     track_controller.set_track_model(track_model)
     track_model.set_track_controller(track_controller)
     track_model.set_train_model(train_model)
 
-    # Show the Test Bench UI
+    print("[Main] TrackModel connected to TrackController")
+
+
+    # Ensure TrackModelBackend updates switches, lights, crossings, and authority
+    def sync_backend_with_controller():
+        for block_num in range(1, 151):
+            # Sync switches
+            switch_state = track_controller.switch_states[block_num % len(track_controller.switch_states)]
+            track_model.receive_switch_state(block_num, switch_state)
+
+            # Sync light signals
+            light_state = track_controller.light_states[block_num % len(track_controller.light_states)]
+            track_model.receive_light_signal(block_num, light_state)
+
+            # Sync crossings
+            crossing_state = track_controller.crossing_states[block_num % len(track_controller.crossing_states)]
+            track_model.receive_crossing_state(block_num, crossing_state)
+
+            # Sync block authority
+            authority = track_controller.get_block_authority()[block_num - 1]
+            track_model.receive_block_authority(block_num, authority)
+
+        # Update GUI state
+        track_model.gui.update_gui_display()
+        print("[Main] Backend synced with Track Controller")
+
+
+    # --- Show Test Bench UI ---
     test_bench = testbench_track_controller.TestBench(ctc, track_model)
     test_bench.show()
 
+    # --- Show Track Controller UI ---
     track_controller.show()
 
-    backend = TrackModelBackend.TrackModelBackend()
-    window = track_gui_and_testbench_unified.UnifiedInterface(backend)
+    # --- Show Unified TrackModelUI + Testbench window and pass backend ---
+    window = track_gui_and_testbench_unified.UnifiedTrackUI(backend=track_model)
     window.show()
 
-
-    # Create a QTimer to update track controller and model continuously
+    # --- Set up continuous controller update ---
     update_timer = QTimer()
     update_timer.timeout.connect(track_controller.update)
-    update_timer.start(1000)  # Update every 100 ms (adjust as needed)
+    update_timer.timeout.connect(track_model.update)
+    update_timer.start(1000)  # Update every 1 second
 
-    # Start the application loop
+    # --- Run the application loop ---
     sys.exit(app.exec())
-
-
