@@ -93,12 +93,12 @@ class TrackController(QMainWindow):
         self.track_model = track_model
 
         # Initialize global states
-        self.switch_states = [False] * 6  # Total switches across all waysides
-        self.light_states = [False] * 6  # Total lights across all waysides
-        self.crossing_states = [False] * 2  # Total crossings across all waysides
+        self.switch_states = [False] * 150  # Total switches across all waysides
+        self.light_states = [False] * 150  # Total lights across all waysides
+        self.crossing_states = [False] * 150  # Total crossings across all waysides
         self.block_occupancy = [False] * 150  # Block occupancy for all blocks
         self.block_authority = [0] * 150  # Block authority for all blocks
-        self.stop_signals = [False] * 150 #stop signals for CTC to stop trains because of 
+        self.stop_states = [False] * 150 #stop signals for CTC to stop trains because of 
 
         self.count = 0 # get rid of later
 
@@ -106,37 +106,40 @@ class TrackController(QMainWindow):
         self.wayside_controllers = {
             "wayside1": {
                 "blocks": list(range(1, 29)) + list(range(146, 151)),  # Blocks 1-28 and 146-150
-                "switches": [0, 1],  # Switches controlled by Wayside 1 (indices 0 and 1)
-                "lights": [0, 1],  # Lights controlled by Wayside 1
-                "crossings": [0],  # Crossings controlled by Wayside 1
+                "switches": [11, 27],  # Switches controlled by Wayside 1 (indices 0 and 1)
+                "lights": [0, 149],  # Lights controlled by Wayside 1
+                "crossings": [18],  # Crossings controlled by Wayside 1
+                "stop_blocks": [0,1,2,148,149],
                 "logic_function": None,  # Will be set dynamically
                 "switch_states": [False] * 2,  # Initial switch states for Wayside 1
                 "light_states": [False] * 2,  # Initial light states for Wayside 1
                 "crossing_states": [False] * 1,  # Initial crossing states for Wayside 1
-                "stop_signals": [False] * 150
+                "stop_states": [False] * 5
             },
             "wayside2": {
                 "blocks": list(range(29, 74)) + list(range(104, 146)),  # Blocks 29-73 and 104-146
-                "switches": [2, 3],  # Switches controlled by Wayside 2 (indices 2, 3, and 4)
-                "lights": [2, 3],  # Lights controlled by Wayside 2
-                "crossings": [1],  # Crossings controlled by Wayside 2
+                "switches": [57, 61],  # Switches controlled by Wayside 2 (indices 2, 3, and 4)
+                "lights": [60, 59],  #have to fix light 2
+                "crossings": [107],  # Crossings controlled by Wayside 2
+                "stop_blocks": [58,59,60], #needs fixing 
                 "logic_function": None,  # Will be set dynamically
                 "switch_states": [False] * 2,  # Initial switch states for Wayside 2
                 "light_states": [False] * 2,  # Initial light states for Wayside 2
                 "crossing_states": [False] * 1,  # Initial crossing states for Wayside 2
-                "stop_signals": [False] * 150
+                "stop_states": [False] * 3
 
             },
             "wayside3": {
                 "blocks": list(range(74, 104)),  # Blocks 74-103
-                "switches": [4, 5], 
-                "lights": [4, 5],  
-                "crossings": [],  
+                "switches": [75, 85], 
+                "lights": [74, 98],  
+                "crossings": [],
+                "stop_blocks": [73,74,75,97,98,99],  
                 "logic_function": None,  
                 "switch_states": [False] * 2, 
                 "light_states": [False] * 2,  
                 "crossing_states": [False] * 0, 
-                "stop_signals": [False] * 150
+                "stop_states": [False] * 6
             }
         }
 
@@ -229,6 +232,16 @@ class TrackController(QMainWindow):
             crossing_layout.addWidget(btn)
         layout.addLayout(crossing_layout)
 
+        self.stop_buttons = []
+        stop_layout = QHBoxLayout()
+        for i in range(6):  # Max crossings across all waysides
+            btn = QPushButton(f"Stop {i+1}: {'stop' if False else 'allow'}")
+            btn.setStyleSheet(f"background-color: {'red' if False else 'green'}")
+            btn.clicked.connect(lambda checked, idx=i: self.toggle_stop_state(idx))
+            self.stop_buttons.append(btn)
+            stop_layout.addWidget(btn)
+        layout.addLayout(stop_layout)
+
         # Block Authority Table
         self.authority_table = QTableWidget(20, 2)  # Display 20 blocks at a time
         self.authority_table.setHorizontalHeaderLabels(["Block", "Authority"])
@@ -292,6 +305,13 @@ class TrackController(QMainWindow):
             wayside = self.wayside_controllers[self.current_wayside]
             if idx < len(wayside["crossing_states"]):
                 wayside["crossing_states"][idx] = not wayside["crossing_states"][idx]
+                self.update_ui_elements()
+    
+    def toggle_stop_state(self, idx):
+        if self.manual_mode:
+            wayside = self.wayside_controllers[self.current_wayside]
+            if idx < len(wayside["stop_states"]):
+                wayside["stop_states"][idx] = not wayside["stop_states"][idx]
                 self.update_ui_elements()
 
     def update(self):
@@ -391,6 +411,7 @@ class TrackController(QMainWindow):
                             switches=config["switches"],
                             lights=config["lights"],
                             crossings=config["crossings"],
+                            stop_blocks=config["stop_blocks"],
                             logic_function=config["logic_function"],
                             prev_switch_states=config["switch_states"],
                             block_authorities=wayside_block_authorities
@@ -398,7 +419,7 @@ class TrackController(QMainWindow):
                         #print(wayside.prev_switch_states) #works here
                        
                         # Execute the PLC logic
-                        switch_states, light_states, crossing_states, stop_signals = wayside.update_wayside(
+                        switch_states, light_states, crossing_states, stop_states = wayside.update_wayside(
                             wayside_block_occupancy,
                             wayside_maintenance
                         )
@@ -407,7 +428,7 @@ class TrackController(QMainWindow):
                         config["switch_states"] = switch_states
                         config["light_states"] = light_states
                         config["crossing_states"] = crossing_states
-                        config["stop_signals"] = stop_signals
+                        config["stop_states"] = stop_states
 
                         # Update global states
                         for i, switch_index in enumerate(config["switches"]):
@@ -419,8 +440,8 @@ class TrackController(QMainWindow):
                         for i, crossing_index in enumerate(config["crossings"]):
                             self.crossing_states[crossing_index] = crossing_states[i]
                         
-                        for i, stop_index in enumerate(config["stop_signals"]):
-                            self.stop_signals[stop_index] = stop_signals[i]
+                        for i, stop_index in enumerate(config["stop_blocks"]):
+                            self.stop_states[stop_index] = stop_states[i]
     
     def prev_page(self):
         """Move to the previous page of blocks."""
@@ -445,6 +466,7 @@ class TrackController(QMainWindow):
             num_switches = len(wayside["switches"])
             num_lights = len(wayside["lights"])
             num_crossings = len(wayside["crossings"])
+            num_stops = len(wayside["stop_blocks"])
 
             # Update switch buttons
             for i, btn in enumerate(self.switch_buttons):
@@ -472,6 +494,14 @@ class TrackController(QMainWindow):
                     btn.show()
                 else:
                     btn.hide()
+            # Update crossing buttons
+            for i, btn in enumerate(self.stop_buttons):
+                if i < num_stops:
+                    btn.setText(f"Stop {i+1}: {'stop' if wayside['stop_states'][i] else 'allow'}")
+                    btn.setStyleSheet(f"background-color: {'red' if wayside['stop_states'][i] else 'green'}")
+                    btn.show()
+                else:
+                    btn.hide()
     
     def get_switch_state(self):
         """Return the combined switch states for all waysides."""
@@ -490,8 +520,17 @@ class TrackController(QMainWindow):
         return self.block_occupancy #self.track_model.get_block_occupancy() if I decide to do that
 
     def get_block_authority(self):
-        """Return the combined block authority for all blocks."""
-        return self.block_authority
+        """Return the combined block authority for all blocks as a meter value."""
+        # Convert boolean array to binary string (e.g., [False, True, False] -> "010")
+        binary_str = ''.join(['1' if auth else '0' for auth in self.block_authority])
+        
+        # Convert binary string to decimal (meters)
+        if binary_str:  # Check if the string is not empty
+            meters = int(binary_str, 2)
+        else:
+            meters = 0  # Default to 0 if empty
+        
+        return meters
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
