@@ -7,16 +7,24 @@ class TrackModelBackend:
         self.train_model = None       # to Train Model
 
         self.blocks = {}  # Stores track block data
-        self.occupancy_status = [False] * 150  # Block occupancy states
-        self.switch_states = [False] * 6       # Switch states
-        self.light_signals = [False] * 6       # Light signals
-        self.crossing_states = [False] * 2     # Railway crossings
-        self.track_circuit_failures = [False] * 150  # Track circuit failure states
-        self.block_authority = ["0000000000"] * 150  # 10-bit block authority as string
+        self.occupancy_status = [False]*150  # Block occupancy states
+        self.switch_states = []     # Switch states
+        self.light_signals = []       # Light signals
+        self.crossing_states = []    # Railway crossings
+        self.track_circuit_failures = []  # Track circuit failure states
+        self.block_authority = [] # 10-bit block authority as string
+        self.failure_status = []  # Track circuit failure status
+
+        #Addng UI
+        self.ui = None  # Placeholder for UI component
 
     # ---------------------------
     # Methods to expose backend state
     # ---------------------------
+    def addUI(self, ui):
+        """Add UI component to the backend."""
+        self.ui = ui
+
     def get_occupancy_status(self, block_num):
         """Return the occupancy status of a block."""
         return self.occupancy_status[block_num]
@@ -27,14 +35,20 @@ class TrackModelBackend:
 
     def get_switch_states(self, block_num):
         """Return the switch state of a block."""
+        if block_num >= len(self.switch_states):
+            return False
         return self.switch_states[block_num]
 
     def get_light_signals(self, block_num):
         """Return the light signal state of a block."""
+        if block_num >= len(self.light_signals):
+            return False
         return self.light_signals[block_num]
 
     def get_crossing_states(self, block_num):
         """Return the railway crossing state of a block."""
+        if block_num >= len(self.crossing_states):
+            return False
         return self.crossing_states[block_num]
 
     def get_block_authority(self, block_num):
@@ -73,10 +87,21 @@ class TrackModelBackend:
                 "light_signal": False,
                 "crossing_state": False,
                 "occupancy": False,
-                "track_circuit_failure": False,
+                "track_circuit_failure": [False,False,False,False,False],  # Track circuit failure states
+                "track_heater": False,  # Track heater state
+                "beacon_signal": None,  # Placeholder for beacon signal
                 "block_authority": "0000000000",  # 10-bit authority as a string
             }
-            self.occupancy_status[block_num] = False
+
+            self.switch_states[False] * len(self.blocks)
+            self.occupancy_status = [False] * len(self.blocks) # Block occupancy states
+            self.switch_states = [False] * len(self.blocks)  # Switch states
+            self.light_signals = [False] * len(self.blocks)     # Light signals
+            self.crossing_states = [False] * len(self.blocks)  # Railway crossings
+            self.track_circuit_failures = [False] * len(self.blocks) # Track circuit failure states
+            self.block_authority = [False] * len(self.blocks)# 10-bit block authority as string
+            self.failure_status = [False] * len(self.blocks)  # Track circuit failure status
+            self.ui.failure_vector = [[False] * 5 for _ in range(len(self.blocks))]  # Track circuit failure status
 
     def handle_failures(self, failures):
         """Update backend variables based on detected failures."""
@@ -121,6 +146,10 @@ class TrackModelBackend:
             # Disable track heaters for all blocks
             for block_num in self.blocks:
                 self.blocks[block_num]["track_heater"] = False
+
+
+    def update(self):
+        self.ui.update()
 
     # ---------------------------
     # SETTERS FOR DEPENDENCIES

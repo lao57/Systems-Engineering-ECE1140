@@ -16,9 +16,9 @@ class TrackController(QMainWindow):
         self.track_model = None
 
         # Initialize global states
-        self.switch_states = [False] * 6  # Total switches across all waysides
-        self.light_states = [False] * 6  # Total lights across all waysides
-        self.crossing_states = [False] * 2  # Total crossings across all waysides
+        self.switch_states = [False] * 150  # Total switches across all waysides
+        self.light_states = [False] * 150  # Total lights across all waysides
+        self.crossing_states = [False] * 150  # Total crossings across all waysides
         self.block_occupancy = [False] * 150  # Block occupancy for all blocks
         self.block_authority = [0] * 150  # Block authority for all blocks
 

@@ -12,7 +12,7 @@ import TrackController
 import TrackModelBackend
 #import TrackModelUI
 import testbench
-import Track_Model_GUI
+
 
 class TestBench(QMainWindow):
     def __init__(self, ctc, track_model):
