@@ -108,6 +108,7 @@ class TrainModel:
         self.max_engine_power = 120e3  # 4 motors; each can supply up to max 120 kW
         self.sample_period = 1
         self.comfortable_temp = 70
+        self.next_station = 'Yard'
 
         # GUI
         # self.train_controller_gui = TrainControllerGUI(self.k_p, self.k_i)
@@ -253,8 +254,6 @@ class TrainModel:
         if self.train_controller.train_controller_mode == 'Manual':
             self.cmd_velocity = self.train_controller_gui.driver_speed
             self.train_controller.train_controller_mode = 'manual'
-            # self.driver_inputs = {'ebrake': self.train_controller_gui.e_brake_on,
-            #                       'sbrake': self.train_controller_gui.service_brake_decel}
             self.train_controller.e_brake_on = self.train_controller_gui.e_brake_on
             self.train_controller.service_brake_decel = self.train_controller_gui.service_brake_decel
             self.cabin_temp = self.train_controller_gui.cur_cabin_temp
@@ -268,6 +267,7 @@ class TrainModel:
                                       self.authority, self.velocity, self.failure_modes, self.underground_vector[0],
                                       self.cabin_temp, self.doors_status, self.lights_status,
                                       self.Next_station_names[0], world_time, )
+
         # AFTER TRAIN CONTROLLER ITERATE -update the power, ebrake, sbrake_decel, and cabin_temp, etc
         self.power = self.train_controller.cmd_power
         self.ebrake = self.train_controller.e_brake_on
@@ -275,6 +275,8 @@ class TrainModel:
         self.cabin_temp = self.train_controller.set_cabin_temp
         self.doors_status = self.train_controller.doors_status
         self.lights_status = self.train_controller.lights_status
+        self.next_station = next((s for s in self.Next_station_names if s != 'NONE'), None)
+        self.train_controller.next_station = self.next_station
         self.announcement = self.train_controller.announce_station
         if self.ebrake == False:
             if self.ebrake_gui_signal == True:
@@ -299,7 +301,7 @@ class TrainModel:
         """
         if self.ebrake:
             self.acceleration = (
-                        0 - self.sbrake_decel * service_brake_deceleration - self.ebrake * emergency_brake_deceleration - gravitational_acceleration - static_rolling_ressistance)
+                    0 - self.sbrake_decel * service_brake_deceleration - self.ebrake * emergency_brake_deceleration - gravitational_acceleration - static_rolling_ressistance)
         else:
             if (self.velocity <= 0):  # see Ipad for notes on this derivation but avoids divide by zero error
                 self.acceleration = ((not (self.failure_modes[0])) * np.sqrt(
@@ -307,7 +309,7 @@ class TrainModel:
                     2])) * service_brake_deceleration - self.ebrake * emergency_brake_deceleration - gravitational_acceleration)
             else:  # normal acceleration calculation
                 self.acceleration = ((not (self.failure_modes[0])) * self.power / (
-                            self.mass * self.velocity) - self.sbrake_decel * (not (self.failure_modes[
+                        self.mass * self.velocity) - self.sbrake_decel * (not (self.failure_modes[
                     2])) * service_brake_deceleration - self.ebrake * emergency_brake_deceleration - gravitational_acceleration)
 
         self.previous_velocity = self.velocity
@@ -391,7 +393,7 @@ class TrainModel:
         """
         if self.ebrake:
             self.acceleration = (
-                        0 - self.sbrake_decel * service_brake_deceleration - self.ebrake * emergency_brake_deceleration - gravitational_acceleration - static_rolling_ressistance)
+                    0 - self.sbrake_decel * service_brake_deceleration - self.ebrake * emergency_brake_deceleration - gravitational_acceleration - static_rolling_ressistance)
         else:
             if (self.velocity <= 0):  # see Ipad for notes on this derivation but avoids divide by zero error
                 self.acceleration = ((not (self.failure_modes[0])) * np.sqrt(
@@ -399,7 +401,7 @@ class TrainModel:
                     2])) * service_brake_deceleration - self.ebrake * emergency_brake_deceleration - gravitational_acceleration)
             else:  # normal acceleration calculation
                 self.acceleration = ((not (self.failure_modes[0])) * self.power / (
-                            self.mass * self.velocity) - self.sbrake_decel * (not (self.failure_modes[
+                        self.mass * self.velocity) - self.sbrake_decel * (not (self.failure_modes[
                     2])) * service_brake_deceleration - self.ebrake * emergency_brake_deceleration - gravitational_acceleration)
 
         self.previous_velocity = self.velocity
@@ -468,7 +470,9 @@ class TrainModel:
         self.train_controller_gui.update_cabin_temp(self.cabin_temp)
         self.train_controller_gui.update_doors_status(self.doors_status)
         self.train_controller_gui.update_lights_status(self.lights_status)
-        # self.train_controller_gui.update_most_recent_station(self.station_to_be_reached)
+        self.train_controller_gui.update_most_recent_station(self.next_station)
+        if self.announcement:
+            self.train_controller_gui.update_announcement()
         self.train_controller_gui.update_speed_limit(self.train_controller.speed_limit)
         self.train_controller_gui.update_authority(self.authority)
         self.train_controller_gui.update_failure_modes(self.failure_modes)

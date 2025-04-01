@@ -270,6 +270,10 @@ class TrainControllerGUIv2(QWidget):
         self.station_lbl.setText(f"Most recent station: {self.most_recent_station}")
         self.announcement_lbl.setText(f"Time to announce: {self.announcement}")
 
+    def update_announcement(self):
+        self.announcement = True
+        self.announcement_lbl.setText(f"Time to announce: {self.announcement}")
+
     def update_doors_status(self, doors_status):
         self.doors_status = doors_status
         self.left_door_status_lbl.setText(f"Left door open: {'Open' if self.doors_status[0] else 'Closed'}")

@@ -24,7 +24,7 @@ class TrainController:
         self.authority = 1000
         self.distance_travelled = 0
 
-        self.most_recent_station = 'Dormont'
+        self.next_station = 'Dormont'
         self.doors_status = [False, False]  # [left_doors_open, right_doors_open]
         self.lights_status = [False, False]  # [interior_lights_open, exterior_lights_open]
         self.underground = False
@@ -44,7 +44,7 @@ class TrainController:
         self.max_train_speed = 19.4  # 19.4 m/s
         # station speed limits (stored as a dict in train controller module)
         self.stations = {'Dormont': {'speed_limit': 18}, 'Edgebrook': {'speed_limit': 18.5},
-                         'Pioneer': {'speed_limit': 18.5}}
+                         'Pioneer': {'speed_limit': 18.5}, 'StaB': {'speed_limit': 20}}
         self.speed_limit = self.max_train_speed
 
         # gui
@@ -102,6 +102,17 @@ class TrainController:
             return self.e_brake_on, self.service_brake_decel, self.cmd_power, \
                 self.set_cabin_temp, self.doors_status, self.lights_status, self.announce_station
 
+        # TODO: Parse beacon signal
+        if station_to_be_reached == self.next_station and station_to_be_reached in self.stations and \
+            self.authority < 1 and cur_speed == 0:  # triggers only when at the station
+            self.next_station = station_to_be_reached
+            # For now, open both doors
+            self.doors_status = ['True', 'True']
+            self.announce_station = True
+        else:
+            self.doors_status = doors_status
+            self.announce_station = False
+
         # if stopped prematurely, nudge train ahead, until authority is approx 0
         ovr_world_time = world_time['day'] + world_time['hour'] + world_time['min']
         if self.authority > 1 and cur_speed == 0 and ovr_world_time != 0:  # 5 m
@@ -115,8 +126,7 @@ class TrainController:
                 return self.e_brake_on, self.service_brake_decel, self.cmd_power, \
                     self.set_cabin_temp, self.doors_status, self.lights_status, self.announce_station
 
-            # if self.authority <= 70 and self.service_brake_decel == 0:    # 70 m
-            if self.authority <= 40 and self.service_brake_decel == 0:  # 70 m
+            if self.authority <= 40 and self.service_brake_decel == 0:  # 40 m
                 self.e_brake_on = True
                 self.service_brake_decel = 0
                 self.cmd_power = 0
@@ -126,9 +136,12 @@ class TrainController:
         # End of safety critical section
 
         # about to reach station
-        # TODO: Parse beacon signal
-        # if station_to_be_reached != self.most_recent_station and station_to_be_reached in self.stations:
-        #     self.most_recent_station = station_to_be_reached
+        # # TODO: Parse beacon signal
+        # # if station_to_be_reached != self.next_station and station_to_be_reached in self.stations:
+        # print("station_to_be_reached: ", station_to_be_reached)
+        # print("self.next_station: ", self.next_station)
+        # if station_to_be_reached == self.next_station and station_to_be_reached in self.stations:
+        #     self.next_station = station_to_be_reached
         #     # For now, open both doors
         #     self.doors_status = doors_status
         #     self.announce_station = True
@@ -137,7 +150,7 @@ class TrainController:
         #     self.announce_station = False
 
         # self.cmd_speed = cmd_speed
-        self.speed_limit = self.stations[self.most_recent_station]['speed_limit']
+        self.speed_limit = self.stations[self.next_station]['speed_limit']
         if self.speed_limit > self.max_train_speed:  # never exceed max train speed
             self.speed_limit = self.max_train_speed
         # clamp cmd_speed
