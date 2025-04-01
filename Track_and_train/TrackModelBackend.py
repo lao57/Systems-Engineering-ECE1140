@@ -171,6 +171,21 @@ class TrackModelBackend:
 
 
     def update(self):
+        if not self.blocks:
+            return
+        else:
+            self.occupancy_status = self.failure_status
+            self.switch_states = self.track_controller.switch_states
+            self.light_signals = self.track_controller.light_states
+            self.crossing_states = self.track_controller.crossing_states
+            self.block_authority = self.track_controller.block_authority
+            for block_num in self.blocks:
+                self.blocks[block_num]["switch_state"] = self.switch_states[block_num]
+                self.blocks[block_num]["light_signal"] = self.light_signals[block_num]
+                self.blocks[block_num]["crossing_state"] = self.crossing_states[block_num]
+                self.blocks[block_num]["track_circuit_failure"] = self.track_circuit_failures[block_num]
+            print("Updating backend with track controller data")
+
         self.ui.update()
 
     # ---------------------------
