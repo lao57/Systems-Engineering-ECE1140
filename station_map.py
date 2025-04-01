@@ -1,0 +1,40 @@
+STATION_BLOCKS = {
+    'Green Line': {
+        'PIONEER': 2,
+        'EDGEBROOK': 9,
+        'WHITED': 22,
+        'SOUTH BANK': 31,
+        'CENTRAL': 39,
+        'INGLEWOOD': 48,
+        'OVERBROOK': 57,
+        'GLENBURY': 65,
+        'DORMONT': 73,
+        'MT LEBANON': 77,
+        'POPLAR': 88,
+        'CASTLE SHANNON': 96,
+        'DORMONT2': 105,
+        'GLENBURY2': 114,
+        'OVERBROOK2': 123,
+        'INGLEWOOD2': 132,
+        'CENTRAL2': 141
+    },
+    'BLOCK_TO_STATION': {
+        2: 'PIONEER',
+        9: 'EDGEBROOK',
+        22: 'WHITED',
+        31: 'SOUTH BANK',
+        39: 'CENTRAL',
+        48: 'INGLEWOOD',
+        57: 'OVERBROOK',
+        65: 'GLENBURY',
+        73: 'DORMONT',
+        77: 'MT LEBANON',
+        88: 'POPLAR',
+        96: 'CASTLE SHANNON',
+        105: 'DORMONT2',
+        114: 'GLENBURY2',
+        123: 'OVERBROOK2',
+        132: 'INGLEWOOD2',
+        141: 'CENTRAL2'
+    }
+}
