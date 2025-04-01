@@ -10,6 +10,8 @@ def update_wayside(block_occupancy, prev_switch_states, block_authorities, maint
     offset2 = 59
     #crossing on 108
 
+    crossing_states[0] = block_occupancy[109-offset2] or block_occupancy[108-offset2] or block_occupancy[107-offset2]
+
     switch_states[0] = True #until dillion tells me otherwise 
     switch_states[1] = False #until dillion tells me otherwise
 

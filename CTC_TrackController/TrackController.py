@@ -208,7 +208,28 @@ class TrackController(QMainWindow):
         self.update_ui_elements()  # Refresh UI to show correct switches and lights
 
     def toggle_manual_mode(self):
+        """Prevent manual mode activation when blocks are occupied"""
+        # Check current block occupancy first
+        wayside_blocks = self.wayside_controllers[self.current_wayside]["blocks"]
+        block_occupancy = self.track_model.get_block_occupancy()
+        any_occupied = any(block_occupancy[block-1] for block in wayside_blocks)
+        
+        # If trying to enable manual mode but blocks are occupied
+        if self.manual_mode_checkbox.isChecked() and any_occupied:
+            # Completely prevent the state change
+            self.manual_mode_checkbox.blockSignals(True)
+            self.manual_mode_checkbox.setChecked(False)
+            self.manual_mode_checkbox.blockSignals(False)
+            
+            # Show warning message
+            from PyQt6.QtWidgets import QMessageBox
+            QMessageBox.warning(self, "Manual Mode", 
+                            "Cannot enable manual mode while blocks are occupied in this wayside")
+            return
+        
+        # Only update manual mode if we passed the checks
         self.manual_mode = self.manual_mode_checkbox.isChecked()
+        self.update_ui_elements()
 
     def toggle_switch_state(self, idx):
         if self.manual_mode:
@@ -250,18 +271,27 @@ class TrackController(QMainWindow):
         self.update_block_table(self.block_occupancy, self.maintenance, self.current_page * 20)
         self.update_authority_table(self.current_page * 20)
 
+            # Force-disable manual mode if blocks become occupied
+        if self.manual_mode:
+            wayside_blocks = self.wayside_controllers[self.current_wayside]["blocks"]
+            any_occupied = any(self.block_occupancy[block-1] for block in wayside_blocks)
+            
+            if any_occupied:
+                self.manual_mode = False
+                self.manual_mode_checkbox.blockSignals(True)
+                self.manual_mode_checkbox.setChecked(False)
+                self.manual_mode_checkbox.blockSignals(False)
+                
+                from PyQt6.QtWidgets import QMessageBox
+                QMessageBox.warning(self, "Manual Mode", 
+                                "Manual mode was automatically disabled due to block occupancy")
+
         # Skip wayside logic update if in manual mode
         if not self.manual_mode:
             self.update_wayside_controllers(self.block_occupancy, self.maintenance, self.block_authorities)
 
         # Update UI elements (buttons) based on wayside logic
         self.update_ui_elements()
-        
-        if self.count >= 5:
-            #print(self.switch_states)
-            self.count = 0
-
-        self.count = self.count+1
 
     def update_block_table(self, block_occupancy, maintenance, start_block=0):
         self.block_table.setRowCount(20)  # Display 20 blocks at a time
