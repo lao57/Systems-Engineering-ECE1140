@@ -213,6 +213,7 @@ class CTCOffice:
     def update(self):
         if not self.ctc:
             return
+        self.ctc.stop_signals = self.ctc.track_controller.stop_states
         # Reset each block's authority to a 10-bit array of [False].
         self.ctc.block_authority = [[False] * 10 for _ in range(150)]
         max_auth = 1023  # max value of 10 bits
@@ -225,7 +226,7 @@ class CTCOffice:
                 auth_value = min(int(remaining), max_auth)  # cap authority value to max_auth
                 # Convert auth_value to a 10-bit boolean list (MSB first)
                 bits = [(auth_value >> i) & 1 == 1 for i in range(9, -1, -1)]
-                index = node.block_number - 1  # compute index for block in authority array
+                index = node.block_number -1  # compute index for block in authority array
                 if 0 <= index < 150:
                     self.ctc.block_authority[index] = bits  # assign the 10-bit list to the block
                 remaining -= node.block_length  # subtract block length from remaining authority
@@ -241,43 +242,6 @@ class CTCOffice:
         self.ctc.send_to_track_controller()  # update track controller with latest authority and maintenance
         self.update_train_positions()  # update train positions based on block occupancy
 
-    def update_wayside_controllers(self, block_occupancy, maintenance, block_authorities):
-        # Update wayside controllers based on the Track Controller's configuration.
-        if self.track_controller and hasattr(self.track_controller, "wayside_controllers"):
-            from wayside import WAYSIDE
-            for wayside_name, config in self.track_controller.wayside_controllers.items():
-                wayside_blocks = config["blocks"]
-                wayside_block_occupancy = [self.ctc.get_block_occupancy()[block - 1] for block in wayside_blocks]
-                wayside_maintenance = [self.ctc.get_maintenance_status()[block - 1] for block in wayside_blocks]
-                wayside_block_authorities = [self.ctc.get_block_authority()[block - 1] for block in wayside_blocks]
-                if config["logic_function"] is not None:
-                    wayside_instance = WAYSIDE(
-                        switches=config["switches"],
-                        lights=config["lights"],
-                        crossings=config["crossings"],
-                        stop_blocks=config["stop_blocks"],
-                        logic_function=config["logic_function"],
-                        prev_switch_states=config["switch_states"],
-                        block_authorities=wayside_block_authorities
-                    )
-                    result = wayside_instance.update_wayside(wayside_block_occupancy, wayside_maintenance)
-                    if isinstance(result, tuple) and len(result) == 4:
-                        switch_states, light_states, crossing_states, stop_signals = result
-                        config["stop_signals"] = stop_signals
-                    else:
-                        switch_states, light_states, crossing_states = result
-                    config["switch_states"] = switch_states
-                    config["light_states"] = light_states
-                    config["crossing_states"] = crossing_states
-                    for i, switch_index in enumerate(config["switches"]):
-                        self.ctc.switch_states[switch_index] = switch_states[i]
-                    for i, light_index in enumerate(config["lights"]):
-                        self.ctc.light_states[light_index] = light_states[i]
-                    for i, crossing_index in enumerate(config["crossings"]):
-                        self.ctc.crossing_states[crossing_index] = crossing_states[i]
-                    if "stop_blocks" in config and "stop_signals" in config:
-                        for i, stop_block in enumerate(config["stop_blocks"]):
-                            self.ctc.stop_signals[stop_block - 1] = config["stop_signals"][i]
 
     def update_track_states(self):
         mapping = [
