@@ -100,7 +100,6 @@ class TrackController(QMainWindow):
         self.block_authority = [0] * 150  # Block authority for all blocks
         self.stop_states = [False] * 150 #stop signals for CTC to stop trains because of 
 
-        self.count = 0 # get rid of later
 
         # Define wayside controllers and their block assignments
         self.wayside_controllers = {
@@ -284,8 +283,31 @@ class TrackController(QMainWindow):
         self.update_ui_elements()  # Refresh UI to show correct switches and lights
 
     def toggle_manual_mode(self):
-        self.manual_mode = self.manual_mode_checkbox.isChecked()
-
+        """Toggle manual mode only if no blocks are occupied in the current wayside."""
+        # Check current block occupancy first
+        wayside_blocks = self.wayside_controllers[self.current_wayside]["blocks"]
+        block_occupancy = self.track_model.get_block_occupancy()
+        any_occupied = any(block_occupancy[block-1] for block in wayside_blocks)
+        
+        # If trying to enable manual mode but blocks are occupied
+        if not self.manual_mode and any_occupied:
+            # Block the state change
+            self.manual_mode_checkbox.blockSignals(True)  # Temporarily block signals
+            self.manual_mode_checkbox.setChecked(False)    # Force unchecked state
+            self.manual_mode_checkbox.blockSignals(False) # Unblock signals
+            
+            # Show warning message
+            from PyQt6.QtWidgets import QMessageBox
+            QMessageBox.warning(self, "Manual Mode", 
+                            "Cannot enable manual mode while blocks are occupied in this wayside")
+            return
+        
+        # If we get here, either:
+        # 1. We're enabling manual mode and no blocks are occupied, or
+        # 2. We're disabling manual mode (always allowed)
+        self.manual_mode = not self.manual_mode
+        self.update_ui_elements()
+        
     def toggle_switch_state(self, idx):
         if self.manual_mode:
             wayside = self.wayside_controllers[self.current_wayside]
@@ -322,6 +344,21 @@ class TrackController(QMainWindow):
 
         self.block_occupancy = [self.block_occupancy[i] or self.maintenance[i] for i in range(len(self.block_occupancy))]
 
+        # Force-disable manual mode if blocks become occupied
+        if self.manual_mode:
+            wayside_blocks = self.wayside_controllers[self.current_wayside]["blocks"]
+            any_occupied = any(self.block_occupancy[block-1] for block in wayside_blocks)
+            
+            if any_occupied:
+                self.manual_mode = False
+                self.manual_mode_checkbox.blockSignals(True)
+                self.manual_mode_checkbox.setChecked(False)
+                self.manual_mode_checkbox.blockSignals(False)
+                
+                from PyQt6.QtWidgets import QMessageBox
+                QMessageBox.warning(self, "Manual Mode", 
+                                "Manual mode was automatically disabled due to block occupancy")
+
         # Update the UI
         self.update_block_table(self.block_occupancy, self.maintenance, self.current_page * 20)
         self.update_authority_table(self.current_page * 20)
@@ -332,12 +369,7 @@ class TrackController(QMainWindow):
 
         # Update UI elements (buttons) based on wayside logic
         self.update_ui_elements()
-        
-        if self.count >= 5:
-            #print(self.switch_states)
-            self.count = 0
 
-        self.count = self.count+1
 
     def update_block_table(self, block_occupancy, maintenance, start_block=0):
         self.block_table.setRowCount(20)  # Display 20 blocks at a time
