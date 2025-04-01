@@ -205,9 +205,9 @@ class TrainModel:
         print(f"baud_signal[0:4]: '{baud_signal[0:4]}' (type: {type(baud_signal[0:4])})")
         print(f"self.Baud_ID: '{self.Baud_ID}' (type: {type(self.Baud_ID)})")"""
         if self.blocknumbervector:
-            baud_signal = self.Track_model.get_baud_sig(self.blocknumbervector[0])
+            baud_signal = self.Track_model.get_block_authority(self.blocknumbervector[0])
         else:
-            baud_signal = self.Track_model.get_baud_sig(1)
+            baud_signal = self.Track_model.get_block_authority(1)
         # baud_signal.append(0)  | Potentail add if we are not getting enough range
         if baud_signal is not None:
             if baud_signal[0] == '0':
@@ -346,7 +346,7 @@ class TrainModel:
             self.blocknumbervector.pop(0)
         # update time flag to move to the next second
         # update occupancy
-        self.Track_model.train_occupy_block(self.blocknumbervector[0], self.blocknumbervector_middle[0],
+        self.Track_model.update_block_occupancy(self.blocknumbervector[0], self.blocknumbervector_middle[0],
                                             self.blocknumbervector_end[0])
         # update gui
         self.update_gui(world_time)
@@ -438,7 +438,7 @@ class TrainModel:
             self.blocknumbervector.pop(0)
         # update time flag to move to the next second
         # update occupancy
-        self.Track_model.train_occupy_block(self.blocknumbervector[0], self.blocknumbervector_middle[0],
+        self.Track_model.update_block_occupancy(self.blocknumbervector[0], self.blocknumbervector_middle[0],
                                             self.blocknumbervector_end[0])
         # update gui
         self.update_gui(world_time)

@@ -6,6 +6,8 @@ import TrackController
 import TrackModelBackend
 import track_gui_and_testbench_unified
 import testbench_track_controller
+from train_controller.train_controller_gui import TrainControllerGUI
+from train_model.train_model import TrainModel
 
 
 class CTC:
@@ -24,18 +26,17 @@ class CTC:
         return self.block_authority
 
 
-class TrainModel:
-    def __init__(self):
-        self.block_occupancy = [False] * 150
-
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
+    k_p = 2e5
+    k_i = 2e4
 
     # --- Create core modules ---
     ctc = CTC()
     track_model = TrackModelBackend.TrackModelBackend()
-    train_model = TrainModel()
+    train_model = TrainModel(k_p=k_p, k_i=k_i)
+    train_model.add_classes(track_model)
     track_controller = TrackController.TrackController()
 
     # --- Wire components ---

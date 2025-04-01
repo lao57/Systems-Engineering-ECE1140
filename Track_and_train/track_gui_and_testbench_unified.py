@@ -150,10 +150,12 @@ class UnifiedTrackUI(QWidget):
         file_path, _ = QFileDialog.getOpenFileName(self, "Open Layout File", "", "CSV Files (*.csv)")
         if not file_path:
             return
+        self.backend.load_excel(file_path)  # Assuming the backend has a method to load Excel files
         self.load_csv_data(file_path)
         return file_path
 
     def load_csv_data(self, file_path):
+        print(f"Loading CSV data from in bench: {file_path}")
         try:
             self.df_layout = pd.read_csv(file_path)
             if self.df_layout.empty:

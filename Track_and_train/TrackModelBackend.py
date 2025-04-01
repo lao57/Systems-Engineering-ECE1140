@@ -67,14 +67,16 @@ class TrackModelBackend:
 
     def load_excel(self, file_path):
         """Load track layout from an Excel file."""
+        print(f"Loading Excel file in backend: {file_path}")
         try:
-            df = pd.read_excel(file_path, sheet_name="Blue Line")
+            df = pd.read_csv(file_path)
             self.parse_track_data(df)
         except Exception as e:
             print(f"Error loading file: {e}")
 
     def parse_track_data(self, df):
         """Parse track data from the Excel sheet and update backend data."""
+        print(f"parsiing track data from {df}")
         self.blocks.clear()
         for _, row in df.iterrows():
             block_num = int(row["Block Number"])
@@ -87,21 +89,29 @@ class TrackModelBackend:
                 "light_signal": False,
                 "crossing_state": False,
                 "occupancy": False,
-                "track_circuit_failure": [False,False,False,False,False],  # Track circuit failure states
+                "track_circuit_failure": [False, False, False, False, False],  # Track circuit failure states
                 "track_heater": False,  # Track heater state
-                "beacon_signal": None,  # Placeholder for beacon signal
+                "beacon_signal": row.get("beacon_signal", None),  # New: Beacon signal from Excel
                 "block_authority": "0000000000",  # 10-bit authority as a string
+                "grade_vector": row.get("grade_vector", None),  # New: Grade vector from Excel
+                "block_vector": row.get("block_vector", None),  # New: Block vector from Excel
             }
 
-            self.switch_states[False] * len(self.blocks)
-            self.occupancy_status = [False] * len(self.blocks) # Block occupancy states
-            self.switch_states = [False] * len(self.blocks)  # Switch states
-            self.light_signals = [False] * len(self.blocks)     # Light signals
-            self.crossing_states = [False] * len(self.blocks)  # Railway crossings
-            self.track_circuit_failures = [False] * len(self.blocks) # Track circuit failure states
-            self.block_authority = [False] * len(self.blocks)# 10-bit block authority as string
-            self.failure_status = [False] * len(self.blocks)  # Track circuit failure status
-            self.ui.failure_vector = [[False] * 5 for _ in range(len(self.blocks))]  # Track circuit failure status
+        # Update backend state arrays
+        self.occupancy_status = [False] * len(self.blocks)  # Block occupancy states
+        self.switch_states = [False] * len(self.blocks)  # Switch states
+        self.light_signals = [False] * len(self.blocks)  # Light signals
+        self.crossing_states = [False] * len(self.blocks)  # Railway crossings
+        self.track_circuit_failures = [False] * len(self.blocks)  # Track circuit failure states
+        self.block_authority = ["0000000000"] * len(self.blocks)  # 10-bit block authority as string
+        self.failure_status = [False] * len(self.blocks)  # Track circuit failure status
+        self.ui.failure_vector = [[False] * 5 for _ in range(len(self.blocks))]  # Track circuit failure status
+
+        # Print all blocks with their information
+        for block_num, block_data in self.blocks.items():
+            print(f"Block {block_num}: {block_data}")
+            print("-----------------------------------------------------------")
+            print("-----------------------------------------------------------")
 
     def handle_failures(self, failures):
         """Update backend variables based on detected failures."""
@@ -124,11 +134,17 @@ class TrackModelBackend:
                     for block_num in self.blocks:
                         self.update_block_occupancy(block_num, False)
 
-    def update_block_occupancy(self, block_num, occupied):
+    def update_block_occupancy(self, block_num_begin, block_num_middle, block_num_end, occupied = True):
         """Update block occupancy state."""
-        if block_num in self.blocks:
-            self.blocks[block_num]["occupancy"] = occupied
-            self.occupancy_status[block_num] = occupied
+        if block_num_begin in self.blocks:
+            self.blocks[block_num_begin]["occupancy"] = occupied
+            self.occupancy_status[block_num_begin] = occupied
+        if block_num_middle in self.blocks:
+            self.blocks[block_num_middle]["occupancy"] = occupied
+            self.occupancy_status[block_num_middle] = occupied
+        if block_num_end in self.blocks:
+            self.blocks[block_num_end]["occupancy"] = occupied
+            self.occupancy_status[block_num_end] = occupied
 
     def update_track_circuit_failure(self, block_num, failure_status):
         """Set track circuit failure without affecting block occupancy."""
@@ -146,6 +162,12 @@ class TrackModelBackend:
             # Disable track heaters for all blocks
             for block_num in self.blocks:
                 self.blocks[block_num]["track_heater"] = False
+
+    def get_beacon_from_block(self, block_num):
+        """Return the beacon signal for a specific block."""
+        if block_num in self.blocks:
+            return self.blocks[block_num]["beacon_signal"]
+        return None
 
 
     def update(self):
