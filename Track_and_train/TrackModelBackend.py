@@ -179,11 +179,13 @@ class TrackModelBackend:
             self.light_signals = self.track_controller.light_states
             self.crossing_states = self.track_controller.crossing_states
             self.block_authority = self.track_controller.block_authority
+            self.blocks[1]["block_authority"] = "0000001010"
             for block_num in self.blocks:
-                self.blocks[block_num]["switch_state"] = self.switch_states[block_num]
-                self.blocks[block_num]["light_signal"] = self.light_signals[block_num]
-                self.blocks[block_num]["crossing_state"] = self.crossing_states[block_num]
-                self.blocks[block_num]["track_circuit_failure"] = self.track_circuit_failures[block_num]
+                self.blocks[block_num]["switch_state"] = self.switch_states[block_num-1]
+                self.blocks[block_num]["light_signal"] = self.light_signals[block_num-1]
+                self.blocks[block_num]["crossing_state"] = self.crossing_states[block_num-1]
+                self.blocks[block_num]["track_circuit_failure"] = self.track_circuit_failures[block_num-1]
+                print(f"Block {block_num}: set with {block_num - 1}")
             print("Updating backend with track controller data")
 
         self.ui.update()

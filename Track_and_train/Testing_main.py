@@ -88,6 +88,7 @@ if __name__ == "__main__":
     update_timer = QTimer()
     update_timer.timeout.connect(track_controller.update)
     update_timer.timeout.connect(track_model.update)
+    update_timer.timeout.connect(train_model.update_train)
     update_timer.start(1000)  # Update every 1 second
 
     # --- Run the application loop ---
