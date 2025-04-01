@@ -8,7 +8,7 @@ from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtGui import QFont
 from wayside import WAYSIDE
 
-#Eimport TrackController 
+#Eimport TrackController
 #import TrackModelBackend
 #import TrackModelUI
 #import testbench

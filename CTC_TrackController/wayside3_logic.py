@@ -1,7 +1,9 @@
+
 def update_wayside(block_occupancy, prev_switch_states, block_authorities, maintenance):
     switch_states = [False] * 2  # 2 switches
     light_states = [False] * 2  # 2 lights: M and O
     crossing_states = [False] * 0  # 0 crossings (not used)
+    stop_signals = [False] * 6
 
     offset = 74  # Offset for block numbering
 
@@ -49,6 +51,36 @@ def update_wayside(block_occupancy, prev_switch_states, block_authorities, maint
 
     # Light control: Stop signals for M and Q
     light_states[0] = allow_M  # Stop M if it's not allowed to move
-    light_states[1] = allow_Q  # Stop Q if it's not allowed to move
+    stop_signals[0] = allow_Q
+    stop_signals[1] = allow_Q
+    stop_signals[2] = allow_Q
 
-    return switch_states, light_states, crossing_states 
+
+    light_states[1] = allow_Q  # Stop Q if it's not allowed to move
+    stop_signals[3] = allow_M
+    stop_signals[4] = allow_M
+    stop_signals[5] = allow_M
+
+    
+
+    block_authorities[0][0] = block_authorities[0][0] and light_states[0]
+    block_authorities[0][1] = block_authorities[0][1] and light_states
+    block_authorities[0][2] = block_authorities[0][3] and light_states
+    block_authorities[0][10] = block_authorities[0][10] and light_states
+
+    block_authorities[1][0] = block_authorities[1][0] and light_states
+    block_authorities[1][1] = block_authorities[1][1] and light_states
+    block_authorities[1][2] = block_authorities[1][3] and light_states
+    block_authorities[1][10] = block_authorities[1][10] and light_states[0]
+
+    block_authorities[0][0] = block_authorities[0][0] and light_states[1]
+    block_authorities[0][1] = block_authorities[0][1] and light_states
+    block_authorities[0][2] = block_authorities[0][3] and light_states
+    block_authorities[0][10] = block_authorities[0][10] and light_states
+
+    block_authorities[1][0] = block_authorities[1][0] and light_states
+    block_authorities[1][1] = block_authorities[1][1] and light_states
+    block_authorities[1][2] = block_authorities[1][3] and light_states
+    block_authorities[1][10] = block_authorities[1][10] and light_states[1]
+
+    return switch_states, light_states, crossing_states, stop_signals

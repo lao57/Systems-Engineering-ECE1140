@@ -3,12 +3,10 @@ def update_wayside(block_occupancy, prev_switch_states, block_authorities, maint
     switch_states = [False] * 2  # 2 switches: one on 12, one on 28
     light_states = [False] * 2  # 2 lights: stopping A and stopping Z
     crossing_states = [False] * 1  # 1 crossings
+    stop_signals = [False] * 150
 
     offset = 1  # Offset for blocks 1-28
     offset2 = 118  # Offset for blocks 146-150
-
-
-    print(prev_switch_states)
 
     # Define occupied conditions
     curve_occupied = (
@@ -63,9 +61,18 @@ def update_wayside(block_occupancy, prev_switch_states, block_authorities, maint
 
     # Light control
     light_states[0] = allow_A  # Green light for A if allowed
-    light_states[1] = allow_Z  # Green light for Z if allowed
+    
+    stop_signals[0] = allow_Z
+    stop_signals[1] = allow_Z
+    stop_signals[2] = allow_Z
+
+
+    light_states[1] = allow_Z  # Green light for Z if allowed  
+
+    stop_signals[3] = allow_A 
+    stop_signals[4] = allow_A
 
     # Crossing control
     crossing_states[0] = crossing_occupied
 
-    return switch_states, light_states, crossing_states
+    return switch_states, light_states, crossing_states, stop_signals
