@@ -205,7 +205,8 @@ class TrackModelBackend:
         if not self.blocks:
             return
         else:
-            #self.occupancy_status = self.failure_status
+            self.ui.update()
+            self.occupancy_status = [False] * 150 #lamine needs to fix add failures
             self.switch_states = self.track_controller.switch_states
             self.light_signals = self.track_controller.light_states
             self.crossing_states = self.track_controller.crossing_states
@@ -219,7 +220,7 @@ class TrackModelBackend:
                 #print(f"Block {block_num}: set with {block_num - 1}")
             #print("Updating backend with track controller data")
 
-        self.ui.update()
+        #self.ui.update()
 
     # ---------------------------
     # SETTERS FOR DEPENDENCIES

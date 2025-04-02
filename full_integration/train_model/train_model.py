@@ -121,10 +121,9 @@ class TrainModel:
         self.train_controller = TrainController(self.k_p, self.k_i, self.max_engine_power, self.sample_period,
                                                 self.comfortable_temp, self.train_controller_gui,
                                                 self.train_controller_testbench)
-        if self.Track_model != None:
-            self.train_controller_gui.show()
-            self.train_gui.show()
-            # self.train_controller_testbench.show()
+        self.train_controller_gui.show()
+        self.train_gui.show()
+        # self.train_controller_testbench.show()
 
     def display_train(self):
         print("--------------------------TRAIN STATUS--------------------------")
@@ -155,16 +154,37 @@ class TrainModel:
         if self.blocknumbervector:
             beacon_signal = self.Track_model.get_beacon_from_block(self.blocknumbervector[0])
         else:
-            beacon_signal = self.Track_model.get_beacon_from_block(1)
-        if beacon_signal[0:4] != self.last_beacon and beacon_signal[0:4] != 0000:
+            beacon_signal = self.Track_model.get_beacon_from_block(62)
+        if beacon_signal[0:4] != self.last_beacon and beacon_signal[0:4] != 0000 and beacon_signal[0:4] != None:
             if self.blocknumbervector:
                 grade_vector_holder = self.Track_model.get_grade_from_block(self.blocknumbervector[0])
-                blocknumbervector_holder = self.Track_model.get_block_vector_from_block(
-                    self.blocknumbervector[0])  # there will be some function from the track
+                if grade_vector_holder and isinstance(grade_vector_holder, (list, str)):
+                    try:
+                        # Join the elements if it's a list, split by spaces, and convert to integers
+                        grade_vector_holder_parsed = [int(num) for num in ''.join(grade_vector_holder).split()]
+                    except ValueError as e:
+                        print(f"Error parsing grade_vector_holder: {grade_vector_holder}. Error: {e}")
+                        grade_vector_holder_parsed = []  # Default to an empty list if parsing fails
+                else:
+                    print(f"Invalid grade_vector_holder: {grade_vector_holder}")
+                    grade_vector_holder_parsed = []  # Default to an empty list if input is invalid
+                """
+                if grade_vector_holder != "nan":
+                    print(f"grade vector holder: {grade_vector_holder}")
+                    grade_vector_holder_parsed = [int(num) for num in ''.join(grade_vector_holder).split()]
+                    parse_blocknumbervector = self.Track_model.get_block_vector_from_block(
+                        self.blocknumbervector[0])  # there will be some function from the track
+                    blocknumbervector_holder = [int(num) for num in ''.join(parse_blocknumbervector).split()]
+                    self.beacon_parse(beacon_signal, grade_vector_holder_parsed, blocknumbervector_holder)
+                    """
             else:
-                grade_vector_holder = self.Track_model.get_grade_from_block(1)
-                blocknumbervector_holder = self.Track_model.get_block_vector_from_block(1)
-            self.beacon_parse(beacon_signal, grade_vector_holder, blocknumbervector_holder)
+                grade_vector_holder = self.Track_model.get_grade_from_block(62)
+                if grade_vector_holder != "nan":
+                    print(f"grade vector holder: {grade_vector_holder}")
+                    grade_vector_holder_parsed = [int(num) for num in ''.join(grade_vector_holder).split()]
+                    parse_blocknumbervector = self.Track_model.get_block_vector_from_block(62)
+                    blocknumbervector_holder = [int(num) for num in ''.join(parse_blocknumbervector).split()]
+                    self.beacon_parse(beacon_signal, grade_vector_holder_parsed, blocknumbervector_holder)
             """
             the idea here is that I will be pinging the block that I am currently on
             then I make sure that I have not already read this beacon if I have not

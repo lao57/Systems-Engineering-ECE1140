@@ -25,8 +25,6 @@ if __name__ == "__main__":
     # --- Create core modules ---
 
     track_model = TrackModelBackend.TrackModelBackend()
-    train_model = TrainModel(k_p=k_p, k_i=k_i)
-    train_model.add_classes(track_model)
     track_controller = TrackController.TrackController()
 
     # --- CTC Init ---
@@ -45,7 +43,7 @@ if __name__ == "__main__":
     track_controller.set_ctc(ctc)
     track_controller.set_track_model(track_model)
     track_model.set_track_controller(track_controller)
-    track_model.set_train_model(train_model)
+    #track_model.set_train_model(train_model)
 
     print("[Main] TrackModel connected to TrackController")
 
