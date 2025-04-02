@@ -37,6 +37,7 @@ if __name__ == "__main__":
     ctc = CTC()
     ctc_office = CTCOffice(track_layout, schedules)
     ctc_office.set_ctc(ctc)
+    ctc_office.set_track_model(track_model)
 
     # --- Wire components ---
     
@@ -72,11 +73,6 @@ if __name__ == "__main__":
         track_model.gui.update_gui_display()
         print("[Main] Backend synced with Track Controller")
 
-
-    # --- Show Test Bench UI ---
-    test_bench = testbench_track_controller.TestBench(ctc, track_model)
-    test_bench.show()
-
     # --- Show Track Controller UI ---
     track_controller.show()
 
@@ -104,8 +100,7 @@ if __name__ == "__main__":
         track_controller.update()
         track_model.update()
         if len(track_model.blocks) > 0: # Update train model only if blocks exist
-            train_model.update_train(world_time)
-            train_model.display_train()
+            ctc_office.update_all_trains(world_time)
             print(len(track_model.blocks))
 
     # Use QTimer to control the update frequency

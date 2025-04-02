@@ -121,9 +121,10 @@ class TrainModel:
         self.train_controller = TrainController(self.k_p, self.k_i, self.max_engine_power, self.sample_period,
                                                 self.comfortable_temp, self.train_controller_gui,
                                                 self.train_controller_testbench)
-        self.train_controller_gui.show()
-        self.train_gui.show()
-        # self.train_controller_testbench.show()
+        if self.Track_model != None:
+            self.train_controller_gui.show()
+            self.train_gui.show()
+            # self.train_controller_testbench.show()
 
     def display_train(self):
         print("--------------------------TRAIN STATUS--------------------------")

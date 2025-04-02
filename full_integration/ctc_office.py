@@ -4,6 +4,11 @@ from typing import List, Dict
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QApplication, QTableWidgetItem
 
+import TrackModelBackend
+import track_gui_and_testbench_unified
+import testbench_track_controller
+from train_controller.train_controller_gui import TrainControllerGUI
+from train_model.train_model import TrainModel
 from ctc import CTC
 from station_map import STATION_BLOCKS
 
@@ -27,6 +32,7 @@ class Train:
         self.next_stop_index = next_stop_index  # index into scheduled_stops indicating next stop
         self.authority_meters = authority_meters  # remaining distance before reaching next stop
         self.last_stop_passed = last_stop_passed  # block num of most recent scheduled stop passed
+        
 
     @property
     def route_blocks(self) -> List[int]:
@@ -69,8 +75,12 @@ class CTCOffice:
         self.schedules = schedules  # save schedule
         self.ctc: CTC = None  # set later
         self.active_trains: List[Train] = []  # list to keep track of active trains
+        self.real_active_trains = []
         # dict mapping blk nums to blk data; easier to lookup block lengths on Green Line
         self.green_blocks = {b['block_number']: b for b in track_layout.get('Green Line', [])}
+        self.track_model = None
+        self.k_p = 2e5
+        self.k_i = 2e4
 
     def set_ctc(self, ctc: CTC):
         self.ctc = ctc  # assign ctc
@@ -139,8 +149,11 @@ class CTCOffice:
             current_block=route_head,
             next_stop_index=0
         )
+        train_model = TrainModel(k_p=self.k_p, k_i=self.k_i)
+        train_model.add_classes(self.track_model)
         self.update_authority(train)  # calculate authority
         self.active_trains.append(train)  # add train to active list of trains
+        self.real_active_trains.append(train_model)
         print(f"Scheduled Train {train.train_id} with route {route_numbers}")
 
     @staticmethod
@@ -241,6 +254,11 @@ class CTCOffice:
                 self.ctc.block_authority[i] = [False] * 10
         self.ctc.send_to_track_controller()  # update track controller with latest authority and maintenance
         self.update_train_positions()  # update train positions based on block occupancy
+
+    def update_all_trains(self, world_time, delta_t=1):
+        for train in self.real_active_trains:
+            train.update_train(world_time)
+            train.display_train()
 
 
     def update_track_states(self):
