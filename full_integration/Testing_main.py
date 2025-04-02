@@ -8,23 +8,11 @@ import track_gui_and_testbench_unified
 import testbench_track_controller
 from train_controller.train_controller_gui import TrainControllerGUI
 from train_model.train_model import TrainModel
-
-
-class CTC:
-    def __init__(self):
-        self.maintenance = [False] * 150
-        self.block_authority = [0b0000001010] * 150
-        self.track_controller = None
-        self.block_authority[0] = 0b0000100000  # Block 1 authority I am 
-
-    def set_track_controller(self, track_controller):
-        self.track_controller = track_controller
-
-    def get_maintenance_status(self):
-        return self.maintenance
-
-    def get_block_authority(self):
-        return self.block_authority
+from track_loader import load_track_layout
+from schedule_loader import ScheduleLoader
+from ctc import CTC
+from ctc_office import CTCOffice
+from CTC_GUI import CTCGUI
 
 
 
@@ -35,14 +23,24 @@ if __name__ == "__main__":
     i = 0
     world_time = {'day': 0, 'hour': 0, 'min': 0}
     # --- Create core modules ---
-    ctc = CTC()
+
     track_model = TrackModelBackend.TrackModelBackend()
     train_model = TrainModel(k_p=k_p, k_i=k_i)
     train_model.add_classes(track_model)
     track_controller = TrackController.TrackController()
 
+    # --- CTC Init ---
+    track_layout = load_track_layout("Systems-Engineering-ECE1140/full_integration/Track_and_train/track_layout.xlsx")
+    schedule_loader = ScheduleLoader(track_layout)
+    schedules = schedule_loader.load_from_excel("Systems-Engineering-ECE1140/full_integration/Track_and_train/Train_Scheduling.xlsx")
+
+    ctc = CTC()
+    ctc_office = CTCOffice(track_layout, schedules)
+    ctc_office.set_ctc(ctc)
+
     # --- Wire components ---
-    ctc.set_track_controller(track_controller)
+    
+    ctc.connect_track_controller(track_controller)
     track_controller.set_ctc(ctc)
     track_controller.set_track_model(track_model)
     track_model.set_track_controller(track_controller)
@@ -82,6 +80,12 @@ if __name__ == "__main__":
     # --- Show Track Controller UI ---
     track_controller.show()
 
+    ctc_gui = CTCGUI(ctc=ctc, ctc_office=ctc_office,
+                     track_layout=track_layout,
+                     schedule_loader=schedule_loader,
+                     track_controller=track_controller)
+    ctc_gui.show()
+
     # --- Show Unified TrackModelUI + Testbench window and pass backend ---
     window = track_gui_and_testbench_unified.UnifiedTrackUI(backend=track_model)
     window.show()
@@ -96,6 +100,7 @@ if __name__ == "__main__":
     def update_world():
         """Update the world state periodically."""
         global world_time
+        ctc_gui.update_all()
         track_controller.update()
         track_model.update()
         if len(track_model.blocks) > 0: # Update train model only if blocks exist

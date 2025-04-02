@@ -217,7 +217,7 @@ class TrackController(QMainWindow):
         else:
             self.upload_button.setEnabled(True)   # Enable upload for other waysides
 
-        self.update_block_table(self.track_model.get_block_occupancy(), self.ctc.get_maintenance_status(), 0)
+        self.update_block_table(self.track_model.occupancy_status, self.ctc.get_maintenance_status(), 0)
         self.update_authority_table(0)
         self.update_ui_elements()  # Refresh UI to show correct switches and lights
 
@@ -258,7 +258,7 @@ class TrackController(QMainWindow):
         # Fetch data from CTC and Track Model
         self.maintenance = self.ctc.maintenance
         self.block_authorities = self.ctc.block_occupancy
-        self.block_occupancy = self.track_model.get_block_occupancy()
+        self.block_occupancy = self.track_model.occupancy_status
 
         self.block_occupancy = [self.block_occupancy[i] or self.maintenance[i] for i in
                                 range(len(self.block_occupancy))]
@@ -406,7 +406,7 @@ class TrackController(QMainWindow):
     def prev_page(self):
         """Move to the previous page of blocks."""
         self.current_page = max(self.current_page - 1, 0)
-        self.update_block_table(self.track_model.get_block_occupancy(), self.ctc.get_maintenance_status(),
+        self.update_block_table(self.track_model.occupancy_status, self.ctc.get_maintenance_status(),
                                 self.current_page * 20)
         self.update_authority_table(self.current_page * 20)
 
@@ -416,7 +416,7 @@ class TrackController(QMainWindow):
         max_page = (total_blocks + 19) // 20 - 1
         self.current_page = min(self.current_page + 1, max_page)
         self.update_block_table(
-            self.track_model.get_block_occupancy(),
+            self.track_model.occupancy_status,
             self.ctc.get_maintenance_status(),  # Pass maintenance status from CTC
             self.current_page * 20
         )
@@ -521,7 +521,7 @@ def socket_client_thread(ctc, track_controller, track_model):
         try:
             # Prepare data payload to send to Raspberry Pi (wayside2 logic)
             data = {
-                "block_occupancy": track_model.get_block_occupancy(),
+                "block_occupancy": track_model.occupancy_status,
                 "block_authority": ctc.get_block_authority(),
                 "maintenance": ctc.get_maintenance_status(),
                 "prev_switch_states": track_controller.wayside_controllers["wayside2"]["switch_states"]

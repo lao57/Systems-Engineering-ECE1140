@@ -26,9 +26,9 @@ class TrackModel:
 if __name__ == "__main__":
     app = QApplication(sys.argv)
 
-    track_layout = load_track_layout("track_layout.xlsx")
+    track_layout = load_track_layout("Systems-Engineering-ECE1140/full_integration/Track_and_train/track_layout.xlsx")
     schedule_loader = ScheduleLoader(track_layout)
-    schedules = schedule_loader.load_from_excel("Train_Scheduling.xlsx")
+    schedules = schedule_loader.load_from_excel("Systems-Engineering-ECE1140/full_integration/Track_and_train/Train_Scheduling.xlsx")
 
     ctc = CTC()
     ctc_office = CTCOffice(track_layout, schedules)
