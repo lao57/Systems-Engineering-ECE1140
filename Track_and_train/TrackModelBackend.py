@@ -55,7 +55,7 @@ class TrackModelBackend:
 
     def get_block_authority(self, block_num):
         """Return the block authority of a block."""
-        return self.block_authority[block_num]
+        return self.block_authority[int(block_num)]
 
     def get_all_blocks(self):
         """Return a list of all block numbers."""

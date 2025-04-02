@@ -211,10 +211,8 @@ class TrainModel:
             baud_signal = self.Track_model.get_block_authority(1)
         # baud_signal.append(0)  | Potentail add if we are not getting enough range
         if baud_signal is not None:
-            if baud_signal[0] == '0':
-                self.authority = int(baud_signal[1:], 2)
-            else:
-                self.cmd_velocity = int(baud_signal[1:], 2)
+            self.authority = int(baud_signal, 2)
+
 
     """UPDATING FUNCTIONS"""
 
@@ -248,7 +246,7 @@ class TrainModel:
         self.pickup_beacon_signal()
         if not self.failure_modes[1]:
             self.baud_read()
-            
+
         # Update train controller mode (interaction from train driver)
         self.train_controller.train_controller_mode = self.train_controller_gui.train_controller_mode
 
