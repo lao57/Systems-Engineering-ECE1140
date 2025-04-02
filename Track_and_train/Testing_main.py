@@ -15,7 +15,7 @@ class CTC:
         self.maintenance = [False] * 150
         self.block_authority = [0b0000001010] * 150
         self.track_controller = None
-        self.block_authority[0] = 0b0000100000  # Block 1 authority I am 
+        self.block_authority[0] = 0b0000100000  # Block 1 authority I am typing
 
     def set_track_controller(self, track_controller):
         self.track_controller = track_controller

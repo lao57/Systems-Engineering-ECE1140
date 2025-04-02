@@ -53,6 +53,7 @@ class TrainModel:
 
     def __init__(self, k_p=1.5e5, k_i=1.5e4, train_number=1, numberOfPassengers=3):
 
+        
         # SPEED CALCULATION VARIABLES
         self.velocity = 0
         self.previous_velocity = 0
@@ -86,7 +87,9 @@ class TrainModel:
 
         # BEACON VARIABLES
         self.last_beacon = 0000
+        self.baud_count = 0
         self.authority = 0
+        self.sent_authority = 0
         self.cmd_velocity = 14
         self.distance_vector = []  # holds the start of the trains current spot
         self.distance_vector_middle = [16.1]  # holds the middle of the trains current spot
@@ -155,15 +158,36 @@ class TrainModel:
             beacon_signal = self.Track_model.get_beacon_from_block(self.blocknumbervector[0])
         else:
             beacon_signal = self.Track_model.get_beacon_from_block(1)
-        if beacon_signal[0:4] != self.last_beacon and beacon_signal[0:4] != 0000:
+        if beacon_signal[0:4] != self.last_beacon and beacon_signal[0:4] != 0000 and beacon_signal[0:4] != None:
             if self.blocknumbervector:
                 grade_vector_holder = self.Track_model.get_grade_from_block(self.blocknumbervector[0])
-                blocknumbervector_holder = self.Track_model.get_block_vector_from_block(
-                    self.blocknumbervector[0])  # there will be some function from the track
+                if grade_vector_holder and isinstance(grade_vector_holder, (list, str)):
+                    try:
+                        # Join the elements if it's a list, split by spaces, and convert to integers
+                        grade_vector_holder_parsed = [int(num) for num in ''.join(grade_vector_holder).split()]
+                    except ValueError as e:
+                        print(f"Error parsing grade_vector_holder: {grade_vector_holder}. Error: {e}")
+                        grade_vector_holder_parsed = []  # Default to an empty list if parsing fails
+                else:
+                    print(f"Invalid grade_vector_holder: {grade_vector_holder}")
+                    grade_vector_holder_parsed = []  # Default to an empty list if input is invalid
+                """
+                if grade_vector_holder != "nan":
+                    print(f"grade vector holder: {grade_vector_holder}")
+                    grade_vector_holder_parsed = [int(num) for num in ''.join(grade_vector_holder).split()]
+                    parse_blocknumbervector = self.Track_model.get_block_vector_from_block(
+                        self.blocknumbervector[0])  # there will be some function from the track
+                    blocknumbervector_holder = [int(num) for num in ''.join(parse_blocknumbervector).split()]
+                    self.beacon_parse(beacon_signal, grade_vector_holder_parsed, blocknumbervector_holder)
+                    """
             else:
                 grade_vector_holder = self.Track_model.get_grade_from_block(1)
-                blocknumbervector_holder = self.Track_model.get_block_vector_from_block(1)
-            self.beacon_parse(beacon_signal, grade_vector_holder, blocknumbervector_holder)
+                if grade_vector_holder != "nan":
+                    print(f"grade vector holder: {grade_vector_holder}")
+                    grade_vector_holder_parsed = [int(num) for num in ''.join(grade_vector_holder).split()]
+                    parse_blocknumbervector = self.Track_model.get_block_vector_from_block(1)
+                    blocknumbervector_holder = [int(num) for num in ''.join(parse_blocknumbervector).split()]
+                    self.beacon_parse(beacon_signal, grade_vector_holder_parsed, blocknumbervector_holder)
             """
             the idea here is that I will be pinging the block that I am currently on
             then I make sure that I have not already read this beacon if I have not
@@ -204,11 +228,18 @@ class TrainModel:
         """ Print the values to debug
         print(f"baud_signal[0:4]: '{baud_signal[0:4]}' (type: {type(baud_signal[0:4])})")
         print(f"self.Baud_ID: '{self.Baud_ID}' (type: {type(self.Baud_ID)})")"""
-        print(self.blocknumbervector[0])
+        #print(self.blocknumbervector[0])
+        if self.velocity == 0:
+            self.baud_count += 1
+         
         if self.blocknumbervector:
-            self.authority = self.Track_model.get_block_authority(int(self.blocknumbervector[0]))
+            baud_sig = self.Track_model.get_block_authority(int(self.blocknumbervector[0]))
         else:
-            self.authority = self.Track_model.get_block_authority(0)#starting block
+            baud_sig = self.Track_model.get_block_authority(0)#starting block
+
+        if (baud_sig == 1023 or baud_sig < self.sent_authority or self.baud_count>5):
+            self.authority = baud_sig
+            self.baud_count = 0
         # baud_signal.append(0)  | Potentail add if we are not getting enough range
 
     """UPDATING FUNCTIONS"""
@@ -356,6 +387,11 @@ class TrainModel:
             self.Next_station_names.pop(0)
             self.grade_vector.pop(0)
             self.blocknumbervector.pop(0)
+
+
+        #handles for authority pickup
+        
+
         # update time flag to move to the next second
         # update occupancy
         #self.Track_model.update_block_occupancy(self.blocknumbervector[0], self.blocknumbervector_middle[0], self.blocknumbervector_end[0])

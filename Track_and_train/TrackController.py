@@ -21,7 +21,7 @@ class TrackController(QMainWindow):
         self.crossing_states = [False] * 150  # Total crossings across all waysides
         self.block_occupancy = [False] * 150  # Block occupancy for all blocks
         self.block_authority = [0] * 150  # Block authority for all blocks
-        self.block_authority[0] = [False,False,False,True,False,False,False,False,False,False]  # Block 1 authority
+        self.block_authority[0] = [False,False,True,False,False,False,False,False,False,False]  # Block 1 authority
 
         self.count = 0  # get rid of later
 

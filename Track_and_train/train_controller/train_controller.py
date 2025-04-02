@@ -116,7 +116,7 @@ class TrainController:
                     self.set_cabin_temp, self.doors_status, self.lights_status, self.announce_station
 
             # if self.authority <= 70 and self.service_brake_decel == 0:    # 70 m
-            if self.authority <= 40 and self.service_brake_decel == 0:  # 70 m
+            if self.authority <= stopping_distance and self.service_brake_decel == 0:  # 70 m
                 self.e_brake_on = True
                 self.service_brake_decel = 0
                 self.cmd_power = 0
