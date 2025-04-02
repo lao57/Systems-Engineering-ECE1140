@@ -15,6 +15,7 @@ class CTC:
         self.maintenance = [False] * 150
         self.block_authority = [0b0000001010] * 150
         self.track_controller = None
+        self.block_authority[0] = 0b0000100000  # Block 1 authority
 
     def set_track_controller(self, track_controller):
         self.track_controller = track_controller
@@ -97,8 +98,10 @@ if __name__ == "__main__":
         global world_time
         track_controller.update()
         track_model.update()
-        if track_model.blocks is not None:
+        if len(track_model.blocks) > 0: # Update train model only if blocks exist
             train_model.update_train(world_time)
+            train_model.display_train()
+            print(len(track_model.blocks))
 
     # Use QTimer to control the update frequency
     update_timer = QTimer()

@@ -206,9 +206,9 @@ class TrainModel:
         print(f"self.Baud_ID: '{self.Baud_ID}' (type: {type(self.Baud_ID)})")"""
         print(self.blocknumbervector[0])
         if self.blocknumbervector:
-            baud_signal = self.Track_model.get_block_authority(self.blocknumbervector[0])
+            baud_signal = bin(self.Track_model.get_block_authority(self.blocknumbervector[0]))[2:]
         else:
-            baud_signal = self.Track_model.get_block_authority(1)
+            baud_signal = bin(self.Track_model.get_block_authority(1))[2:]#starting block
         # baud_signal.append(0)  | Potentail add if we are not getting enough range
         if baud_signal is not None:
             self.authority = int(baud_signal, 2)
@@ -286,10 +286,25 @@ class TrainModel:
         else:
             self.announcement_text = "The Next station is: " + self.Next_station_names[0]
 
+
+        # Ensure self.grade_vector[0] is a valid number
+        if self.grade_vector[0] is not None:
+            try:
+                grade_value = float(self.grade_vector[0])  # Convert to float
+            except ValueError:
+                print(f"Invalid grade value: {self.grade_vector[0]}")
+        else:
+            print(f"no grade vector 1")  # Default to 0 if grade_vector is empty or None
+
+        # Calculate gravitational acceleration
+        gravitational_acceleration = g * np.sin(np.arctan(grade_value / 100))
+
+        """
         # Acceleration Calculation
         self.previous_acceleration = self.acceleration
         gravitational_acceleration = (g * np.sin(
             np.arctan(self.grade_vector[0] / 100)))  # negative when going down hill | positive when going up hill
+        """
 
         """
         Three cases for acceleration calculation
@@ -348,6 +363,7 @@ class TrainModel:
         # update occupancy
         self.Track_model.update_block_occupancy(self.blocknumbervector[0], self.blocknumbervector_middle[0],
                                             self.blocknumbervector_end[0])
+        print(f"Train Model: Block occupancy updated blocks: {self.blocknumbervector[0]}, {self.blocknumbervector_middle[0]}, {self.blocknumbervector_end[0]}")
         # update gui
         self.update_gui(world_time)
         self.train_gui.update_train_model_GUI(delta_t)

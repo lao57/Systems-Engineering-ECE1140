@@ -174,13 +174,13 @@ class UnifiedTrackUI(QWidget):
 
         block_index = self.block_selector.currentIndex()
         if block_index >= 0:
-            row = self.df_layout.iloc[block_index]
-            speed_mph = round(row['Speed Limit (Km/Hr)'] * 0.621371, 1)
-            block_size_ft = round(row['Block Length (m)'] * 3.28084, 1)
+            block = self.backend.blocks[block_index+1]
+            speed_mph = round(block["speed_limit"] * 0.621371, 1)
+            block_size_ft = round(block["block_size"] * 3.28084, 1)
             self.label_widgets["Speed Limit"].setText(f"Speed Limit: {speed_mph} mph")
             self.label_widgets["Block Size"].setText(f"Block Size: {block_size_ft} ft")
-            self.label_widgets["Grade"].setText(f"Grade: {row['Block Grade (%)']}%")
-            self.label_widgets["Elevation"].setText(f"Elevation: {row['ELEVATION (M)']} m")
+            self.label_widgets["Grade"].setText(f"Grade: {block["grade"]}%")
+            self.label_widgets["Elevation"].setText(f"Elevation: {block["elevation"]} m")
 
             # Update states
             self.occupancy_label.setText(f"Track Occupancy: {'✅' if self.backend.get_occupancy_status(block_index) else '❌'}")

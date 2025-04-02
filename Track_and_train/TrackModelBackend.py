@@ -98,6 +98,7 @@ class TrackModelBackend:
                 "grade_vector": row.get("grade_vector", None),  # New: Grade vector from Excel
                 "block_vector": row.get("block_vector", None),  # New: Block vector from Excel
             }
+            print(f"Block {block_num} data: {self.blocks[block_num]}")
 
         # Update backend state arrays
         self.occupancy_status = [False] * len(self.blocks)  # Block occupancy states
@@ -109,12 +110,13 @@ class TrackModelBackend:
         self.failure_status = [False] * len(self.blocks)  # Track circuit failure status
         self.ui.failure_vector = [[False] * 5 for _ in range(len(self.blocks))]  # Track circuit failure status
 
+        """
         # Print all blocks with their information
         for block_num, block_data in self.blocks.items():
             print(f"Block {block_num}: {block_data}")
             print("-----------------------------------------------------------")
             print("-----------------------------------------------------------")
-
+        """
         self.ready = True  # Mark backend as ready after loading data
 
     def handle_failures(self, failures):
@@ -140,15 +142,18 @@ class TrackModelBackend:
 
     def update_block_occupancy(self, block_num_begin, block_num_middle, block_num_end, occupied = True):
         """Update block occupancy state."""
+        print(f"Updating occupancy for blocks {block_num_begin}, {block_num_middle}, {block_num_end} to {occupied}")
         if block_num_begin in self.blocks:
-            self.blocks[block_num_begin]["occupancy"] = occupied
-            self.occupancy_status[block_num_begin] = occupied
+            self.blocks[block_num_begin]["occupancy"] = True
+            self.occupancy_status[block_num_begin] = True
         if block_num_middle in self.blocks:
-            self.blocks[block_num_middle]["occupancy"] = occupied
-            self.occupancy_status[block_num_middle] = occupied
+            self.blocks[block_num_middle]["occupancy"] = True
+            self.occupancy_status[block_num_middle] = True
         if block_num_end in self.blocks:
-            self.blocks[block_num_end]["occupancy"] = occupied
-            self.occupancy_status[block_num_end] = occupied
+            self.blocks[block_num_end]["occupancy"] = True
+            self.occupancy_status[block_num_end] = True
+        if self.ui:
+            self.ui.update()
 
     def update_track_circuit_failure(self, block_num, failure_status):
         """Set track circuit failure without affecting block occupancy."""
@@ -190,7 +195,7 @@ class TrackModelBackend:
         if not self.blocks:
             return
         else:
-            self.occupancy_status = self.failure_status
+            #self.occupancy_status = self.failure_status
             self.switch_states = self.track_controller.switch_states
             self.light_signals = self.track_controller.light_states
             self.crossing_states = self.track_controller.crossing_states
@@ -201,8 +206,9 @@ class TrackModelBackend:
                 self.blocks[block_num]["light_signal"] = self.light_signals[block_num-1]
                 self.blocks[block_num]["crossing_state"] = self.crossing_states[block_num-1]
                 self.blocks[block_num]["track_circuit_failure"] = self.track_circuit_failures[block_num-1]
-                print(f"Block {block_num}: set with {block_num - 1}")
-            print("Updating backend with track controller data")
+                #for error checking
+                #print(f"Block {block_num}: set with {block_num - 1}")
+            #print("Updating backend with track controller data")
 
         self.ui.update()
 
