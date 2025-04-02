@@ -76,12 +76,13 @@ class CTCGUI(QMainWindow, Ui_MainWindow):
         self.maintBlock.addItems([f"Block {b}" for b in blocks[:6]])
 
     def update_all(self):
+        self.ctc.block_occupancy = self.track_controller.block_occupancy
         self.ctc_office.update()
         self.update_train_table()
         self.update_block_occupancy_table()
         self.update_track_states()
         self.update_system_analysis()
-        #self.update_wayside_controllers()
+        self.update_wayside_controllers()
         if self.count >= 5:
             self.count = 0
         self.count += 1
@@ -171,6 +172,10 @@ class CTCGUI(QMainWindow, Ui_MainWindow):
                 for i, crossing_state in enumerate(config["crossing_states"]):
                     if i < len(config["crossings"]):
                         self.ctc.crossing_states[config["crossings"][i]] = crossing_state
+
+    def get_block_authority(self):
+
+        return self.ctc.get_block_authority()
 
     def set_ctc(self, ctc):
         self.ctc = ctc

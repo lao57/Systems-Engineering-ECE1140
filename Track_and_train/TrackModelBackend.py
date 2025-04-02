@@ -53,9 +53,19 @@ class TrackModelBackend:
             return False
         return self.crossing_states[block_num]
 
+    """
     def get_block_authority(self, block_num):
-        """Return the block authority of a block."""
+        #Return the block authority of a block
         return self.block_authority[int(block_num)]
+    """
+
+    def get_block_authority(self, block_id):
+        """Convert a block's authority bits (booleans) to an integer."""
+        authority_bits = self.block_authority[block_id - 1]
+        if isinstance(authority_bits, int):
+            return authority_bits  # Already an integer
+        binary_str = ''.join(['1' if bit else '0' for bit in authority_bits])
+        return int(binary_str, 2)
 
     def get_all_blocks(self):
         """Return a list of all block numbers."""
@@ -94,7 +104,7 @@ class TrackModelBackend:
                 "track_circuit_failure": [False, False, False, False, False],  # Track circuit failure states
                 "track_heater": False,  # Track heater state
                 "beacon_signal": row.get("beacon_signal", None),  # New: Beacon signal from Excel
-                "block_authority": "0000000000",  # 10-bit authority as a string
+                "block_authority": [False,False,False,False,False,False,False,False,False,False],  # 10-bit authority as a string
                 "grade_vector": row.get("grade_vector", None),  # New: Grade vector from Excel
                 "block_vector": row.get("block_vector", None),  # New: Block vector from Excel
             }
@@ -106,7 +116,7 @@ class TrackModelBackend:
         self.light_signals = [False] * len(self.blocks)  # Light signals
         self.crossing_states = [False] * len(self.blocks)  # Railway crossings
         self.track_circuit_failures = [False] * len(self.blocks)  # Track circuit failure states
-        self.block_authority = ["0000000000"] * len(self.blocks)  # 10-bit block authority as string
+        self.block_authority = [False,False,False,False,False,False,False,False,False,False] * len(self.blocks)  # 10-bit block authority as string
         self.failure_status = [False] * len(self.blocks)  # Track circuit failure status
         self.ui.failure_vector = [[False] * 5 for _ in range(len(self.blocks))]  # Track circuit failure status
 
@@ -200,7 +210,6 @@ class TrackModelBackend:
             self.light_signals = self.track_controller.light_states
             self.crossing_states = self.track_controller.crossing_states
             self.block_authority = self.track_controller.block_authority
-            self.blocks[1]["block_authority"] = "0000001010"
             for block_num in self.blocks:
                 self.blocks[block_num]["switch_state"] = self.switch_states[block_num-1]
                 self.blocks[block_num]["light_signal"] = self.light_signals[block_num-1]

@@ -11,7 +11,7 @@ class CTC:
         self.maintenance = [False] * 150
 
         # Stop signals (10-bit arrays for each block).
-        self.stop_signals = [[False] * 10 for _ in range(150)]
+        self.stop_signals = [False] * 150
 
         self.track_controller = None
 

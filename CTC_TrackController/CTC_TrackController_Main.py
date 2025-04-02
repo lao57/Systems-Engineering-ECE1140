@@ -44,7 +44,7 @@ if __name__ == "__main__":
     # Wire dependencies together for TC
     track_controller.set_ctc(ctc)
     track_controller.set_track_model(track_model)
-
+ 
     #show the TC UI
     track_controller.show()
     track_controller.update()

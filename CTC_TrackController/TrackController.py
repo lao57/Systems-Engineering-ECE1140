@@ -1,6 +1,9 @@
 import sys
-import pandas as pd
 import importlib.util
+import socket        # [Optional] Ensure socket is imported for client thread
+import json          # [Optional] Ensure json is imported for client thread
+import threading     # [Optional] Ensure threading is imported for client thread
+import time          # [Optional] Ensure time is imported for client thread
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QLabel, QTableWidget, QTableWidgetItem, QPushButton,
     QHBoxLayout, QCheckBox, QHeaderView, QComboBox, QScrollArea, QGridLayout, QFileDialog
@@ -22,9 +25,9 @@ class TrackController(QMainWindow):
         self.crossing_states = [False] * 150  # Total crossings across all waysides
         self.block_occupancy = [False] * 150  # Block occupancy for all blocks
         self.block_authority = [0] * 150  # Block authority for all blocks
-        self.stop_states = [False] * 150 #stop signals for CTC to stop trains because of 
+        self.stop_states = [False] * 150  # stop signals for CTC to stop trains because of
 
-        self.count = 0 # get rid of later
+        self.count = 0  # get rid of later
 
         # Define wayside controllers and their block assignments
         self.wayside_controllers = {
@@ -33,7 +36,7 @@ class TrackController(QMainWindow):
                 "switches": [11, 27],  # Switches controlled by Wayside 1 (indices 0 and 1)
                 "lights": [0, 149],  # Lights controlled by Wayside 1
                 "crossings": [18],  # Crossings controlled by Wayside 1
-                "stop_blocks": [0,1,2,148,149],
+                "stop_blocks": [0, 1, 2, 148, 149],
                 "logic_function": None,  # Will be set dynamically
                 "switch_states": [False] * 2,  # Initial switch states for Wayside 1
                 "light_states": [False] * 2,  # Initial light states for Wayside 1
@@ -43,9 +46,9 @@ class TrackController(QMainWindow):
             "wayside2": {
                 "blocks": list(range(29, 74)) + list(range(104, 146)),  # Blocks 29-73 and 104-146
                 "switches": [57, 61],  # Switches controlled by Wayside 2 (indices 2, 3, and 4)
-                "lights": [60, 59],  #have to fix light 2
+                "lights": [60, 59],  # have to fix light 2
                 "crossings": [107],  # Crossings controlled by Wayside 2
-                "stop_blocks": [58,59,60], #needs fixing 
+                "stop_blocks": [58, 59, 60],  # needs fixing
                 "logic_function": None,  # Will be set dynamically
                 "switch_states": [False] * 2,  # Initial switch states for Wayside 2
                 "light_states": [False] * 2,  # Initial light states for Wayside 2
@@ -55,14 +58,14 @@ class TrackController(QMainWindow):
             },
             "wayside3": {
                 "blocks": list(range(74, 104)),  # Blocks 74-103
-                "switches": [75, 85], 
-                "lights": [74, 98],  
+                "switches": [75, 85],
+                "lights": [74, 98],
                 "crossings": [],
-                "stop_blocks": [73,74,75,97,98,99],  
-                "logic_function": None,  
-                "switch_states": [False] * 2, 
-                "light_states": [False] * 2,  
-                "crossing_states": [False] * 0, 
+                "stop_blocks": [73, 74, 75, 97, 98, 99],
+                "logic_function": None,
+                "switch_states": [False] * 2,
+                "light_states": [False] * 2,
+                "crossing_states": [False] * 0,
                 "stop_states": [False] * 6
             }
         }
@@ -127,7 +130,7 @@ class TrackController(QMainWindow):
         self.switch_buttons = []
         switch_layout = QHBoxLayout()
         for i in range(3):  # Max switches across all waysides
-            btn = QPushButton(f"Switch {i+1}: {'On' if False else 'Off'}")
+            btn = QPushButton(f"Switch {i + 1}: {'On' if False else 'Off'}")
             btn.setStyleSheet(f"background-color: {'green' if False else 'red'}")
             btn.clicked.connect(lambda checked, idx=i: self.toggle_switch_state(idx))
             self.switch_buttons.append(btn)
@@ -138,7 +141,7 @@ class TrackController(QMainWindow):
         self.light_buttons = []
         light_layout = QHBoxLayout()
         for i in range(6):  # Max lights across all waysides
-            btn = QPushButton(f"Light {i+1}: {'Green' if False else 'Red'}")
+            btn = QPushButton(f"Light {i + 1}: {'Green' if False else 'Red'}")
             btn.setStyleSheet(f"background-color: {'green' if False else 'red'}")
             btn.clicked.connect(lambda checked, idx=i: self.toggle_light_state(idx))
             self.light_buttons.append(btn)
@@ -149,7 +152,7 @@ class TrackController(QMainWindow):
         self.crossing_buttons = []
         crossing_layout = QHBoxLayout()
         for i in range(3):  # Max crossings across all waysides
-            btn = QPushButton(f"Crossing {i+1}: {'Closed' if False else 'Open'}")
+            btn = QPushButton(f"Crossing {i + 1}: {'Closed' if False else 'Open'}")
             btn.setStyleSheet(f"background-color: {'red' if False else 'green'}")
             btn.clicked.connect(lambda checked, idx=i: self.toggle_crossing_state(idx))
             self.crossing_buttons.append(btn)
@@ -159,7 +162,7 @@ class TrackController(QMainWindow):
         self.stop_buttons = []
         stop_layout = QHBoxLayout()
         for i in range(6):  # Max crossings across all waysides
-            btn = QPushButton(f"Stop {i+1}: {'stop' if False else 'allow'}")
+            btn = QPushButton(f"Stop {i + 1}: {'stop' if False else 'allow'}")
             btn.setStyleSheet(f"background-color: {'red' if False else 'green'}")
             btn.clicked.connect(lambda checked, idx=i: self.toggle_stop_state(idx))
             self.stop_buttons.append(btn)
@@ -190,6 +193,10 @@ class TrackController(QMainWindow):
                 plc_module = importlib.util.module_from_spec(spec)
                 spec.loader.exec_module(plc_module)
 
+                if wayside_name == "wayside2":
+                    print("PLC logic upload for wayside2 is disabled.")
+                    return
+
                 # Update the logic function for the corresponding wayside controller
                 if wayside_name in self.wayside_controllers:
                     self.wayside_controllers[wayside_name]["logic_function"] = plc_module.update_wayside
@@ -203,12 +210,21 @@ class TrackController(QMainWindow):
         """Switch the displayed wayside controller."""
         self.current_wayside = wayside_name
         self.current_page = 0
+
+        # --- Modification: Disable upload button for wayside2 on PC ---
+        if wayside_name == "wayside2":
+            self.upload_button.setEnabled(False)  # Disable upload for wayside2
+        else:
+            self.upload_button.setEnabled(True)   # Enable upload for other waysides
+
         self.update_block_table(self.track_model.get_block_occupancy(), self.ctc.get_maintenance_status(), 0)
         self.update_authority_table(0)
         self.update_ui_elements()  # Refresh UI to show correct switches and lights
 
     def toggle_manual_mode(self):
+        # Only update manual mode if we passed the checks
         self.manual_mode = self.manual_mode_checkbox.isChecked()
+        self.update_ui_elements()
 
     def toggle_switch_state(self, idx):
         if self.manual_mode:
@@ -230,7 +246,7 @@ class TrackController(QMainWindow):
             if idx < len(wayside["crossing_states"]):
                 wayside["crossing_states"][idx] = not wayside["crossing_states"][idx]
                 self.update_ui_elements()
-    
+
     def toggle_stop_state(self, idx):
         if self.manual_mode:
             wayside = self.wayside_controllers[self.current_wayside]
@@ -244,11 +260,22 @@ class TrackController(QMainWindow):
         self.block_authorities = self.ctc.block_occupancy
         self.block_occupancy = self.track_model.get_block_occupancy()
 
-        self.block_occupancy = [self.block_occupancy[i] or self.maintenance[i] for i in range(len(self.block_occupancy))]
+        self.block_occupancy = [self.block_occupancy[i] or self.maintenance[i] for i in
+                                range(len(self.block_occupancy))]
 
         # Update the UI
         self.update_block_table(self.block_occupancy, self.maintenance, self.current_page * 20)
         self.update_authority_table(self.current_page * 20)
+
+        wayside_blocks = self.wayside_controllers[self.current_wayside]["blocks"]
+        any_occupied = any(self.block_occupancy[block - 1] for block in wayside_blocks)
+
+        if any_occupied:
+            self.manual_mode = False
+            self.manual_mode_checkbox.setChecked(False)  # Ensure manual mode is off
+            self.manual_mode_checkbox.setEnabled(False)  # Disable the checkbox
+        else:
+            self.manual_mode_checkbox.setEnabled(True)  # Enable the checkbox
 
         # Skip wayside logic update if in manual mode
         if not self.manual_mode:
@@ -256,12 +283,6 @@ class TrackController(QMainWindow):
 
         # Update UI elements (buttons) based on wayside logic
         self.update_ui_elements()
-        
-        if self.count >= 5:
-            #print(self.switch_states)
-            self.count = 0
-
-        self.count = self.count+1
 
     def update_block_table(self, block_occupancy, maintenance, start_block=0):
         self.block_table.setRowCount(20)  # Display 20 blocks at a time
@@ -298,12 +319,12 @@ class TrackController(QMainWindow):
     def update_authority_table(self, start_block=0):
         self.authority_table.setRowCount(20)  # Display 20 blocks at a time
         wayside_blocks = self.wayside_controllers[self.current_wayside]["blocks"]
-        
+
         for i in range(20):
             block_num = start_block + i
             if block_num < len(wayside_blocks):
                 block_id = wayside_blocks[block_num]
-                
+
                 # Block number
                 block_item = QTableWidgetItem(f"{block_id}")
                 block_item.setFlags(Qt.ItemFlag.ItemIsEnabled)
@@ -320,59 +341,73 @@ class TrackController(QMainWindow):
                 self.authority_table.setItem(i, 1, QTableWidgetItem(""))
 
     def update_wayside_controllers(self, block_occupancy, maintenance, block_authorities):
-            if not self.manual_mode:
-                for wayside_name, config in self.wayside_controllers.items():
-                    # Get the blocks assigned to this wayside
-                    wayside_blocks = config["blocks"]
+        if not self.manual_mode:
+            for wayside_name, config in self.wayside_controllers.items():
+                # Get the blocks assigned to this wayside
+                wayside_blocks = config["blocks"]
 
-                    # Filter block data for this wayside
-                    wayside_block_occupancy = [block_occupancy[block - 1] for block in wayside_blocks]
-                    wayside_maintenance = [maintenance[block - 1] for block in wayside_blocks]
-                    wayside_block_authorities = [block_authorities[block - 1] for block in wayside_blocks]
+                # Filter block data for this wayside
+                wayside_block_occupancy = [block_occupancy[block - 1] for block in wayside_blocks]
+                wayside_maintenance = [maintenance[block - 1] for block in wayside_blocks]
+                wayside_block_authorities = [block_authorities[block - 1] for block in wayside_blocks]
 
-                    #print(f"Prev switch states for {wayside_name}: {config['switch_states']}")
+                # print(f"Prev switch states for {wayside_name}: {config['switch_states']}")
+                
+                # --- Modification: Skip local logic for wayside2; update from socket only ---
+                if wayside_name == "wayside2":
+                    # Update global switch/light/crossing states from the socket-updated config
+                    for i, switch_index in enumerate(config["switches"]):
+                        self.switch_states[switch_index] = config["switch_states"][i]
+                    for i, light_index in enumerate(config["lights"]):
+                        self.light_states[light_index] = config["light_states"][i]
+                    for i, crossing_index in enumerate(config["crossings"]):
+                        if i < len(config["crossing_states"]):
+                            self.crossing_states[crossing_index] = config["crossing_states"][i]
+                    continue  # Skip executing any local logic for wayside2
 
-                    if config["logic_function"] is not None:
-                        wayside = WAYSIDE(
-                            switches=config["switches"],
-                            lights=config["lights"],
-                            crossings=config["crossings"],
-                            stop_blocks=config["stop_blocks"],
-                            logic_function=config["logic_function"],
-                            prev_switch_states=config["switch_states"],
-                            block_authorities=wayside_block_authorities
-                        )
-                        #print(wayside.prev_switch_states) #works here
-                       
-                        # Execute the PLC logic
-                        switch_states, light_states, crossing_states, stop_states = wayside.update_wayside(
-                            wayside_block_occupancy,
-                            wayside_maintenance
-                        )
 
-                        # Update the wayside's internal states
-                        config["switch_states"] = switch_states
-                        config["light_states"] = light_states
-                        config["crossing_states"] = crossing_states
-                        config["stop_states"] = stop_states
+                if config["logic_function"] is not None:
+                    wayside = WAYSIDE(
+                        switches=config["switches"],
+                        lights=config["lights"],
+                        crossings=config["crossings"],
+                        stop_blocks=config["stop_blocks"],
+                        logic_function=config["logic_function"],
+                        prev_switch_states=config["switch_states"],
+                        block_authorities=wayside_block_authorities
+                    )
+                    # print(wayside.prev_switch_states) #works here
 
-                        # Update global states
-                        for i, switch_index in enumerate(config["switches"]):
-                            self.switch_states[switch_index] = switch_states[i]
+                    # Execute the PLC logic
+                    switch_states, light_states, crossing_states, stop_states = wayside.update_wayside(
+                        wayside_block_occupancy,
+                        wayside_maintenance
+                    )
 
-                        for i, light_index in enumerate(config["lights"]):
-                            self.light_states[light_index] = light_states[i]
+                    # Update the wayside's internal states
+                    config["switch_states"] = switch_states
+                    config["light_states"] = light_states
+                    config["crossing_states"] = crossing_states
+                    config["stop_states"] = stop_states
 
-                        for i, crossing_index in enumerate(config["crossings"]):
-                            self.crossing_states[crossing_index] = crossing_states[i]
-                        
-                        for i, stop_index in enumerate(config["stop_blocks"]):
-                            self.stop_states[stop_index] = stop_states[i]
-    
+                    # Update global states
+                    for i, switch_index in enumerate(config["switches"]):
+                        self.switch_states[switch_index] = switch_states[i]
+
+                    for i, light_index in enumerate(config["lights"]):
+                        self.light_states[light_index] = light_states[i]
+
+                    for i, crossing_index in enumerate(config["crossings"]):
+                        self.crossing_states[crossing_index] = crossing_states[i]
+
+                    for i, stop_index in enumerate(config["stop_blocks"]):
+                        self.stop_states[stop_index] = stop_states[i]
+
     def prev_page(self):
         """Move to the previous page of blocks."""
         self.current_page = max(self.current_page - 1, 0)
-        self.update_block_table(self.track_model.get_block_occupancy(), self.ctc.get_maintenance_status(), self.current_page * 20)
+        self.update_block_table(self.track_model.get_block_occupancy(), self.ctc.get_maintenance_status(),
+                                self.current_page * 20)
         self.update_authority_table(self.current_page * 20)
 
     def next_page(self):
@@ -386,49 +421,49 @@ class TrackController(QMainWindow):
             self.current_page * 20
         )
         self.update_authority_table(self.current_page * 20)
-                                
+
     def update_ui_elements(self):
-            wayside = self.wayside_controllers[self.current_wayside]
-            num_switches = len(wayside["switches"])
-            num_lights = len(wayside["lights"])
-            num_crossings = len(wayside["crossings"])
-            num_stops = len(wayside["stop_blocks"])
+        wayside = self.wayside_controllers[self.current_wayside]
+        num_switches = len(wayside["switches"])
+        num_lights = len(wayside["lights"])
+        num_crossings = len(wayside["crossings"])
+        num_stops = len(wayside["stop_blocks"])
 
-            # Update switch buttons
-            for i, btn in enumerate(self.switch_buttons):
-                if i < num_switches:
-                    btn.setText(f"Switch {i+1}: {'On' if wayside['switch_states'][i] else 'Off'}")
-                    btn.setStyleSheet(f"background-color: {'green' if wayside['switch_states'][i] else 'red'}")
-                    btn.show()
-                else:
-                    btn.hide()
+        # Update switch buttons
+        for i, btn in enumerate(self.switch_buttons):
+            if i < num_switches:
+                btn.setText(f"Switch {i + 1}: {'On' if wayside['switch_states'][i] else 'Off'}")
+                btn.setStyleSheet(f"background-color: {'green' if wayside['switch_states'][i] else 'red'}")
+                btn.show()
+            else:
+                btn.hide()
 
-            # Update light buttons
-            for i, btn in enumerate(self.light_buttons):
-                if i < num_lights:
-                    btn.setText(f"Light {i+1}: {'Green' if wayside['light_states'][i] else 'Red'}")
-                    btn.setStyleSheet(f"background-color: {'green' if wayside['light_states'][i] else 'red'}")
-                    btn.show()
-                else:
-                    btn.hide()
+        # Update light buttons
+        for i, btn in enumerate(self.light_buttons):
+            if i < num_lights:
+                btn.setText(f"Light {i + 1}: {'Green' if wayside['light_states'][i] else 'Red'}")
+                btn.setStyleSheet(f"background-color: {'green' if wayside['light_states'][i] else 'red'}")
+                btn.show()
+            else:
+                btn.hide()
 
-            # Update crossing buttons
-            for i, btn in enumerate(self.crossing_buttons):
-                if i < num_crossings:
-                    btn.setText(f"Crossing {i+1}: {'Closed' if wayside['crossing_states'][i] else 'Open'}")
-                    btn.setStyleSheet(f"background-color: {'red' if wayside['crossing_states'][i] else 'green'}")
-                    btn.show()
-                else:
-                    btn.hide()
-            # Update crossing buttons
-            for i, btn in enumerate(self.stop_buttons):
-                if i < num_stops:
-                    btn.setText(f"Stop {i+1}: {'stop' if wayside['stop_states'][i] else 'allow'}")
-                    btn.setStyleSheet(f"background-color: {'red' if wayside['stop_states'][i] else 'green'}")
-                    btn.show()
-                else:
-                    btn.hide()
-    
+        # Update crossing buttons
+        for i, btn in enumerate(self.crossing_buttons):
+            if i < num_crossings:
+                btn.setText(f"Crossing {i + 1}: {'Closed' if wayside['crossing_states'][i] else 'Open'}")
+                btn.setStyleSheet(f"background-color: {'red' if wayside['crossing_states'][i] else 'green'}")
+                btn.show()
+            else:
+                btn.hide()
+        # Update crossing buttons
+        for i, btn in enumerate(self.stop_buttons):
+            if i < num_stops:
+                btn.setText(f"Stop {i + 1}: {'stop' if wayside['stop_states'][i] else 'allow'}")
+                btn.setStyleSheet(f"background-color: {'red' if wayside['stop_states'][i] else 'green'}")
+                btn.show()
+            else:
+                btn.hide()
+
     def get_switch_state(self):
         """Return the combined switch states for all waysides."""
         return self.switch_states
@@ -443,8 +478,8 @@ class TrackController(QMainWindow):
 
     def get_block_occupancy(self):
         """Return the combined block occupancy for all blocks."""
-        return self.block_occupancy #self.track_model.get_block_occupancy() if I decide to do that
-    
+        return self.block_occupancy  # self.track_model.get_block_occupancy() if I decide to do that
+
     def get_block_authority(self, block_id):
         """Convert a block's authority bits (booleans) to an integer."""
         authority_bits = self.block_authority[block_id - 1]
@@ -452,7 +487,7 @@ class TrackController(QMainWindow):
             return authority_bits  # Already an integer
         binary_str = ''.join(['1' if bit else '0' for bit in authority_bits])
         return int(binary_str, 2)
-        
+
     def receive_authority(self, authority):
 
         self.block_authority = [bit.copy() if isinstance(bit, list) else bit for bit in authority]
@@ -463,9 +498,62 @@ class TrackController(QMainWindow):
         self.maintenance = maintenance.copy()
         print("TrackController: Received maintenance update")
 
-
     def set_ctc(self, ctc):
         self.ctc = ctc
 
     def set_track_model(self, track_model):
         self.track_model = track_model
+
+# ---------------------------
+# Socket client thread (running on PC to communicate with Raspberry Pi for wayside2)
+# ---------------------------
+def socket_client_thread(ctc, track_controller, track_model):
+    target_ip = "192.168.137.175"  # Raspberry Pi server IP address
+    port = 12345
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    try:
+        s.connect((target_ip, port))
+        print("Connected to Raspberry Pi server:", target_ip)
+    except Exception as e:
+        print("Failed to connect to Raspberry Pi server:", e)
+        return
+    while True:
+        try:
+            # Prepare data payload to send to Raspberry Pi (wayside2 logic)
+            data = {
+                "block_occupancy": track_model.get_block_occupancy(),
+                "block_authority": ctc.get_block_authority(),
+                "maintenance": ctc.get_maintenance_status(),
+                "prev_switch_states": track_controller.wayside_controllers["wayside2"]["switch_states"]
+            }
+            s.sendall((json.dumps(data) + "\n").encode())
+            # Receive response from Raspberry Pi
+            response = ""
+            while "\n" not in response:
+                chunk = s.recv(1024).decode()
+                if not chunk:
+                    break
+                response += chunk
+            if response:
+                try:
+                    resp_data = json.loads(response.strip())
+                    print("====== Raspberry Pi 返回结果 ======")
+                    print("Switch States  :", resp_data.get("switch_states", []))
+                    print("Light States   :", resp_data.get("light_states", []))
+                    print("Crossing States:", resp_data.get("crossing_states", []))
+                    print("===================================")
+                    # Update wayside2's state based on data from Raspberry Pi
+                    track_controller.wayside_controllers["wayside2"]["switch_states"] = resp_data.get(
+                        "switch_states", track_controller.wayside_controllers["wayside2"]["switch_states"])
+                    track_controller.wayside_controllers["wayside2"]["light_states"] = resp_data.get(
+                        "light_states", track_controller.wayside_controllers["wayside2"]["light_states"])
+                    track_controller.wayside_controllers["wayside2"]["crossing_states"] = resp_data.get(
+                        "crossing_states", track_controller.wayside_controllers["wayside2"]["crossing_states"])
+                except Exception as e:
+                    print("Error parsing returned data:", e)
+            # Small delay to avoid flooding the socket
+            time.sleep(0.5)
+        except Exception as e:
+            print("Socket client error:", e)
+            time.sleep(1)
+    

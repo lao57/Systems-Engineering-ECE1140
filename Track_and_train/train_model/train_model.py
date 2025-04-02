@@ -206,13 +206,10 @@ class TrainModel:
         print(f"self.Baud_ID: '{self.Baud_ID}' (type: {type(self.Baud_ID)})")"""
         print(self.blocknumbervector[0])
         if self.blocknumbervector:
-            baud_signal = bin(self.Track_model.get_block_authority(self.blocknumbervector[0]))[2:]
+            self.authority = self.Track_model.get_block_authority(int(self.blocknumbervector[0]))
         else:
-            baud_signal = bin(self.Track_model.get_block_authority(1))[2:]#starting block
+            self.authority = self.Track_model.get_block_authority(0)#starting block
         # baud_signal.append(0)  | Potentail add if we are not getting enough range
-        if baud_signal is not None:
-            self.authority = int(baud_signal, 2)
-
 
     """UPDATING FUNCTIONS"""
 
@@ -361,8 +358,13 @@ class TrainModel:
             self.blocknumbervector.pop(0)
         # update time flag to move to the next second
         # update occupancy
-        self.Track_model.update_block_occupancy(self.blocknumbervector[0], self.blocknumbervector_middle[0],
-                                            self.blocknumbervector_end[0])
+        #self.Track_model.update_block_occupancy(self.blocknumbervector[0], self.blocknumbervector_middle[0], self.blocknumbervector_end[0])
+        if self.blocknumbervector[0]:
+            self.Track_model.occupancy_status[int(self.blocknumbervector[0]) - 1] = True
+        if self.blocknumbervector_middle[0]:
+            self.Track_model.occupancy_status[int(self.blocknumbervector_middle[0]) - 1] = True
+        if self.blocknumbervector_end[0]:
+            self.Track_model.occupancy_status[int(self.blocknumbervector_end[0]) - 1] = True
         print(f"Train Model: Block occupancy updated blocks: {self.blocknumbervector[0]}, {self.blocknumbervector_middle[0]}, {self.blocknumbervector_end[0]}")
         # update gui
         self.update_gui(world_time)

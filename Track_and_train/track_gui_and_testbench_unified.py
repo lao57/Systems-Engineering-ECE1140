@@ -187,6 +187,7 @@ class UnifiedTrackUI(QWidget):
             self.switch_label.setText(f"Switch Position: {'On' if self.backend.get_switch_states(block_index) else 'Off'}")
             self.crossing_label.setText(f"Railway Crossing: {'Active' if self.backend.get_crossing_states(block_index) else 'Inactive'}")
             self.light_signal_label.setText(f"Light Signal: {'Green' if self.backend.get_light_signals(block_index) else 'Red'}")
+            print(f"Block {block_index+1} Authority: {self.backend.get_block_authority(block_index)}")
 
 
 def main():
