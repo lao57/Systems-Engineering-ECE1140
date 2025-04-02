@@ -204,6 +204,7 @@ class TrainModel:
         """ Print the values to debug
         print(f"baud_signal[0:4]: '{baud_signal[0:4]}' (type: {type(baud_signal[0:4])})")
         print(f"self.Baud_ID: '{self.Baud_ID}' (type: {type(self.Baud_ID)})")"""
+        print(self.blocknumbervector[0])
         if self.blocknumbervector:
             baud_signal = self.Track_model.get_block_authority(self.blocknumbervector[0])
         else:
@@ -241,12 +242,13 @@ class TrainModel:
         self.update_gui(world_time)
 
     def update_train(self, world_time, delta_t=1):
-
+        if self.Track_model.ready == False:
+            return
         # read from the track model
         self.pickup_beacon_signal()
         if not self.failure_modes[1]:
             self.baud_read()
-
+            
         # Update train controller mode (interaction from train driver)
         self.train_controller.train_controller_mode = self.train_controller_gui.train_controller_mode
 

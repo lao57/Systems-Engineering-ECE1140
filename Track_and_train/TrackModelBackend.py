@@ -6,6 +6,8 @@ class TrackModelBackend:
         self.track_controller = None  # to Track Controller
         self.train_model = None       # to Train Model
 
+        self.ready = False  # Indicates if the backend is ready
+
         self.blocks = {}  # Stores track block data
         self.occupancy_status = [False]*150  # Block occupancy states
         self.switch_states = []     # Switch states
@@ -113,6 +115,8 @@ class TrackModelBackend:
             print("-----------------------------------------------------------")
             print("-----------------------------------------------------------")
 
+        self.ready = True  # Mark backend as ready after loading data
+
     def handle_failures(self, failures):
         """Update backend variables based on detected failures."""
         for failure, state in failures.items():
@@ -167,6 +171,18 @@ class TrackModelBackend:
         """Return the beacon signal for a specific block."""
         if block_num in self.blocks:
             return self.blocks[block_num]["beacon_signal"]
+        return "0000"
+    
+    def get_block_vector_from_block(self, block_num):
+        """Return the block vector for a specific block."""
+        if block_num in self.blocks:
+            return self.blocks[block_num]["block_vector"]
+        return None
+    
+    def get_grade_from_block(self, block_num):
+        """Return the grade vector for a specific block."""
+        if block_num in self.blocks:
+            return self.blocks[block_num]["grade_vector"]
         return None
 
 

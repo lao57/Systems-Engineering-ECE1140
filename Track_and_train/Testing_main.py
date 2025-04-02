@@ -31,7 +31,8 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     k_p = 2e5
     k_i = 2e4
-
+    i = 0
+    world_time = {'day': 0, 'hour': 0, 'min': 0}
     # --- Create core modules ---
     ctc = CTC()
     track_model = TrackModelBackend.TrackModelBackend()
@@ -85,11 +86,27 @@ if __name__ == "__main__":
     window.show()
 
     # --- Set up continuous controller update ---
+    #update_timer = QTimer()
+    #update_timer.timeout.connect(track_controller.update)
+    #update_timer.timeout.connect(track_model.update)
+    #update_timer.timeout.connect(train_model.update_train)
+    #update_timer.start(1000)  # Update every 1 second
+
+    def update_world():
+        """Update the world state periodically."""
+        global world_time
+        track_controller.update()
+        track_model.update()
+        if track_model.blocks is not None:
+            train_model.update_train(world_time)
+
+    # Use QTimer to control the update frequency
     update_timer = QTimer()
-    update_timer.timeout.connect(track_controller.update)
-    update_timer.timeout.connect(track_model.update)
-    update_timer.timeout.connect(train_model.update_train)
-    update_timer.start(1000)  # Update every 1 second
+    update_timer.timeout.connect(update_world)
+    update_timer.start(1000)
+        
+        
+
 
     # --- Run the application loop ---
     sys.exit(app.exec())
