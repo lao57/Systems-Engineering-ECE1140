@@ -12,9 +12,9 @@ class TrainControllerGUIv2(QWidget):
         self.setWindowTitle("Train Controller GUI")
         self.resize(900, 600)
 
-        palette = self.palette()
-        palette.setColor(QPalette.ColorRole.Window, QColor("#E6F2FF"))
-        self.setPalette(palette)
+        #palette = self.palette()
+        #palette.setColor(QPalette.ColorRole.Window, QColor("#E6F2FF"))
+        #self.setPalette(palette)
         self.setFont(QFont("Segoe UI", 12))
 
         # Simulated state variables
