@@ -41,7 +41,7 @@ class ScheduleLoader:
                 df = pd.read_excel(path, sheet_name=sheet_name, usecols=['Train ID', 'Stops', 'expected_arrival_times'])
                 df = df.dropna(subset=['Stops'])
             except Exception as e:
-
+                print(e)
                 continue
 
             line_schedules = []

@@ -152,6 +152,8 @@ class TrainModel:
 
     def pickup_beacon_signal(self):
         if self.blocknumbervector:
+            if self.blocknumbervector[0] == 89:
+                pass
             beacon_signal = self.Track_model.get_beacon_from_block(self.blocknumbervector[0])
         else:
             beacon_signal = self.Track_model.get_beacon_from_block(62)
@@ -161,7 +163,11 @@ class TrainModel:
                 if grade_vector_holder and isinstance(grade_vector_holder, (list, str)):
                     try:
                         # Join the elements if it's a list, split by spaces, and convert to integers
-                        grade_vector_holder_parsed = [int(num) for num in ''.join(grade_vector_holder).split()]
+                        # grade_vector_holder_parsed = [int(num) for num in ''.join(grade_vector_holder).split()]
+                        grade_vector_holder_parsed = [float(num) for num in grade_vector_holder.split()]
+                        parse_blocknumbervector = self.Track_model.get_block_vector_from_block(self.blocknumbervector[0])
+                        blocknumbervector_holder = [int(num) for num in ''.join(parse_blocknumbervector).split()]
+                        self.beacon_parse(beacon_signal, grade_vector_holder_parsed, blocknumbervector_holder)
                     except ValueError as e:
                         print(f"Error parsing grade_vector_holder: {grade_vector_holder}. Error: {e}")
                         grade_vector_holder_parsed = []  # Default to an empty list if parsing fails
@@ -178,11 +184,16 @@ class TrainModel:
                     self.beacon_parse(beacon_signal, grade_vector_holder_parsed, blocknumbervector_holder)
                     """
             else:
-                grade_vector_holder = self.Track_model.get_grade_from_block(62)
+                # grade_vector_holder = self.Track_model.get_grade_from_block(62)
+                grade_vector_holder = self.Track_model.get_grade_from_block(64)
                 if grade_vector_holder != "nan":
                     print(f"grade vector holder: {grade_vector_holder}")
-                    grade_vector_holder_parsed = [int(num) for num in ''.join(grade_vector_holder).split()]
-                    parse_blocknumbervector = self.Track_model.get_block_vector_from_block(62)
+                    # grade_vector_holder_parsed = [int(num) for num in ''.join(grade_vector_holder).split()]
+                    grade_vector_holder_parsed = [float(num) for num in grade_vector_holder.split()]
+                    # grade_vector_holder_parsed = [float(num) for num in grade_vector_holder.split()]
+                    # grade_vector_holder_parsed = [int(float(num)) for num in grade_vector_holder.split(', ')]
+                    # parse_blocknumbervector = self.Track_model.get_block_vector_from_block(62)
+                    parse_blocknumbervector = self.Track_model.get_block_vector_from_block(64)
                     blocknumbervector_holder = [int(num) for num in ''.join(parse_blocknumbervector).split()]
                     self.beacon_parse(beacon_signal, grade_vector_holder_parsed, blocknumbervector_holder)
             """

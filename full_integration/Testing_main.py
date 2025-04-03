@@ -28,9 +28,9 @@ if __name__ == "__main__":
     track_controller = TrackController.TrackController()
 
     # --- CTC Init ---
-    track_layout = load_track_layout("full_integration/track_layout.xlsx")
+    track_layout = load_track_layout("assets/Track_Layout.xlsx")
     schedule_loader = ScheduleLoader(track_layout)
-    schedules = schedule_loader.load_from_excel("full_integration/Train_Scheduling.xlsx")
+    schedules = schedule_loader.load_from_excel("assets/Train_Scheduling.xlsx")
 
     ctc = CTC()
     ctc_office = CTCOffice(track_layout, schedules)
@@ -84,6 +84,7 @@ if __name__ == "__main__":
     window = track_gui_and_testbench_unified.UnifiedTrackUI(backend=track_model)
     window.show()
 
+
     # --- Set up continuous controller update ---
     #update_timer = QTimer()
     #update_timer.timeout.connect(track_controller.update)
@@ -104,10 +105,7 @@ if __name__ == "__main__":
     # Use QTimer to control the update frequency
     update_timer = QTimer()
     update_timer.timeout.connect(update_world)
-    update_timer.start(1000)
-        
-        
-
+    update_timer.start(1)
 
     # --- Run the application loop ---
     sys.exit(app.exec())

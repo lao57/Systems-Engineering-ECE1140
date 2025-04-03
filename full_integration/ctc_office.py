@@ -12,6 +12,7 @@ from train_model.train_model import TrainModel
 from ctc import CTC
 from station_map import STATION_BLOCKS
 
+
 # add attribute to block for middle distance
 class TrackBlock:
     def __init__(self, block_number: int, block_length: float):
@@ -19,11 +20,12 @@ class TrackBlock:
         self.block_length = block_length
         self.next = None  # pointer to next block in route
 
+
 class Train:
     def __init__(
-        self, train_id: int, route_head: TrackBlock, scheduled_stops: List[int] = None,
-        current_block: TrackBlock = None, next_stop_index: int = 0,
-        authority_meters: float = 0.0, last_stop_passed: int = None
+            self, train_id: int, route_head: TrackBlock, scheduled_stops: List[int] = None,
+            current_block: TrackBlock = None, next_stop_index: int = 0,
+            authority_meters: float = 0.0, last_stop_passed: int = None
     ):
         self.train_id = train_id  # unique train id
         self.route_head = route_head  # head node of L.L. representing route
@@ -32,7 +34,7 @@ class Train:
         self.next_stop_index = next_stop_index  # index into scheduled_stops indicating next stop
         self.authority_meters = authority_meters  # remaining distance before reaching next stop
         self.last_stop_passed = last_stop_passed  # block num of most recent scheduled stop passed
-        
+        self.wait_for = 50  # num steps to wait if reached station
 
     @property
     def route_blocks(self) -> List[int]:
@@ -54,6 +56,7 @@ class Train:
             node = node.next  # move to next node & increment index
             index += 1
         return -1  # if curr block not found (shouldn't happen)
+
 
 class CTCOffice:
     # default green line route
@@ -109,11 +112,12 @@ class CTCOffice:
             return
 
         # Get stops from schedule
-        stops = [item['block'] for item in schedule.stops]
+        stops = sorted([item['block'] for item in schedule.stops])
 
         # Build route from yard exit (62) to each stop in order.
         route_numbers = []
-        current_position = 62  # always start from yard exit on Green
+        # current_position = 62  # always start from yard exit on Green
+        current_position = 64  # always start from yard exit on Green
 
         # go through each stop block in route
         for stop_block in stops:
@@ -139,6 +143,8 @@ class CTCOffice:
                 route_numbers += segment
             current_position = stop_block  # update current pos to stop
 
+        print("route_numbers: ", route_numbers)
+
         # Convert list of route numbers to linked list
         route_head = self.build_linked_route(route_numbers)
         # create new train instance with route and schedule
@@ -147,7 +153,7 @@ class CTCOffice:
             route_head=route_head,
             scheduled_stops=stops,
             current_block=route_head,
-            next_stop_index=0
+            next_stop_index=1
         )
         train_model = TrainModel(k_p=self.k_p, k_i=self.k_i)
         train_model.add_classes(self.track_model)
@@ -183,7 +189,8 @@ class CTCOffice:
                 total += node.block_length
         # Do not add the target block's length, so that when the train arrives, authority is 0.
         train.authority_meters = total
-        print(f"Authority from {train.current_block.block_number if train.current_block else '??'} to {target_stop} = {total} m")
+        print(
+            f"Authority from {train.current_block.block_number if train.current_block else '??'} to {target_stop} = {total} m")
 
     def update_train_positions(self):
         if not self.ctc:
@@ -215,7 +222,8 @@ class CTCOffice:
                     if nxt_num == train.scheduled_stops[train.next_stop_index]:
                         train.last_stop_passed = nxt_num  # store that train passed this stop
                         train.next_stop_index += 1  # increment to point to the next scheduled stop
-                        print(f"Train {train.train_id} arrived at stop {nxt_num}. Next stop index = {train.next_stop_index}")
+                        print(
+                            f"Train {train.train_id} arrived at stop {nxt_num}. Next stop index = {train.next_stop_index}")
                         self.update_authority(train)  # recalculate authority; should become 0 at the stop
                         print(train.authority_meters)
 
@@ -239,7 +247,7 @@ class CTCOffice:
                 auth_value = min(int(remaining), max_auth)  # cap authority value to max_auth
                 # Convert auth_value to a 10-bit boolean list (MSB first)
                 bits = [(auth_value >> i) & 1 == 1 for i in range(9, -1, -1)]
-                index = node.block_number -1  # compute index for block in authority array
+                index = node.block_number - 1  # compute index for block in authority array
                 if 0 <= index < 150:
                     self.ctc.block_authority[index] = bits  # assign the 10-bit list to the block
                 remaining -= node.block_length  # subtract block length from remaining authority
@@ -248,7 +256,7 @@ class CTCOffice:
         for i, m in enumerate(self.ctc.maintenance):
             if m:
                 self.ctc.block_authority[i] = [False] * 10
-        #Stop signals
+        # Stop signals
         for i, stop in enumerate(self.ctc.get_stop_signals()):
             if stop:
                 self.ctc.block_authority[i] = [False] * 10
@@ -259,7 +267,6 @@ class CTCOffice:
         for train in self.real_active_trains:
             train.update_train(world_time)
             train.display_train()
-
 
     def update_track_states(self):
         mapping = [

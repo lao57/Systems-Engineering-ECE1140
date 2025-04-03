@@ -40,6 +40,7 @@ def load_track_layout(path: str) -> Dict[str, List[dict]]:
             return valid_blocks
 
         except Exception as e:
+            print(f"track loader exception: {e}")
 
             return []
 
