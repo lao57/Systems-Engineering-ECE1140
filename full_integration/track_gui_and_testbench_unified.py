@@ -161,7 +161,7 @@ class UnifiedTrackUI(QWidget):
             if self.df_layout.empty:
                 self.file_label.setText("Error: CSV file is empty or incorrectly formatted.")
                 return
-            self.file_label.setText(f"Loaded File: {file_path}")
+            self.file_label.setText(f"Loaded File")
             self.block_selector.clear()
             self.block_selector.addItems(self.df_layout['Block Number'].astype(str).tolist())
         except Exception as e:

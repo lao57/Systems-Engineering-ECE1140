@@ -28,23 +28,23 @@ binary_to_value = {
 }
 
 # static dictionary for authority (NOT REALLY NEEDED ANYMORE)
-authority_decoder = {
-    '0000': 0,
-    '0001': 65,
-    '0010': 130,
-    '0011': 195,
-    '0100': 260,
-    '0101': 325,
-    '0110': 390,
-    '0111': 455,
-    '1000': 520,
-    '1001': 585,
-    '1010': 650,
-    '1011': 715,
-    '1100': 780,
-    '1101': 845,
-    '1110': 910,
-    '1111': 3000  # big number
+station_naming = {
+    '0000': "Edgebrook",
+    '0001': "Edgebrook",
+    '0010': "Edgebrook",
+    '0011': "Edgebrook",
+    '0100': "Edgebrook",
+    '0101': "Edgebrook",
+    '0110': "Edgebrook",
+    '0111': "Edgebrook",
+    '1000': "Edgebrook",
+    '1001': "Edgebrook",
+    '1010': "Edgebrook",
+    '1011': "Edgebrook",
+    '1100': "Edgebrook",
+    '1101': "Edgebrook",
+    '1110': "Edgebrook",
+    '1111': "Edgebrook"  # big number
 }
 
 
@@ -87,6 +87,7 @@ class TrainModel:
         # BEACON VARIABLES
         self.last_beacon = 0000
         self.authority = 0
+        self.authority_wait = 0
         self.cmd_velocity = 14
         self.distance_vector = []  # holds the start of the trains current spot
         self.distance_vector_middle = [16.1]  # holds the middle of the trains current spot
@@ -239,6 +240,10 @@ class TrainModel:
         print(self.blocknumbervector[0])
         if self.blocknumbervector:
             self.authority = self.Track_model.get_block_authority(int(self.blocknumbervector[0]))
+            if self.authority == 0:
+                self.authority_wait += 1
+                if self.authority_wait > 300:
+                    self.authority = 100
         else:
             self.authority = self.Track_model.get_block_authority(0)#starting block
         # baud_signal.append(0)  | Potentail add if we are not getting enough range
@@ -370,6 +375,9 @@ class TrainModel:
         self.imperial_distance_vector[0] -= distance_over_interval * 3.2808399
         self.authority -= distance_over_interval
         while self.distance_vector_end[0] < 0:
+            if len(self.distance_vector) < 2:
+                print("Train ID: ", self.train_number, " has reached the end of the line")
+                return
             self.distance_vector_end[1] += self.distance_vector_end[0]
             self.distance_vector_end.pop(0)
             self.blocknumbervector_end.pop(0)

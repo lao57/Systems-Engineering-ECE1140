@@ -4,6 +4,25 @@ from PyQt6.QtGui import QPixmap
 from PyQt6.QtCore import Qt, QTimer
 import train_model.train_model as train_class
 
+station_naming = {
+    '0000': "Edgebrook",
+    '0001': "Edgebrook",
+    '0010': "Edgebrook",
+    '0011': "Edgebrook",
+    '0100': "Edgebrook",
+    '0101': "Edgebrook",
+    '0110': "Edgebrook",
+    '0111': "Edgebrook",
+    '1000': "Edgebrook",
+    '1001': "Edgebrook",
+    '1010': "Edgebrook",
+    '1011': "Edgebrook",
+    '1100': "Edgebrook",
+    '1101': "Edgebrook",
+    '1110': "Edgebrook",
+    '1111': "Edgebrook"  # big number
+}
+
 class Train_GUI(QWidget):
     def __init__(self, train_model):
         super().__init__()
@@ -166,8 +185,8 @@ class Train_GUI(QWidget):
         self.underground_vector_label.setText(f"Underground(1 = yes): {self.train.underground_vector[0]}")
         self.at_station_vector_label.setText(f"At Station(1 = yes): {self.train.at_station_vector[0]}")
         if self.train.announcement == True:
-            self.station_name_vector_label.setText(f"Now Arriving at: {self.train.Next_station_names[0]}")
-        self.station_name_vector_label.setText(f"Next Station: {self.train.Next_station_names[0]}")
+            self.station_name_vector_label.setText(f"Now Arriving at: {station_naming[self.train.Next_station_names[0]]}")
+        self.station_name_vector_label.setText(f"Next Station: {station_naming[self.train.Next_station_names[0]]}")
         
         # Update the new labels
         self.weight_label.setText(f"Weight: {int(self.train.weight_imperial)} lbs")
