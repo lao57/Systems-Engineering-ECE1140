@@ -88,7 +88,7 @@ class TrackModelBackend:
 
     def parse_track_data(self, df):
         """Parse track data from the Excel sheet and update backend data."""
-        print(f"parsiing track data from {df}")
+        #print(f"parsiing track data from {df}")
         self.blocks.clear()
         for _, row in df.iterrows():
             block_num = int(row["Block Number"])
