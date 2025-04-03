@@ -62,15 +62,15 @@ def update_wayside(block_occupancy, prev_switch_states, block_authorities, maint
     # Light control
     light_states[0] = allow_A  # Green light for A if allowed
     
-    stop_signals[0] = allow_Z
-    stop_signals[1] = allow_Z
-    stop_signals[2] = allow_Z
+    stop_signals[0] = not allow_A
+    stop_signals[1] = not allow_A
+    stop_signals[2] = not allow_A
 
 
     light_states[1] = allow_Z  # Green light for Z if allowed  
 
-    stop_signals[3] = allow_A 
-    stop_signals[4] = allow_A
+    stop_signals[3] = not allow_Z
+    stop_signals[4] = not allow_Z
 
     # Crossing control
     crossing_states[0] = crossing_occupied

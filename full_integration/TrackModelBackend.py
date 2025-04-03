@@ -108,7 +108,7 @@ class TrackModelBackend:
                 "grade_vector": row.get("grade_vector", None),  # New: Grade vector from Excel
                 "block_vector": row.get("block_vector", None),  # New: Block vector from Excel
             }
-            print(f"Block {block_num} data: {self.blocks[block_num]}")
+            #print(f"Block {block_num} data: {self.blocks[block_num]}")
 
         # Update backend state arrays
         self.occupancy_status = [False] * len(self.blocks)  # Block occupancy states
