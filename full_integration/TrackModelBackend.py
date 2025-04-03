@@ -108,7 +108,7 @@ class TrackModelBackend:
                 "grade_vector": row.get("grade_vector", None),  # New: Grade vector from Excel
                 "block_vector": row.get("block_vector", None),  # New: Block vector from Excel
             }
-            print(f"Block {block_num} data: {self.blocks[block_num]}")
+            #print(f"Block {block_num} data: {self.blocks[block_num]}")
 
         # Update backend state arrays
         self.occupancy_status = [False] * len(self.blocks)  # Block occupancy states
@@ -152,7 +152,7 @@ class TrackModelBackend:
 
     def update_block_occupancy(self, block_num_begin, block_num_middle, block_num_end, occupied = True):
         """Update block occupancy state."""
-        print(f"Updating occupancy for blocks {block_num_begin}, {block_num_middle}, {block_num_end} to {occupied}")
+        #print(f"Updating occupancy for blocks {block_num_begin}, {block_num_middle}, {block_num_end} to {occupied}")
         if block_num_begin in self.blocks:
             self.blocks[block_num_begin]["occupancy"] = True
             self.occupancy_status[block_num_begin] = True

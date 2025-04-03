@@ -304,8 +304,6 @@ class CTCOffice:
     def get_block_authority(self):
         return self.ctc.get_block_authority()
 
-    def set_ctc(self, ctc):
-        self.ctc = ctc
 
     def set_track_model(self, track_model):
         self.track_model = track_model
