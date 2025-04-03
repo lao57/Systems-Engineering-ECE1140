@@ -533,11 +533,6 @@ def socket_client_thread(ctc, track_controller, track_model):
             if response:
                 try:
                     resp_data = json.loads(response.strip())
-                    print("====== Raspberry Pi 返回结果 ======")
-                    print("Switch States  :", resp_data.get("switch_states", []))
-                    print("Light States   :", resp_data.get("light_states", []))
-                    print("Crossing States:", resp_data.get("crossing_states", []))
-                    print("===================================")
                     # Update wayside2's state based on data from Raspberry Pi
                     track_controller.wayside_controllers["wayside2"]["switch_states"] = resp_data.get(
                         "switch_states", track_controller.wayside_controllers["wayside2"]["switch_states"])
@@ -548,7 +543,7 @@ def socket_client_thread(ctc, track_controller, track_model):
                 except Exception as e:
                     print("Error parsing returned data:", e)
             # Small delay to avoid flooding the socket
-            time.sleep(0.5)
+            time.sleep(0.05)
         except Exception as e:
             print("Socket client error:", e)
             time.sleep(1)
