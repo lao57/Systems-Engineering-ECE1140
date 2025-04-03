@@ -489,14 +489,10 @@ class TrackController(QMainWindow):
         return int(binary_str, 2)
 
     def receive_authority(self, authority):
-
         self.block_authority = [bit.copy() if isinstance(bit, list) else bit for bit in authority]
-        print("TrackController: Received authority update")
 
     def receive_maintenance(self, maintenance):
-
         self.maintenance = maintenance.copy()
-        print("TrackController: Received maintenance update")
 
     def set_ctc(self, ctc):
         self.ctc = ctc

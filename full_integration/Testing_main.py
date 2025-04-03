@@ -13,6 +13,8 @@ from schedule_loader import ScheduleLoader
 from ctc import CTC
 from ctc_office import CTCOffice
 from CTC_GUI import CTCGUI
+from TrackController import socket_client_thread
+import threading
 
 
 
@@ -28,14 +30,17 @@ if __name__ == "__main__":
     track_controller = TrackController.TrackController()
 
     # --- CTC Init ---
-    track_layout = load_track_layout("assets/Track_Layout.xlsx")
+    track_layout = load_track_layout("full_integration/assets/Track_Layout.xlsx")
     schedule_loader = ScheduleLoader(track_layout)
-    schedules = schedule_loader.load_from_excel("assets/Train_Scheduling.xlsx")
+    schedules = schedule_loader.load_from_excel("full_integration/assets/Train_Scheduling.xlsx")
 
     ctc = CTC()
     ctc_office = CTCOffice(track_layout, schedules)
     ctc_office.set_ctc(ctc)
     ctc_office.set_track_model(track_model)
+
+    socket_thread = threading.Thread(target=socket_client_thread, args=(ctc, track_controller, track_model), daemon=True)
+    socket_thread.start()
 
     # --- Wire components ---
     
@@ -83,7 +88,6 @@ if __name__ == "__main__":
     # --- Show Unified TrackModelUI + Testbench window and pass backend ---
     window = track_gui_and_testbench_unified.UnifiedTrackUI(backend=track_model)
     window.show()
-
 
     # --- Set up continuous controller update ---
     #update_timer = QTimer()
