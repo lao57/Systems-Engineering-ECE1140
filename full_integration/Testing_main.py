@@ -30,9 +30,9 @@ if __name__ == "__main__":
     track_controller = TrackController.TrackController()
 
     # --- CTC Init ---
-    track_layout = load_track_layout("full_integration/assets/Track_Layout.xlsx")
+    track_layout = load_track_layout("Systems-Engineering-ECE1140/full_integration/assets/Track_Layout.xlsx")
     schedule_loader = ScheduleLoader(track_layout)
-    schedules = schedule_loader.load_from_excel("full_integration/assets/Train_Scheduling.xlsx")
+    schedules = schedule_loader.load_from_excel("Systems-Engineering-ECE1140/full_integration/assets/Train_Scheduling.xlsx")
 
     ctc = CTC()
     ctc_office = CTCOffice(track_layout, schedules)
@@ -103,13 +103,13 @@ if __name__ == "__main__":
         track_controller.update()
         track_model.update()
         if len(track_model.blocks) > 0: # Update train model only if blocks exist
-            ctc_office.update_all_trains(world_time)
-            print(len(track_model.blocks))
+            ctc_office.update_all_trains(world_time, delta_t=.1)
+            #print(len(track_model.blocks))
 
     # Use QTimer to control the update frequency
     update_timer = QTimer()
     update_timer.timeout.connect(update_world)
-    update_timer.start(1)
+    update_timer.start(100)
 
     # --- Run the application loop ---
     sys.exit(app.exec())

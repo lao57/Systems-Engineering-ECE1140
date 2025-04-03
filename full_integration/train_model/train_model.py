@@ -151,12 +151,12 @@ class TrainModel:
     """SIGNAL FUNCTIONS"""
 
     def pickup_beacon_signal(self):
+        print("block number than beacon signal")
+
         if self.blocknumbervector:
-            if self.blocknumbervector[0] == 89:
-                pass
             beacon_signal = self.Track_model.get_beacon_from_block(self.blocknumbervector[0])
         else:
-            beacon_signal = self.Track_model.get_beacon_from_block(62)
+            beacon_signal = self.Track_model.get_beacon_from_block(64)
         if beacon_signal[0:4] != self.last_beacon and beacon_signal[0:4] != 0000 and beacon_signal[0:4] != None:
             if self.blocknumbervector:
                 grade_vector_holder = self.Track_model.get_grade_from_block(self.blocknumbervector[0])

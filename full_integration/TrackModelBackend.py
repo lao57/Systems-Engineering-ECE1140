@@ -88,7 +88,7 @@ class TrackModelBackend:
 
     def parse_track_data(self, df):
         """Parse track data from the Excel sheet and update backend data."""
-        print(f"parsiing track data from {df}")
+        #print(f"parsiing track data from {df}")
         self.blocks.clear()
         for _, row in df.iterrows():
             block_num = int(row["Block Number"])
@@ -152,7 +152,7 @@ class TrackModelBackend:
 
     def update_block_occupancy(self, block_num_begin, block_num_middle, block_num_end, occupied = True):
         """Update block occupancy state."""
-        print(f"Updating occupancy for blocks {block_num_begin}, {block_num_middle}, {block_num_end} to {occupied}")
+        #print(f"Updating occupancy for blocks {block_num_begin}, {block_num_middle}, {block_num_end} to {occupied}")
         if block_num_begin in self.blocks:
             self.blocks[block_num_begin]["occupancy"] = True
             self.occupancy_status[block_num_begin] = True
