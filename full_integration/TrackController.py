@@ -331,8 +331,9 @@ class TrackController(QMainWindow):
                 self.authority_table.setItem(i, 0, block_item)
 
                 # Authority value (as integer)
-                authority_int = self.get_block_authority(block_id)
-                authority_item = QTableWidgetItem(str(authority_int))
+                authority_int = 3.28 * self.get_block_authority(block_id)
+                rounded_value = round(authority_int)  # Rounds to nearest integer
+                authority_item = QTableWidgetItem(str(rounded_value))
                 authority_item.setFlags(Qt.ItemFlag.ItemIsEnabled)
                 self.authority_table.setItem(i, 1, authority_item)
             else:
