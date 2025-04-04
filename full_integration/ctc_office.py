@@ -82,8 +82,8 @@ class CTCOffice:
         # dict mapping blk nums to blk data; easier to lookup block lengths on Green Line
         self.green_blocks = {b['block_number']: b for b in track_layout.get('Green Line', [])}
         self.track_model = None
-        self.k_p = 2e5
-        self.k_i = 2e4
+        self.k_p = 1000
+        self.k_i = 100
 
     def set_ctc(self, ctc: CTC):
         self.ctc = ctc  # assign ctc
@@ -266,7 +266,7 @@ class CTCOffice:
     def update_all_trains(self, world_time, delta_t=1):
         for train in self.real_active_trains:
             train.update_train(world_time)
-            train.display_train()
+            #train.display_train()
 
     def update_track_states(self):
         mapping = [
