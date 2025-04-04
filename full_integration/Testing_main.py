@@ -2,10 +2,10 @@ import sys
 import importlib.util
 from PyQt6.QtWidgets import QApplication
 from PyQt6.QtCore import QTimer
-import TrackController
+import track_controller.TrackController as TrackController
 import TrackModelBackend
 import track_gui_and_testbench_unified
-import testbench_track_controller
+import track_controller.testbench_track_controller as testbench_track_controller
 from train_controller.train_controller_gui import TrainControllerGUI
 from train_model.train_model import TrainModel
 from track_loader import load_track_layout
@@ -13,7 +13,7 @@ from schedule_loader import ScheduleLoader
 from ctc import CTC
 from ctc_office import CTCOffice
 from CTC_GUI import CTCGUI
-from TrackController import socket_client_thread
+from track_controller.TrackController import socket_client_thread
 import threading
 
 
@@ -30,9 +30,15 @@ if __name__ == "__main__":
     track_controller = TrackController.TrackController()
 
     # --- CTC Init ---
+<<<<<<< HEAD
     track_layout = load_track_layout("assets/Track_Layout.xlsx")
     schedule_loader = ScheduleLoader(track_layout)
     schedules = schedule_loader.load_from_excel("assets/Train_Scheduling.xlsx")
+=======
+    track_layout = load_track_layout("full_integration/assets/Track_Layout.xlsx")
+    schedule_loader = ScheduleLoader(track_layout)
+    schedules = schedule_loader.load_from_excel("full_integration/assets/Train_Scheduling.xlsx")
+>>>>>>> 11f4ade74f370d2d80d23f6e166ab7d60e51531c
 
     ctc = CTC()
     ctc_office = CTCOffice(track_layout, schedules)
