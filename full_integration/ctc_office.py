@@ -6,7 +6,7 @@ from PyQt6.QtWidgets import QApplication, QTableWidgetItem
 
 import TrackModelBackend
 import track_gui_and_testbench_unified
-import testbench_track_controller
+import track_controller.testbench_track_controller as testbench_track_controller
 from train_controller.train_controller_gui import TrainControllerGUI
 from train_model.train_model import TrainModel
 from ctc import CTC
