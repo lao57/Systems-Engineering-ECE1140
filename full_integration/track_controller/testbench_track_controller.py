@@ -6,7 +6,7 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtGui import QFont
-from wayside import WAYSIDE
+from track_controller.wayside import WAYSIDE
 
 #Eimport TrackController
 #import TrackModelBackend

@@ -5,8 +5,8 @@ from schedule_loader import ScheduleLoader
 from ctc import CTC
 from ctc_office import CTCOffice
 from CTC_GUI import CTCGUI
-from TrackController import TrackController
-import testbench_track_controller
+from track_controller.TrackController import TrackController
+import track_controller.testbench_track_controller as testbench_track_controller
 from PyQt6.QtCore import QTimer
 
 class TrackModel:
