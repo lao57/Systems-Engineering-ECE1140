@@ -29,22 +29,22 @@ binary_to_value = {
 
 # static dictionary for authority (NOT REALLY NEEDED ANYMORE)
 station_naming = {
-    '0000': "Edgebrook",
-    '0001': "Edgebrook",
-    '0010': "Edgebrook",
-    '0011': "Edgebrook",
-    '0100': "Edgebrook",
-    '0101': "Edgebrook",
-    '0110': "Edgebrook",
-    '0111': "Edgebrook",
-    '1000': "Edgebrook",
-    '1001': "Edgebrook",
-    '1010': "Edgebrook",
-    '1011': "Edgebrook",
-    '1100': "Edgebrook",
-    '1101': "Edgebrook",
-    '1110': "Edgebrook",
-    '1111': "Edgebrook"  # big number
+    '0000': "PIONEER",
+    '0001': "EDGEBROOK",
+    '0010': "WHITED",
+    '0011': "SOUTH BANK",
+    '0100': "CENTRAL",
+    '0101': "INGLEWOOD",
+    '0110': "OVERBROOK",
+    '0111': "GLENBURY",
+    '1000': "DORMONT",
+    '1001': "MT LEBANON",
+    '1010': "POPLAR",
+    '1011': "CASTLE SHANNON",
+    '1100': "STATION",
+    '1101': "EXTRA",
+    '1110': "EXTRA",
+    '1111': "EXTRA" 
 }
 
 
