@@ -43,8 +43,7 @@ class TrainController:
         self.max_ebrake_decel = 2.73  # 2.73 m/s
         self.max_train_speed = 19.4  # 19.4 m/s
         # station speed limits (stored as a dict in train controller module)
-        self.stations = {'Dormont': {'speed_limit': 18}, 'Edgebrook': {'speed_limit': 18.5},
-                         'Pioneer': {'speed_limit': 18.5}}
+        self.stations = 0
         self.speed_limit = self.max_train_speed
 
         # gui
@@ -137,11 +136,12 @@ class TrainController:
         #     self.announce_station = False
 
         # self.cmd_speed = cmd_speed
-        self.speed_limit = self.stations[self.most_recent_station]['speed_limit']
-        if self.speed_limit > self.max_train_speed:  # never exceed max train speed
-            self.speed_limit = self.max_train_speed
+        # self.speed_limit = self.stations[self.most_recent_station]['speed_limit']
+        # if self.speed_limit > self.max_train_speed:  # never exceed max train speed
+        #     self.speed_limit = self.max_train_speed
         # clamp cmd_speed
-        cmd_speed = min(cmd_speed, self.speed_limit)
+        cmd_speed = min(cmd_speed, self.max_train_speed)
+        self.speed_limit = cmd_speed
 
         # compute current speed error
         self.speed_error.append(cmd_speed - cur_speed)

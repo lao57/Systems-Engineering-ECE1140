@@ -298,7 +298,7 @@ class TrainModel:
 
         # calling Train Controller function (also will need to be able to send at_station_vector[0] so that you can check if you are at a station if you are stopping)
         self.train_controller.iterate(self.acceleration, self.previous_acceleration,
-                                      min(int(self.speeds_vector[0]), max_speed, int(self.cmd_velocity)),
+                                      min(float(self.speeds_vector[0])*0.75, max_speed),
                                       self.authority, self.velocity, self.failure_modes, self.underground_vector[0],
                                       self.cabin_temp, self.doors_status, self.lights_status,
                                       self.Next_station_names[0], world_time, )

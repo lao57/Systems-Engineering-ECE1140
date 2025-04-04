@@ -296,7 +296,7 @@ class TrainControllerGUIv2(QWidget):
 
     def update_speed_limit(self, speed_limit):
         self.speed_limit = speed_limit
-        limit_mph = self.speed_limit * 2.23694
+        limit_mph = (self.speed_limit * 2.23694) / 0.75
         self.speed_limit_lbl.setText(f"Speed limit (mph): {limit_mph:.2f}")
 
     def update_authority(self, authority):
