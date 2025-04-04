@@ -181,7 +181,7 @@ class Train_GUI(QWidget):
         
         # Display only the first value of each vector
         self.distance_vector_label.setText(f"Distance Left on Block: {self.train.imperial_distance_vector[0]:.1f}")
-        self.speeds_vector_label.setText(f"Speed Limit: {self.train.speeds_vector[0]:.1f}")
+        self.speeds_vector_label.setText(f"Speed Limit: {(float(self.train.speeds_vector[0])*0.62137119):.1f} mph")
         self.underground_vector_label.setText(f"Underground(1 = yes): {self.train.underground_vector[0]}")
         self.at_station_vector_label.setText(f"At Station(1 = yes): {self.train.at_station_vector[0]}")
         if self.train.announcement == True:

@@ -30,9 +30,9 @@ if __name__ == "__main__":
     track_controller = TrackController.TrackController()
 
     # --- CTC Init ---
-    track_layout = load_track_layout("Systems-Engineering-ECE1140/full_integration/assets/Track_Layout.xlsx")
+    track_layout = load_track_layout("assets/Track_Layout.xlsx")
     schedule_loader = ScheduleLoader(track_layout)
-    schedules = schedule_loader.load_from_excel("Systems-Engineering-ECE1140/full_integration/assets/Train_Scheduling.xlsx")
+    schedules = schedule_loader.load_from_excel("assets/Train_Scheduling.xlsx")
 
     ctc = CTC()
     ctc_office = CTCOffice(track_layout, schedules)
