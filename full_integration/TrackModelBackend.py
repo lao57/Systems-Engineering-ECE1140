@@ -230,3 +230,15 @@ class TrackModelBackend:
 
     def set_train_model(self, train_model):
         self.train_model = train_model
+
+    """Added by Liam as a place holder when Lamine flushes out his passenger transactionthis is the function I am calling in the train model"""
+    def station_stop(self, block, number_of_passengers_on_train, max_num_passengers):
+        #shouldn't be just four needs to have some type of number of passengers on the block
+        passengers_on_block = 4
+        new_number_of_passengers_on_train += passengers_on_block
+        if new_number_of_passengers_on_train > max_num_passengers:
+            # If the number of passengers exceeds the maximum, set it to the maximum
+            passengers_getting_off = new_number_of_passengers_on_train - max_num_passengers
+        new_number_of_passengers_on_train = min(new_number_of_passengers_on_train, max_num_passengers)
+
+        return new_number_of_passengers_on_train

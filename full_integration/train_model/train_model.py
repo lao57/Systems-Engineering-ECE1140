@@ -14,6 +14,7 @@ cabinWidth = 2.65  # m
 g = 9.8  # m/s^2
 static_rolling_ressistance = 0.1  # m/s^2
 max_speed = 19.444  # m/s
+max_num_passengers = 73  # max number of people in the train - 1 driver and 1 conductor
 
 # Static dictionary to convert three-bit binary numbers to specific values
 binary_to_value = {
@@ -51,7 +52,7 @@ station_naming = {
 class TrainModel:
     """INITIALIZATION"""
 
-    def __init__(self, k_p=1.5e5, k_i=1.5e4, train_number=1, numberOfPassengers=3):
+    def __init__(self, k_p=1.5e5, k_i=1.5e4, train_number=1, numberOfPeople=3):
 
         # SPEED CALCULATION VARIABLES
         self.velocity = 0
@@ -73,12 +74,13 @@ class TrainModel:
         self.lights_status = [False, False]  # interior light on, exterior light on
         self.cabin_temp = 70
         self.announcement = False
+        self.stop_flag = False #flag to make sure at a given stop passenger transaction only happens once
 
         # TRAIN PHYSICAL VARIABLES
         self.numberOfCars = 5  # according to profetta this is constant
-        self.numberOfPassengers = numberOfPassengers  # starts at 2 for the driver and the conductor
+        self.numberOfPeople = numberOfPeople # starts at 2 for the driver and the conductor
         self.train_number = train_number
-        self.mass = self.numberOfCars * 40900 + numberOfPassengers * 70  # 40 tons per cart plus 70 kg per person
+        self.mass = self.numberOfCars * 40900 + numberOfPeople * 70  # 40 tons per cart plus 70 kg per person
         self.weight_imperial = self.mass * 2.20462
         self.length = 32.3 * self.numberOfCars
         self.length_imperial = self.length * 3.2808399
@@ -125,6 +127,12 @@ class TrainModel:
         self.train_controller_gui.show()
         self.train_gui.show()
         # self.train_controller_testbench.show()
+
+    def __del__(self):
+        print("Train Model Deleted")
+        self.train_controller_gui.close()
+        self.train_gui.close()
+        # self.train_controller_testbench.close()
 
     def display_train(self):
         print("--------------------------TRAIN STATUS--------------------------")
@@ -240,12 +248,16 @@ class TrainModel:
         print(self.blocknumbervector[0])
         if self.blocknumbervector:
             self.authority = self.Track_model.get_block_authority(int(self.blocknumbervector[0]))
+            """ USED TO CHEAT FOR SINGLE STOPS ON ITERATION 3
             if self.authority == 0:
                 self.authority_wait += 1
                 if self.authority_wait > 300:
                     self.authority = 100
+                    self.next_station_names[0] = "Yard"
+            
+            """
         else:
-            self.authority = self.Track_model.get_block_authority(0)#starting block
+            self.authority = self.Track_model.get_block_authority(self.START_BLOCK)#starting block
         # baud_signal.append(0)  | Potentail add if we are not getting enough range
 
     """UPDATING FUNCTIONS"""
@@ -314,11 +326,16 @@ class TrainModel:
             if self.ebrake_gui_signal == True:
                 self.ebrake = True
 
-        # handling announcments
+        # handling announcments / stops
         if self.announcement:
             self.announcement_text = "Arriving at: " + self.Next_station_names[0]
+            if self.stop_flag == False:
+                self.numberOfPeople = self.Track_model.station_stop(self.blocknumbervector[0], self.numberOfPeople-2, max_num_passengers)
+                self.numberOfPeople += 2  # add the driver and conductor back
+                self.stop_flag = True
         else:
             self.announcement_text = "The Next station is: " + self.Next_station_names[0]
+            self.stop_flag = False
 
 
         # Ensure self.grade_vector[0] is a valid number
@@ -411,13 +428,29 @@ class TrainModel:
         self.train_gui.update_train_model_GUI(delta_t)
 
     def update_train_no_signal_pickup(self, world_time, delta_t=1):
-
+        if self.Track_model.ready == False:
+            return
         # read from the track model
         self.pickup_beacon_signal()
 
+        # Update train controller mode (interaction from train driver)
+        self.train_controller.train_controller_mode = self.train_controller_gui.train_controller_mode
+
+        if self.train_controller.train_controller_mode == 'Manual':
+            self.cmd_velocity = self.train_controller_gui.driver_speed
+            self.train_controller.train_controller_mode = 'manual'
+            # self.driver_inputs = {'ebrake': self.train_controller_gui.e_brake_on,
+            #                       'sbrake': self.train_controller_gui.service_brake_decel}
+            self.train_controller.e_brake_on = self.train_controller_gui.e_brake_on
+            self.train_controller.service_brake_decel = self.train_controller_gui.service_brake_decel
+            self.cabin_temp = self.train_controller_gui.cur_cabin_temp
+            self.lights_status[0] = self.train_controller_gui.lights_status[0]
+        else:
+            self.train_controller.train_controller_mode = 'auto'
+
         # calling Train Controller function (also will need to be able to send at_station_vector[0] so that you can check if you are at a station if you are stopping)
         self.train_controller.iterate(self.acceleration, self.previous_acceleration,
-                                      min(int(self.speeds_vector[0]), max_speed, int(self.cmd_velocity)),
+                                      min(float(self.speeds_vector[0])*0.75, max_speed),
                                       self.authority, self.velocity, self.failure_modes, self.underground_vector[0],
                                       self.cabin_temp, self.doors_status, self.lights_status,
                                       self.Next_station_names[0], world_time, )
@@ -429,17 +462,40 @@ class TrainModel:
         self.doors_status = self.train_controller.doors_status
         self.lights_status = self.train_controller.lights_status
         self.announcement = self.train_controller.announce_station
+        if self.ebrake == False:
+            if self.ebrake_gui_signal == True:
+                self.ebrake = True
 
-        # handling announcments
+        # handling announcments / stops
         if self.announcement:
             self.announcement_text = "Arriving at: " + self.Next_station_names[0]
+            if self.stop_flag == False:
+                self.numberOfPeople = self.Track_model.station_stop(self.blocknumbervector[0], self.numberOfPeople-2, max_num_passengers)
+                self.numberOfPeople += 2  # add the driver and conductor back
+                self.stop_flag = True
         else:
             self.announcement_text = "The Next station is: " + self.Next_station_names[0]
+            self.stop_flag = False
 
+
+        # Ensure self.grade_vector[0] is a valid number
+        if self.grade_vector[0] is not None:
+            try:
+                grade_value = float(self.grade_vector[0])  # Convert to float
+            except ValueError:
+                print(f"Invalid grade value: {self.grade_vector[0]}")
+        else:
+            print(f"no grade vector 1")  # Default to 0 if grade_vector is empty or None
+
+        # Calculate gravitational acceleration
+        gravitational_acceleration = g * np.sin(np.arctan(grade_value / 100))
+
+        """
         # Acceleration Calculation
         self.previous_acceleration = self.acceleration
         gravitational_acceleration = (g * np.sin(
             np.arctan(self.grade_vector[0] / 100)))  # negative when going down hill | positive when going up hill
+        """
 
         """
         Three cases for acceleration calculation
@@ -476,6 +532,9 @@ class TrainModel:
         self.imperial_distance_vector[0] -= distance_over_interval * 3.2808399
         self.authority -= distance_over_interval
         while self.distance_vector_end[0] < 0:
+            if len(self.distance_vector) < 2:
+                print("Train ID: ", self.train_number, " has reached the end of the line")
+                return
             self.distance_vector_end[1] += self.distance_vector_end[0]
             self.distance_vector_end.pop(0)
             self.blocknumbervector_end.pop(0)
@@ -496,10 +555,17 @@ class TrainModel:
             self.blocknumbervector.pop(0)
         # update time flag to move to the next second
         # update occupancy
-        self.Track_model.update_block_occupancy(self.blocknumbervector[0], self.blocknumbervector_middle[0],
-                                            self.blocknumbervector_end[0])
+        #self.Track_model.update_block_occupancy(self.blocknumbervector[0], self.blocknumbervector_middle[0], self.blocknumbervector_end[0])
+        if self.blocknumbervector[0]:
+            self.Track_model.occupancy_status[int(self.blocknumbervector[0]) - 1] = True
+        if self.blocknumbervector_middle[0]:
+            self.Track_model.occupancy_status[int(self.blocknumbervector_middle[0]) - 1] = True
+        if self.blocknumbervector_end[0]:
+            self.Track_model.occupancy_status[int(self.blocknumbervector_end[0]) - 1] = True
+        print(f"Train Model: Block occupancy updated blocks: {self.blocknumbervector[0]}, {self.blocknumbervector_middle[0]}, {self.blocknumbervector_end[0]}")
         # update gui
         self.update_gui(world_time)
+        self.train_gui.update_train_model_GUI(delta_t)
 
     """UI FUNCTIONS"""
 
