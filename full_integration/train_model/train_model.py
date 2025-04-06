@@ -52,7 +52,7 @@ station_naming = {
 class TrainModel:
     """INITIALIZATION"""
 
-    def __init__(self, k_p=1.5e5, k_i=1.5e4, train_number=1, numberOfPeople=3):
+    def __init__(self, k_p=1.5e5, k_i=1.5e4, train_number=1, numberOfPeople=3, start_block=64):
 
         # SPEED CALCULATION VARIABLES
         self.velocity = 0
@@ -103,6 +103,7 @@ class TrainModel:
         self.blocknumbervector = []  # hold the next bunch of blocks given by the beacon stars on block one
         self.blocknumbervector_middle = [None]
         self.blocknumbervector_end = [None]
+        self.START_BLOCK = start_block  # starting block number
 
         # TRAIN CONTROLLER VARIABLES (SAMARTH ADDED VARIABLES)
         self.k_p = k_p
@@ -160,7 +161,7 @@ class TrainModel:
     """SIGNAL FUNCTIONS"""
 
     def pickup_beacon_signal(self):
-        print("block number than beacon signal")
+        #print("block number than beacon signal")
 
         if self.blocknumbervector:
             beacon_signal = self.Track_model.get_beacon_from_block(self.blocknumbervector[0])
@@ -178,10 +179,10 @@ class TrainModel:
                         blocknumbervector_holder = [int(num) for num in ''.join(parse_blocknumbervector).split()]
                         self.beacon_parse(beacon_signal, grade_vector_holder_parsed, blocknumbervector_holder)
                     except ValueError as e:
-                        print(f"Error parsing grade_vector_holder: {grade_vector_holder}. Error: {e}")
+                        #print(f"Error parsing grade_vector_holder: {grade_vector_holder}. Error: {e}")
                         grade_vector_holder_parsed = []  # Default to an empty list if parsing fails
                 else:
-                    print(f"Invalid grade_vector_holder: {grade_vector_holder}")
+                    #print(f"Invalid grade_vector_holder: {grade_vector_holder}")
                     grade_vector_holder_parsed = []  # Default to an empty list if input is invalid
                 """
                 if grade_vector_holder != "nan":
@@ -196,7 +197,7 @@ class TrainModel:
                 # grade_vector_holder = self.Track_model.get_grade_from_block(62)
                 grade_vector_holder = self.Track_model.get_grade_from_block(64)
                 if grade_vector_holder != "nan":
-                    print(f"grade vector holder: {grade_vector_holder}")
+                    #print(f"grade vector holder: {grade_vector_holder}")
                     # grade_vector_holder_parsed = [int(num) for num in ''.join(grade_vector_holder).split()]
                     grade_vector_holder_parsed = [float(num) for num in grade_vector_holder.split()]
                     # grade_vector_holder_parsed = [float(num) for num in grade_vector_holder.split()]
@@ -245,7 +246,7 @@ class TrainModel:
         """ Print the values to debug
         print(f"baud_signal[0:4]: '{baud_signal[0:4]}' (type: {type(baud_signal[0:4])})")
         print(f"self.Baud_ID: '{self.Baud_ID}' (type: {type(self.Baud_ID)})")"""
-        print(self.blocknumbervector[0])
+        #print(self.blocknumbervector[0])
         if self.blocknumbervector:
             self.authority = self.Track_model.get_block_authority(int(self.blocknumbervector[0]))
             """ USED TO CHEAT FOR SINGLE STOPS ON ITERATION 3
@@ -422,7 +423,7 @@ class TrainModel:
             self.Track_model.occupancy_status[int(self.blocknumbervector_middle[0]) - 1] = True
         if self.blocknumbervector_end[0]:
             self.Track_model.occupancy_status[int(self.blocknumbervector_end[0]) - 1] = True
-        print(f"Train Model: Block occupancy updated blocks: {self.blocknumbervector[0]}, {self.blocknumbervector_middle[0]}, {self.blocknumbervector_end[0]}")
+        #print(f"Train Model: Block occupancy updated blocks: {self.blocknumbervector[0]}, {self.blocknumbervector_middle[0]}, {self.blocknumbervector_end[0]}")
         # update gui
         self.update_gui(world_time)
         self.train_gui.update_train_model_GUI(delta_t)
@@ -562,7 +563,7 @@ class TrainModel:
             self.Track_model.occupancy_status[int(self.blocknumbervector_middle[0]) - 1] = True
         if self.blocknumbervector_end[0]:
             self.Track_model.occupancy_status[int(self.blocknumbervector_end[0]) - 1] = True
-        print(f"Train Model: Block occupancy updated blocks: {self.blocknumbervector[0]}, {self.blocknumbervector_middle[0]}, {self.blocknumbervector_end[0]}")
+        #print(f"Train Model: Block occupancy updated blocks: {self.blocknumbervector[0]}, {self.blocknumbervector_middle[0]}, {self.blocknumbervector_end[0]}")
         # update gui
         self.update_gui(world_time)
         self.train_gui.update_train_model_GUI(delta_t)
