@@ -9,17 +9,261 @@ import track_gui_and_testbench_unified
 import track_controller.testbench_track_controller as testbench_track_controller
 from train_controller.train_controller_gui import TrainControllerGUI
 from train_model.train_model import TrainModel
-from ctc import CTC
-from station_map import STATION_BLOCKS
 
 
-# add attribute to block for middle distance
+# CTC (from ctc.py)
+class CTC:
+    def __init__(self):
+        # Read-only from Track Controller.
+        self.block_occupancy = [False] * 150
+        self.switch_states = [False] * 6
+        self.light_states = [False] * 6
+        self.crossing_states = [False] * 2
+
+        # Each block's authority is represented as a 10-bit boolean array.
+        self.block_authority = [[False] * 10 for _ in range(150)]
+        self.maintenance = [False] * 150
+
+        # Stop signals (10-bit arrays for each block).
+        self.stop_signals = [False] * 150
+
+        self.track_controller = None
+
+    def connect_track_controller(self, track_controller):
+        self.track_controller = track_controller
+        if self.track_controller:
+            self.block_occupancy = self.track_controller.get_block_occupancy().copy()
+            self.switch_states = self.track_controller.get_switch_state().copy()
+            self.light_states = self.track_controller.get_light_state().copy()
+            self.crossing_states = self.track_controller.get_crossing_state().copy()
+
+    def send_to_track_controller(self):
+        if self.track_controller:
+            self.track_controller.receive_authority(self.block_authority.copy())
+            self.track_controller.receive_maintenance(self.maintenance.copy())
+
+    def get_block_authority(self):
+        return self.block_authority.copy()
+
+    def get_maintenance_status(self):
+        return self.maintenance.copy()
+
+    def get_block_occupancy(self):
+        return self.block_occupancy.copy()
+
+    def get_stop_signals(self):
+        return self.stop_signals.copy()
+
+
+
+# Station map (from station_map.py)
+STATION_BLOCKS = {
+    'Green Line': {
+        'PIONEER': 2,
+        'EDGEBROOK': 9,
+        'WHITED': 22,
+        'SOUTH BANK': 31,
+        'CENTRAL': 39,
+        'INGLEWOOD': 48,
+        'OVERBROOK': 57,
+        'GLENBURY': 65,
+        'DORMONT': 73,
+        'MT LEBANON': 77,
+        'POPLAR': 88,
+        'CASTLE SHANNON': 96,
+        'DORMONT2': 105,
+        'GLENBURY2': 114,
+        'OVERBROOK2': 123,
+        'INGLEWOOD2': 132,
+        'CENTRAL2': 141
+    },
+    'BLOCK_TO_STATION': {
+        2: 'PIONEER',
+        9: 'EDGEBROOK',
+        22: 'WHITED',
+        31: 'SOUTH BANK',
+        39: 'CENTRAL',
+        48: 'INGLEWOOD',
+        57: 'OVERBROOK',
+        65: 'GLENBURY',
+        73: 'DORMONT',
+        77: 'MT LEBANON',
+        88: 'POPLAR',
+        96: 'CASTLE SHANNON',
+        105: 'DORMONT2',
+        114: 'GLENBURY2',
+        123: 'OVERBROOK2',
+        132: 'INGLEWOOD2',
+        141: 'CENTRAL2'
+    }
+}
+
+
+
+# Schedule loader (from schedule_loader.py)
+import pandas as pd
+from datetime import datetime
+from dataclasses import dataclass
+import re
+from typing import Dict
+
+@dataclass
+class ScheduleEntry:
+    train_id: int
+    stops: list
+    line: str
+
+class ScheduleLoader:
+    def __init__(self, track_layout):
+        self.track_layout = track_layout
+        self.station_map = self._build_station_map()
+        self.green_yard_exit = 62
+        self.green_yard_entrance = 58
+
+    def _build_station_map(self) -> dict:
+        station_map = {}
+        for line, blocks in self.track_layout.items():
+            line_map = {}
+            for blk in blocks:
+                infra = blk.get('infrastructure', '').upper()
+                if 'STATION' in infra:
+                    match = re.search(r'STATION[:\s]+([^;]+)', infra)
+                    if match:
+                        name = match.group(1).strip().upper()
+                        line_map[name] = blk['block_number']
+            station_map[line] = line_map
+        return station_map
+
+    def load_from_excel(self, path: str) -> Dict[str, list]:
+        schedules = {'Green Line': [], 'Red Line': []}
+        for line in ['Green Line', 'Red Line']:
+            sheet_name = f"{line} Scheduling"
+            try:
+                df = pd.read_excel(path, sheet_name=sheet_name, usecols=['Train ID', 'Stops', 'expected_arrival_times'])
+                df = df.dropna(subset=['Stops'])
+            except Exception as e:
+                print(e)
+                continue
+
+            line_schedules = []
+            for idx, row in df.iterrows():
+                try:
+                    entry = self._parse_row(row, line, idx + 2)
+                    line_schedules.append(entry)
+                except Exception as e:
+                    pass
+            schedules[line] = line_schedules
+
+        return schedules
+
+    def _parse_row(self, row, line: str, row_num: int) -> ScheduleEntry:
+        train_id = int(row['Train ID'])
+        stops_str = str(row['Stops']).strip()
+        times_str = str(row['expected_arrival_times']) if pd.notna(row['expected_arrival_times']) else ''
+
+        stop_list = [s.strip() for s in re.split(r',', stops_str) if s.strip()]
+        time_list = [t.strip() for t in re.split(r',', times_str) if t.strip()]
+
+        if len(stop_list) != len(time_list):
+            raise ValueError(f"{len(stop_list)} stops but {len(time_list)} times")
+
+        stops = []
+        for i, (station, time_str) in enumerate(zip(stop_list, time_list)):
+            st_up = station.upper()
+            time_obj = datetime.strptime(time_str, '%H:%M').time()
+
+            if line == 'Green Line':
+                if st_up == 'YARD':
+                    if i == len(stop_list) - 1:
+                        block = self.green_yard_entrance
+                    else:
+                        block = self.green_yard_exit
+                else:
+                    try:
+                        block = int(st_up)
+                        if not any(blk['block_number'] == block for blk in self.track_layout[line]):
+                            raise ValueError(f"Invalid block number {block} on {line}.")
+                    except ValueError:
+                        block = self.station_map[line].get(st_up)
+                        if not block:
+                            valid_stations = ', '.join(self.station_map[line].keys())
+                            raise ValueError(f"Unknown station '{station}'. Valid: {valid_stations}")
+            else:
+                try:
+                    block = int(st_up)
+                    if not any(blk['block_number'] == block for blk in self.track_layout[line]):
+                        raise ValueError(f"Invalid block number {block} on {line}.")
+                except ValueError:
+                    block = self.station_map[line].get(st_up)
+                    if not block:
+                        valid_stations = ', '.join(self.station_map[line].keys())
+                        raise ValueError(f"Unknown station '{station}'. Valid: {valid_stations}")
+
+            stops.append({'block': block, 'time': time_obj})
+
+        return ScheduleEntry(train_id=train_id, stops=stops, line=line)
+
+
+
+# Track loader (from track_loader.py)
+def load_track_layout(path: str) -> Dict[str, List[dict]]:
+    import pandas as pd
+    from typing import Dict, List
+
+    COLUMN_MAP = {
+        'block number': 'block_number',
+        'block length (m)': 'block_length',
+        'speed limit (km/hr)': 'speed_limit',
+        'infrastructure': 'infrastructure'
+    }
+
+    def process_sheet(sheet: str) -> List[dict]:
+        try:
+            df = pd.read_excel(
+                path,
+                sheet_name=sheet,
+                engine='openpyxl'
+            ).rename(columns=str.lower).rename(columns=COLUMN_MAP)
+
+            # Clean and validate data
+            df = df.dropna(subset=['block_number'])
+            df['block_number'] = pd.to_numeric(df['block_number'], errors='coerce').dropna().astype(int)
+
+            valid_blocks = []
+            for _, row in df.iterrows():
+                try:
+                    block_data = {
+                        'line': sheet.strip(),
+                        'block_number': int(row['block_number']),
+                        'block_length': float(row['block_length']),
+                        'speed_limit': int(row['speed_limit']),
+                        'infrastructure': str(row.get('infrastructure', '')).strip().upper()
+                    }
+                    if 1 <= block_data['block_number'] <= 150:
+                        valid_blocks.append(block_data)
+                except Exception:
+                    pass
+
+            return valid_blocks
+
+        except Exception as e:
+            print(f"track loader exception: {e}")
+            return []
+
+    return {
+        'Red Line': process_sheet('Red Line'),
+        'Green Line': process_sheet('Green Line')
+    }
+
+
+
+# ctc_office.py
+
 class TrackBlock:
     def __init__(self, block_number: int, block_length: float):
         self.block_number = block_number
         self.block_length = block_length
         self.next = None  # pointer to next block in route
-
 
 class Train:
     def __init__(
@@ -56,7 +300,6 @@ class Train:
             node = node.next  # move to next node & increment index
             index += 1
         return -1  # if curr block not found (shouldn't happen)
-
 
 class CTCOffice:
     # default green line route
@@ -111,13 +354,14 @@ class CTCOffice:
         except (KeyError, IndexError):
             return
 
-        # Get stops from schedule
-        stops = sorted([item['block'] for item in schedule.stops])
 
-        # Build route from yard exit (62) to each stop in order.
+        # stops = sorted([item['block'] for item in schedule.stops])
+        stops = [item['block'] for item in schedule.stops]
+
+        # Build route from yard exit (64) to each stop in order.
         route_numbers = []
         # current_position = 62  # always start from yard exit on Green
-        current_position = 64  # always start from yard exit on Green
+        current_position = 64  # start from yard exit on Green
 
         # go through each stop block in route
         for stop_block in stops:
@@ -147,13 +391,14 @@ class CTCOffice:
 
         # Convert list of route numbers to linked list
         route_head = self.build_linked_route(route_numbers)
+
         # create new train instance with route and schedule
         train = Train(
             train_id=schedule.train_id,
             route_head=route_head,
             scheduled_stops=stops,
             current_block=route_head,
-            next_stop_index=1
+            next_stop_index=0  # was 1 before
         )
         train_model = TrainModel(k_p=self.k_p, k_i=self.k_i)
         train_model.add_classes(self.track_model)
@@ -165,67 +410,105 @@ class CTCOffice:
     @staticmethod
     def update_authority(train: Train):
         print(f"Calculating authority for Train {train.train_id}:")
-        # Check if any stops left. If not, set train's authority to 0.
+
+        # Check if no more stops remain. If so, set authority to 0.
         if train.next_stop_index >= len(train.scheduled_stops):
             train.authority_meters = 0.0
             print("No next stop; authority = 0.0")
             return
-        # If the train is already at its target stop, set authority to 0.
-        if train.current_block and train.current_block.block_number == train.scheduled_stops[train.next_stop_index]:
+
+        # If the train is physically on the target block, authority = 0.
+        target_stop = train.scheduled_stops[train.next_stop_index]
+        if train.current_block and train.current_block.block_number == target_stop:
             train.authority_meters = 0.0
-            print(f"Train {train.train_id} is at stop {train.scheduled_stops[train.next_stop_index]}; authority = 0.0")
+            print(f"Train {train.train_id} is at stop {target_stop}; authority = 0.0")
             return
-        target_stop = train.scheduled_stops[train.next_stop_index]  # get next scheduled stop's block number
+
         total = 0.0  # init accumulator for total allowed distance
         node = train.current_block  # start at train's current position in route
+
+        start_in_second_half = (train.last_stop_passed == node.block_number)
+
         # Sum lengths of blocks in route until target stop is reached.
         while node and node.block_number != target_stop:
-            total += node.block_length
-            node = node.next
+            if start_in_second_half:
+                total += node.block_length / 2.0
+                start_in_second_half = False
+            else:
+                total += node.block_length
+            node = node.next  # move to next block
+
+        # If we found the target block, add half its length if it’s a station; otherwise, add full length.
         if node:
             if target_stop in STATION_BLOCKS['BLOCK_TO_STATION']:
                 total += node.block_length / 2.0
             else:
                 total += node.block_length
+
         # Do not add the target block's length, so that when the train arrives, authority is 0.
         train.authority_meters = total
-        print(
-            f"Authority from {train.current_block.block_number if train.current_block else '??'} to {target_stop} = {total} m")
+        print(f"Authority from block {train.current_block.block_number if train.current_block else '??'} "
+              f"to {target_stop} = {total} m")
 
     def update_train_positions(self):
         if not self.ctc:
             return
         # Create list of blocks that are currently occupied (blocks are 1-indexed).
         occupied_blocks = [i + 1 for i, occ in enumerate(self.ctc.get_block_occupancy()) if occ]
+
         # Iterate over all active trains.
-        for train in self.active_trains:
+        for train in self.active_trains[:]:
             if train.current_block is None:
                 continue
+
             curr_num = train.current_block.block_number  # get current block number
-            # If current block is still occupied, do nothing.
+
+            # If the train is holding at a scheduled stop, decrement its timer.
+            if hasattr(train, 'stop_timer'):
+                train.stop_timer -= 1
+                if train.stop_timer <= 0:
+                    print(f"Train {train.train_id} hold at stop complete.")
+                    del train.stop_timer
+                    # After hold, update authority and increment stop index.
+                    train.last_stop_passed = curr_num  # store that train passed this stop
+                    train.next_stop_index += 1  # increment to point to the next scheduled stop
+                    self.update_authority(train)  # recalculate authority after moving
+                # While holding, do not attempt to move.
+                continue
+
+            # Delete train when there are no stops and it is on block 57.
+            if len(train.scheduled_stops) == 0 and curr_num == 57:
+                print(f"Train {train.train_id} has no stops and is on block 57. Deleting train.")
+                self.active_trains.remove(train)
+                for tm in self.real_active_trains:
+                    if tm.train_id == train.train_id:
+                        self.real_active_trains.remove(tm)
+                        break
+                continue
+
+            # If current block is still occupied (by the train itself or another), do nothing.
             if curr_num in occupied_blocks:
                 continue
+
             # Check next block in the route.
             nxt = train.current_block.next
             if not nxt:
                 print(f"Train {train.train_id} finished route at block {curr_num}.")
                 continue
+
             nxt_num = nxt.block_number  # get next block number
-            # If next block is occupied, then the train has moved into that block.
+
+            # If next block is occupied => train has moved there.
             if nxt_num in occupied_blocks:
                 train.current_block = nxt  # update train's current block to next block
                 self.update_authority(train)  # recalculate authority after moving
-                print(train.authority_meters)
-                # If there are still stops:
-                if train.next_stop_index < len(train.scheduled_stops):
-                    # Check if the train has reached the scheduled stop.
-                    if nxt_num == train.scheduled_stops[train.next_stop_index]:
-                        train.last_stop_passed = nxt_num  # store that train passed this stop
-                        train.next_stop_index += 1  # increment to point to the next scheduled stop
-                        print(
-                            f"Train {train.train_id} arrived at stop {nxt_num}. Next stop index = {train.next_stop_index}")
-                        self.update_authority(train)  # recalculate authority; should become 0 at the stop
-                        print(train.authority_meters)
+
+                # If train still has scheduled stops and it has reached the scheduled stop,
+                # initiate a hold period
+                if train.next_stop_index < len(train.scheduled_stops) and nxt_num == train.scheduled_stops[train.next_stop_index]:
+                    if not hasattr(train, 'stop_timer'):
+                        train.stop_timer = 100  # hold for 10 seconds
+                        print(f"Train {train.train_id} arrived at stop {nxt_num}. Holding for 10 seconds.")
 
     def update_maintenance(self, maintenance_list):
         if self.ctc:
@@ -238,6 +521,7 @@ class CTCOffice:
         # Reset each block's authority to a 10-bit array of [False].
         self.ctc.block_authority = [[False] * 10 for _ in range(150)]
         max_auth = 1023  # max value of 10 bits
+
         # For each active train, update authority for the route.
         for train in self.active_trains:
             remaining = train.authority_meters  # remaining allowed travel distance (in meters)
@@ -252,21 +536,24 @@ class CTCOffice:
                     self.ctc.block_authority[index] = bits  # assign the 10-bit list to the block
                 remaining -= node.block_length  # subtract block length from remaining authority
                 node = node.next  # move to next block
+
         # Overwrite authority for blocks under maintenance.
         for i, m in enumerate(self.ctc.maintenance):
             if m:
                 self.ctc.block_authority[i] = [False] * 10
-        # Stop signals
+
+        # Stop signals: overwrite authority for blocks with stop signals.
         for i, stop in enumerate(self.ctc.get_stop_signals()):
             if stop:
                 self.ctc.block_authority[i] = [False] * 10
+
         self.ctc.send_to_track_controller()  # update track controller with latest authority and maintenance
         self.update_train_positions()  # update train positions based on block occupancy
 
     def update_all_trains(self, world_time, delta_t=1):
         for train in self.real_active_trains:
             train.update_train(world_time)
-            #train.display_train()
+            # train.display_train()  # Uncomment to display train information
 
     def update_track_states(self):
         mapping = [
@@ -303,7 +590,6 @@ class CTCOffice:
 
     def get_block_authority(self):
         return self.ctc.get_block_authority()
-
 
     def set_track_model(self, track_model):
         self.track_model = track_model
