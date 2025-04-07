@@ -4,11 +4,7 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtCore import Qt, QTimer
 from CTCOffice_UI import Ui_MainWindow
-from ctc_office import CTCOffice
-from ctc import CTC
-from station_map import STATION_BLOCKS
-from track_loader import load_track_layout
-from schedule_loader import ScheduleLoader
+from ctc_office import CTC, ScheduleLoader, load_track_layout, CTCOffice, STATION_BLOCKS
 
 class CTCGUI(QMainWindow, Ui_MainWindow):
 
