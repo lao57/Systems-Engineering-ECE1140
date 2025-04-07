@@ -29,21 +29,42 @@ binary_to_value = {
 }
 
 # static dictionary for authority (NOT REALLY NEEDED ANYMORE)
+
+"""
+station_map = {
+    "STATION; PIONEER": "0001",
+    "STATION; EDGEBROOK": "0010",
+    "STATION": "0011",
+    "STATION; WHITED": "0100",
+    "STATION; SOUTH BANK": "0101",
+    "STATION; CENTRAL": "0110",
+    "STATION; INGLEWOOD": "0111",
+    "STATION; OVERBROOK": "1000",
+    "STATION; GLENBURY": "1001",
+    "STATION; DORMONT": "1010",
+    "STATION; MT LEBANON": "1011",
+    "STATION; POPLAR": "1100",
+    "STATION; CASTLE SHANNON": "1101"
+}
+
+
+"""
+
 station_naming = {
-    '0000': "PIONEER",
-    '0001': "EDGEBROOK",
-    '0010': "WHITED",
-    '0011': "SOUTH BANK",
-    '0100': "CENTRAL",
-    '0101': "INGLEWOOD",
-    '0110': "OVERBROOK",
-    '0111': "GLENBURY",
-    '1000': "DORMONT",
-    '1001': "MT LEBANON",
-    '1010': "POPLAR",
-    '1011': "CASTLE SHANNON",
-    '1100': "STATION",
-    '1101': "EXTRA",
+    '0001': "PIONEER",
+    '0010': "EDGEBROOK",
+    '0100': "WHITED",
+    '0101': "SOUTH BANK",
+    '0110': "CENTRAL",
+    '0111': "INGLEWOOD",
+    '1000': "OVERBROOK",
+    '1001': "GLENBURY",
+    '1010': "DORMONT",
+    '1011': "MT LEBANON",
+    '1100': "POPLAR",
+    '1101': "CASTLE SHANNON",
+    '0011': "STATION",
+    '0000': "To be Announced",
     '1110': "EXTRA",
     '1111': "EXTRA" 
 }
@@ -241,6 +262,8 @@ class TrainModel:
                 self.at_station_vector.append(beaconvector[4 + num_blocks * 14 + i])
                 self.Next_station_names.append(
                     beaconvector[4 + num_blocks * 15 + 4 * i:4 + num_blocks * 15 + 4 * (i + 1)])
+                
+            self.display_train()
 
     def baud_read(self):
         """ Print the values to debug

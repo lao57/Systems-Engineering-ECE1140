@@ -13,19 +13,19 @@ speed_bin_map = {
 }
 
 station_map = {
-    "PIONEER": "0001",
-    "EDGEBROOK": "0010",
+    "STATION; PIONEER": "0001",
+    "STATION; EDGEBROOK": "0010",
     "STATION": "0011",
-    "WHITED": "0100",
-    "SOUTH BANK": "0101",
-    "CENTRAL; UNDERDROUND": "0110",
-    "INGLEWOOD; UNDERGROUND": "0111",
-    "OVERBROOK; UNDERGROUND": "1000",
-    "GLENBURY": "1001",
-    "DORMONT": "1010",
-    "MT LEBANON": "1011",
-    "POPLAR": "1100",
-    "CASTLE SHANNON": "1101"
+    "STATION; WHITED": "0100",
+    "STATION; SOUTH BANK": "0101",
+    "STATION; CENTRAL": "0110",
+    "STATION; INGLEWOOD": "0111",
+    "STATION; OVERBROOK": "1000",
+    "STATION; GLENBURY": "1001",
+    "STATION; DORMONT": "1010",
+    "STATION; MT LEBANON": "1011",
+    "STATION; POPLAR": "1100",
+    "STATION; CASTLE SHANNON": "1101"
 }
 
 def get_closest_speed_bin(speed):
@@ -47,12 +47,12 @@ def generate_beacon_vector(row, tid):
     underground = "1" if "UNDERGROUND" in infra or grade < 0 else "0"
     at_station = "1" if "STATION" in infra else "0"
 
+    # Extract station name if present
     station = "0000"
-    for name in station_map:
-        if name in infra:
-            station = station_map[name]
-            break
-
+    if "STATION" in infra:
+        station_name = infra.split(";")[-1].strip()  # Extract the name after "STATION;"
+        station = station_map.get(f"STATION; {station_name}", "0000")  # Look up in station_map
+    
     return f"{tid}{distance}{speed}{underground}{at_station}{station}"
 
 # === LOAD DATA ===
