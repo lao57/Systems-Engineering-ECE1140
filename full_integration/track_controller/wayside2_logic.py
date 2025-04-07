@@ -10,7 +10,7 @@ def update_wayside(block_occupancy, prev_switch_states, block_authorities, maint
     offset2 = 59
     #crossing on 108
 
-    dont_spawn = block_occupancy[109-offset2] or block_occupancy[108-offset2] or block_occupancy[107-offset2]
+    dont_spawn = block_occupancy[58-offset] or block_occupancy[59-offset] or block_occupancy[60-offset] or block_occupancy[61-offset] or block_occupancy[62-offset]
     crossing_states[0] = block_occupancy[109-offset2] or block_occupancy[108-offset2] or block_occupancy[107-offset2]
 
     switch_states[0] = True #until dillion tells me otherwise 
