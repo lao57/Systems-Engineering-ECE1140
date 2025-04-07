@@ -26,6 +26,7 @@ class TrackController(QMainWindow):
         self.block_occupancy = [False] * 150  # Block occupancy for all blocks
         self.block_authority = [0] * 150  # Block authority for all blocks
         self.stop_states = [False] * 150  # stop signals for CTC to stop trains because of
+        self.dont_spawn = [False] * 1
 
         self.count = 0  # get rid of later
 
@@ -37,11 +38,13 @@ class TrackController(QMainWindow):
                 "lights": [0, 149],  # Lights controlled by Wayside 1
                 "crossings": [18],  # Crossings controlled by Wayside 1
                 "stop_blocks": [0, 1, 2, 148, 149],
+                "dont_spawn_flag": [],
                 "logic_function": None,  # Will be set dynamically
                 "switch_states": [False] * 2,  # Initial switch states for Wayside 1
                 "light_states": [False] * 2,  # Initial light states for Wayside 1
                 "crossing_states": [False] * 1,  # Initial crossing states for Wayside 1
-                "stop_states": [False] * 5
+                "stop_states": [False] * 5,
+                "dont_spawn": [False] * 0
             },
             "wayside2": {
                 "blocks": list(range(29, 74)) + list(range(104, 146)),  # Blocks 29-73 and 104-146
@@ -49,11 +52,14 @@ class TrackController(QMainWindow):
                 "lights": [60, 59],  # have to fix light 2
                 "crossings": [107],  # Crossings controlled by Wayside 2
                 "stop_blocks": [58, 59, 60],  # needs fixing
+                "dont_spawn_flag": [0],
                 "logic_function": None,  # Will be set dynamically
                 "switch_states": [False] * 2,  # Initial switch states for Wayside 2
                 "light_states": [False] * 2,  # Initial light states for Wayside 2
                 "crossing_states": [False] * 1,  # Initial crossing states for Wayside 2
-                "stop_states": [False] * 3
+                "stop_states": [False] * 3,
+                "dont_spawn": [False] * 1
+
 
             },
             "wayside3": {
@@ -62,11 +68,14 @@ class TrackController(QMainWindow):
                 "lights": [74, 98],
                 "crossings": [],
                 "stop_blocks": [73, 74, 75, 97, 98, 99],
+                "dont_spawn_flag": [],
                 "logic_function": None,
                 "switch_states": [False] * 2,
                 "light_states": [False] * 2,
                 "crossing_states": [False] * 0,
-                "stop_states": [False] * 6
+                "stop_states": [False] * 6,
+                "dont_spawn": [False] * 0
+
             }
         }
 
@@ -372,6 +381,7 @@ class TrackController(QMainWindow):
                         lights=config["lights"],
                         crossings=config["crossings"],
                         stop_blocks=config["stop_blocks"],
+                        dont_spawn_flag=config["dont_spawn_flag"],
                         logic_function=config["logic_function"],
                         prev_switch_states=config["switch_states"],
                         block_authorities=wayside_block_authorities
@@ -379,7 +389,7 @@ class TrackController(QMainWindow):
                     # print(wayside.prev_switch_states) #works here
 
                     # Execute the PLC logic
-                    switch_states, light_states, crossing_states, stop_states = wayside.update_wayside(
+                    switch_states, light_states, crossing_states, stop_states, dont_spawn = wayside.update_wayside(
                         wayside_block_occupancy,
                         wayside_maintenance
                     )
@@ -389,6 +399,7 @@ class TrackController(QMainWindow):
                     config["light_states"] = light_states
                     config["crossing_states"] = crossing_states
                     config["stop_states"] = stop_states
+                    config["dont_spawn"] = dont_spawn
 
                     # Update global states
                     for i, switch_index in enumerate(config["switches"]):
@@ -402,6 +413,9 @@ class TrackController(QMainWindow):
 
                     for i, stop_index in enumerate(config["stop_blocks"]):
                         self.stop_states[stop_index] = stop_states[i]
+                    
+                    for i, dont_spawn_index in enumerate(config["dont_spawn_flag"]):
+                        self.dont_spawn[dont_spawn_index] = dont_spawn[i]   
 
     def prev_page(self):
         """Move to the previous page of blocks."""

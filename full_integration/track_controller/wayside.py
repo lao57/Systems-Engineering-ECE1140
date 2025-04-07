@@ -1,5 +1,5 @@
 class WAYSIDE:
-    def __init__(self, switches, lights, crossings, stop_blocks ,logic_function, prev_switch_states, block_authorities):
+    def __init__(self, switches, lights, crossings, stop_blocks, dont_spawn_flag ,logic_function, prev_switch_states, block_authorities):
         """
         Initialize the PLC for a specific section of the track.
         :param switches: List of switch indices controlled by this wayside.
@@ -13,6 +13,7 @@ class WAYSIDE:
         self.lights = lights
         self.crossings = crossings
         self.stop_blocks = stop_blocks
+        self.dont_spawn_flag = dont_spawn_flag
         self.logic_function = logic_function
         self.prev_switch_states = prev_switch_states
         self.block_authorities = block_authorities

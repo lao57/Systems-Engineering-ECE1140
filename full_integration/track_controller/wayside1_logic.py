@@ -4,6 +4,7 @@ def update_wayside(block_occupancy, prev_switch_states, block_authorities, maint
     light_states = [False] * 2  # 2 lights: stopping A and stopping Z
     crossing_states = [False] * 1  # 1 crossings
     stop_signals = [False] * 150
+    dont_spawn = [False] * 0
 
     offset = 1  # Offset for blocks 1-28
     offset2 = 118  # Offset for blocks 146-150
@@ -75,4 +76,4 @@ def update_wayside(block_occupancy, prev_switch_states, block_authorities, maint
     # Crossing control
     crossing_states[0] = crossing_occupied
 
-    return switch_states, light_states, crossing_states, stop_signals
+    return switch_states, light_states, crossing_states, stop_signals, dont_spawn
