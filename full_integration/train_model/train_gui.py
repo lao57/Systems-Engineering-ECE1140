@@ -5,22 +5,22 @@ from PyQt6.QtCore import Qt, QTimer
 import train_model.train_model as train_class
 
 station_naming = {
-    '0000': "Edgebrook",
-    '0001': "Edgebrook",
-    '0010': "Edgebrook",
-    '0011': "Edgebrook",
-    '0100': "Edgebrook",
-    '0101': "Edgebrook",
-    '0110': "Edgebrook",
-    '0111': "Edgebrook",
-    '1000': "Edgebrook",
-    '1001': "Edgebrook",
-    '1010': "Edgebrook",
-    '1011': "Edgebrook",
-    '1100': "Edgebrook",
-    '1101': "Edgebrook",
-    '1110': "Edgebrook",
-    '1111': "Edgebrook"  # big number
+    '0001': "PIONEER",
+    '0010': "EDGEBROOK",
+    '0100': "WHITED",
+    '0101': "SOUTH BANK",
+    '0110': "CENTRAL",
+    '0111': "INGLEWOOD",
+    '1000': "OVERBROOK",
+    '1001': "GLENBURY",
+    '1010': "DORMONT",
+    '1011': "MT LEBANON",
+    '1100': "POPLAR",
+    '1101': "CASTLE SHANNON",
+    '0011': "STATION",
+    '0000': "To be Announced",
+    '1110': "EXTRA",
+    '1111': "EXTRA" 
 }
 
 class Train_GUI(QWidget):
