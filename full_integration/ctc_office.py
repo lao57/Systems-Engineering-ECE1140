@@ -549,7 +549,12 @@ class CTCOffice:
 
     def update_all_trains(self, world_time, delta_t=1):
         for train in self.real_active_trains:
-            train.update_train(world_time)
+            train.update_train(world_time, delta_t)
+            delta_one_sec = delta_t
+            while delta_one_sec < 1:
+                train.update_train_no_signal_pickup(world_time, delta_t)
+                delta_one_sec += delta_t
+
             # train.display_train()  # Uncomment to display train information
 
     def update_track_states(self):

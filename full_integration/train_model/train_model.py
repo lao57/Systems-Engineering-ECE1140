@@ -110,7 +110,7 @@ class TrainModel:
         # BEACON VARIABLES
         self.last_beacon = 0000
         self.authority = 0
-        self.authority_wait = 0
+        self.authority_sent = 0
         self.cmd_velocity = 14
         self.distance_vector = []  # holds the start of the trains current spot
         self.distance_vector_middle = [16.1]  # holds the middle of the trains current spot
@@ -271,7 +271,18 @@ class TrainModel:
         print(f"self.Baud_ID: '{self.Baud_ID}' (type: {type(self.Baud_ID)})")"""
         #print(self.blocknumbervector[0])
         if self.blocknumbervector:
-            self.authority = self.Track_model.get_block_authority(int(self.blocknumbervector[0]))
+            authority = self.Track_model.get_block_authority(int(self.blocknumbervector[0]))
+            if authority < self.authority:
+                self.authority = authority
+                self.authority_sent = authority
+            elif authority == self.authority_sent:
+                if authority == 1023:
+                    self.authority = 1023 #updates to max authority if it is 1023
+                    self.authority_sent = 1023
+            elif self.authority < 0 and authority > 0:
+                self.authority = authority
+                self.authority_sent = authority
+            self.authority_sent = authority
             """ USED TO CHEAT FOR SINGLE STOPS ON ITERATION 3
             if self.authority == 0:
                 self.authority_wait += 1
@@ -449,7 +460,7 @@ class TrainModel:
         #print(f"Train Model: Block occupancy updated blocks: {self.blocknumbervector[0]}, {self.blocknumbervector_middle[0]}, {self.blocknumbervector_end[0]}")
         # update gui
         self.update_gui(world_time)
-        self.train_gui.update_train_model_GUI(delta_t)
+        self.train_gui.update_train_model_GUI(1)
 
     def update_train_no_signal_pickup(self, world_time, delta_t=1):
         if self.Track_model.ready == False:
@@ -588,8 +599,8 @@ class TrainModel:
             self.Track_model.occupancy_status[int(self.blocknumbervector_end[0]) - 1] = True
         #print(f"Train Model: Block occupancy updated blocks: {self.blocknumbervector[0]}, {self.blocknumbervector_middle[0]}, {self.blocknumbervector_end[0]}")
         # update gui
-        self.update_gui(world_time)
-        self.train_gui.update_train_model_GUI(delta_t)
+        #self.update_gui(world_time)
+        #self.train_gui.update_train_model_GUI(delta_t)
 
     """UI FUNCTIONS"""
 

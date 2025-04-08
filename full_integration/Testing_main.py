@@ -103,13 +103,13 @@ if __name__ == "__main__":
         track_controller.update()
         track_model.update()
         if len(track_model.blocks) > 0: # Update train model only if blocks exist
-            ctc_office.update_all_trains(world_time, delta_t=.1)
+            ctc_office.update_all_trains(world_time, delta_t=0.1)
             #print(len(track_model.blocks))
 
     # Use QTimer to control the update frequency
     update_timer = QTimer()
     update_timer.timeout.connect(update_world)
-    update_timer.start(100)
+    update_timer.start(20)
 
     # --- Run the application loop ---
     sys.exit(app.exec())
