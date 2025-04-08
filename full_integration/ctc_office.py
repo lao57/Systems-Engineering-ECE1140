@@ -172,27 +172,15 @@ class ScheduleLoader:
             st_up = station.upper()
             time_obj = datetime.strptime(time_str, '%H:%M').time()
 
-            if line == 'Green Line':
-                if st_up == 'YARD':
-                    if i == len(stop_list) - 1:
-                        block = self.green_yard_entrance
-                    else:
-                        block = self.green_yard_exit
-                else:
-                    try:
-                        block = int(st_up)
-                        if not any(blk['block_number'] == block for blk in self.track_layout[line]):
-                            raise ValueError(f"Invalid block number {block} on {line}.")
-                    except ValueError:
-                        block = self.station_map[line].get(st_up)
-                        if not block:
-                            valid_stations = ', '.join(self.station_map[line].keys())
-                            raise ValueError(f"Unknown station '{station}'. Valid: {valid_stations}")
+            # Handle YARD as block 58
+            if st_up == 'YARD':
+                block = self.green_yard_entrance  # 58
             else:
+                # Original station->block conversion logic
                 try:
                     block = int(st_up)
                     if not any(blk['block_number'] == block for blk in self.track_layout[line]):
-                        raise ValueError(f"Invalid block number {block} on {line}.")
+                        raise ValueError(f"Invalid block {block} on {line}")
                 except ValueError:
                     block = self.station_map[line].get(st_up)
                     if not block:
@@ -400,7 +388,7 @@ class CTCOffice:
             current_block=route_head,
             next_stop_index=0  # was 1 before
         )
-        train_model = TrainModel(k_p=self.k_p, k_i=self.k_i)
+        train_model = TrainModel(train_number=schedule.train_id,k_p=self.k_p, k_i=self.k_i)
         train_model.add_classes(self.track_model)
         self.update_authority(train)  # calculate authority
         self.active_trains.append(train)  # add train to active list of trains
@@ -470,18 +458,20 @@ class CTCOffice:
                     print(f"Train {train.train_id} hold at stop complete.")
                     del train.stop_timer
                     # After hold, update authority and increment stop index.
-                    train.last_stop_passed = curr_num  # store that train passed this stop
-                    train.next_stop_index += 1  # increment to point to the next scheduled stop
-                    self.update_authority(train)  # recalculate authority after moving
+                    train.last_stop_passed = curr_num  # record that the train passed this stop
+                    train.next_stop_index += 1  # move to the next scheduled stop
+                    self.update_authority(train)  # recalc authority after moving
                 # While holding, do not attempt to move.
                 continue
 
-            # Delete train when there are no stops and it is on block 57.
-            if len(train.scheduled_stops) == 0 and curr_num == 57:
-                print(f"Train {train.train_id} has no stops and is on block 57. Deleting train.")
+            # Delete train when there are no remaining stops (i.e. next_stop_index is beyond the scheduled stops)
+            # and the train is on block 57.
+            if curr_num == 58:
+                print(f"Train {train.train_id} has reached YARD. Deleting train.")
                 self.active_trains.remove(train)
                 for tm in self.real_active_trains:
-                    if tm.train_id == train.train_id:
+                    if tm.train_number == train.train_id:
+                        tm.__del__()
                         self.real_active_trains.remove(tm)
                         break
                 continue
@@ -501,13 +491,20 @@ class CTCOffice:
             # If next block is occupied => train has moved there.
             if nxt_num in occupied_blocks:
                 train.current_block = nxt  # update train's current block to next block
-                self.update_authority(train)  # recalculate authority after moving
+                self.update_authority(train)  # recalc authority after moving
+
+                if nxt_num ==58:
+                    print(f"Train {train.train_id} arriving at YARD. Starting final stop.")
+                    if not hasattr(train, 'stop_timer'):
+                        train.stop_timer = 100  # Hold at yard entrance
+
 
                 # If train still has scheduled stops and it has reached the scheduled stop,
-                # initiate a hold period
-                if train.next_stop_index < len(train.scheduled_stops) and nxt_num == train.scheduled_stops[train.next_stop_index]:
+                # initiate a hold period.
+                elif train.next_stop_index < len(train.scheduled_stops) and nxt_num == train.scheduled_stops[
+                    train.next_stop_index]:
                     if not hasattr(train, 'stop_timer'):
-                        train.stop_timer = 100  # hold for 10 seconds
+                        train.stop_timer = 100  # hold for 10 seconds (adjust timer as needed)
                         print(f"Train {train.train_id} arrived at stop {nxt_num}. Holding for 10 seconds.")
 
     def update_maintenance(self, maintenance_list):
