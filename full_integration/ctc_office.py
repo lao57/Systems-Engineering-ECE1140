@@ -304,7 +304,8 @@ class CTCOffice:
         55, 56, 57, 58
     ]
 
-    def __init__(self, track_layout: Dict[str, List[dict]], schedules: Dict[str, List]):
+    def __init__(self, track_layout: Dict[str, List[dict]], schedules: Dict[str, List],
+                 k_p=1000, k_i=100):
         self.track_layout = track_layout  # save track layout
         self.schedules = schedules  # save schedule
         self.ctc: CTC = None  # set later
@@ -313,8 +314,8 @@ class CTCOffice:
         # dict mapping blk nums to blk data; easier to lookup block lengths on Green Line
         self.green_blocks = {b['block_number']: b for b in track_layout.get('Green Line', [])}
         self.track_model = None
-        self.k_p = 1000
-        self.k_i = 100
+        self.k_p = k_p
+        self.k_i = k_i
 
     def set_ctc(self, ctc: CTC):
         self.ctc = ctc  # assign ctc

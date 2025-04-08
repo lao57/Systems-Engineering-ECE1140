@@ -102,20 +102,18 @@ class TrainController:
                 self.set_cabin_temp, self.doors_status, self.lights_status, self.announce_station
 
         # if stopped prematurely, nudge train ahead, until authority is approx 0
-        ovr_world_time = world_time['day'] + world_time['hour'] + world_time['min']
-        if self.authority > 1 and cur_speed == 0 and ovr_world_time != 0:  # 5 m
+        if self.authority > 1 and cur_speed == 0:  # 5 m
             cmd_speed = authority * 0.1
         else:
             stopping_distance = (self.cur_speed ** 2) / (2 * abs(self.max_sbrake_decel))
-            if self.authority <= stopping_distance + 16:
+            if self.authority <= stopping_distance + 5:
                 self.e_brake_on = False
                 self.service_brake_decel = self.max_sbrake_decel
                 self.cmd_power = 0
                 return self.e_brake_on, self.service_brake_decel, self.cmd_power, \
                     self.set_cabin_temp, self.doors_status, self.lights_status, self.announce_station
 
-            # if self.authority <= 70 and self.service_brake_decel == 0:    # 70 m
-            if self.authority <= 40 and self.service_brake_decel == 0:  # 70 m
+            if self.authority <= 15 and self.service_brake_decel == 0:  # 70 m
                 self.e_brake_on = True
                 self.service_brake_decel = 0
                 self.cmd_power = 0
@@ -140,10 +138,13 @@ class TrainController:
         # if self.speed_limit > self.max_train_speed:  # never exceed max train speed
         #     self.speed_limit = self.max_train_speed
         # clamp cmd_speed
-        cmd_speed = min(cmd_speed, self.max_train_speed)
-        self.speed_limit = cmd_speed
+        # speed_limit = min(cmd_speed, self.max_train_speed)
+        # self.speed_limit = speed_limit
+
+        # self.speed_limit = cmd_speed
 
         # compute current speed error
+        cmd_speed = 0.75 * cmd_speed
         self.speed_error.append(cmd_speed - cur_speed)
         # deliver power (according to control law)
         if len(self.integrated_error) >= 1:

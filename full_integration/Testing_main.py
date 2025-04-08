@@ -20,8 +20,8 @@ import threading
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    k_p = 2e5
-    k_i = 2e4
+    k_p = 20
+    k_i = 5
     i = 0
     world_time = {'day': 0, 'hour': 0, 'min': 0}
     # --- Create core modules ---
@@ -35,12 +35,12 @@ if __name__ == "__main__":
     schedules = schedule_loader.load_from_excel("assets/Train_Scheduling.xlsx")
 
     ctc = CTC()
-    ctc_office = CTCOffice(track_layout, schedules)
+    ctc_office = CTCOffice(track_layout, schedules, k_p=k_p, k_i=k_i)
     ctc_office.set_ctc(ctc)
     ctc_office.set_track_model(track_model)
 
-    socket_thread = threading.Thread(target=socket_client_thread, args=(ctc, track_controller, track_model), daemon=True)
-    socket_thread.start()
+    # socket_thread = threading.Thread(target=socket_client_thread, args=(ctc, track_controller, track_model), daemon=True)
+    # socket_thread.start()
 
     # --- Wire components ---
     
@@ -109,7 +109,7 @@ if __name__ == "__main__":
     # Use QTimer to control the update frequency
     update_timer = QTimer()
     update_timer.timeout.connect(update_world)
-    update_timer.start(20)
+    update_timer.start(10)
 
     # --- Run the application loop ---
     sys.exit(app.exec())

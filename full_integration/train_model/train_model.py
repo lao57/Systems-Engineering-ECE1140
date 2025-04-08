@@ -255,7 +255,7 @@ class TrainModel:
                 self.imperial_distance_vector.append(distance_value * 3.2808399)  # converts meters to feet
 
                 speed_str = beaconvector[4 + num_blocks * 10 + 3 * i:7 + num_blocks * 10 + 3 * i]
-                speed_limit = binary_to_value[speed_str]
+                speed_limit = binary_to_value[speed_str] * 0.277778 # kmph to m/s
                 self.speeds_vector.append(speed_limit)
 
                 self.underground_vector.append(beaconvector[4 + num_blocks * 13 + i])
@@ -345,7 +345,7 @@ class TrainModel:
 
         # calling Train Controller function (also will need to be able to send at_station_vector[0] so that you can check if you are at a station if you are stopping)
         self.train_controller.iterate(self.acceleration, self.previous_acceleration,
-                                      min(float(self.speeds_vector[0])*0.75, max_speed),
+                                      min(float(self.speeds_vector[0]), max_speed),
                                       self.authority, self.velocity, self.failure_modes, self.underground_vector[0],
                                       self.cabin_temp, self.doors_status, self.lights_status,
                                       self.Next_station_names[0], world_time, )
@@ -485,7 +485,7 @@ class TrainModel:
 
         # calling Train Controller function (also will need to be able to send at_station_vector[0] so that you can check if you are at a station if you are stopping)
         self.train_controller.iterate(self.acceleration, self.previous_acceleration,
-                                      min(float(self.speeds_vector[0])*0.75, max_speed),
+                                      min(float(self.speeds_vector[0]), max_speed),
                                       self.authority, self.velocity, self.failure_modes, self.underground_vector[0],
                                       self.cabin_temp, self.doors_status, self.lights_status,
                                       self.Next_station_names[0], world_time, )
