@@ -1,6 +1,6 @@
 import sys
 from PyQt6.QtWidgets import (
-    QApplication, QMainWindow, QFileDialog, QTableWidgetItem, QMessageBox
+    QApplication, QMainWindow, QFileDialog, QTableWidgetItem, QMessageBox, QInputDialog
 )
 from PyQt6.QtCore import Qt, QTimer
 from CTCOffice_UI import Ui_MainWindow
@@ -31,7 +31,7 @@ class CTCGUI(QMainWindow, Ui_MainWindow):
 
     def setup_connections(self):
         self.btnUploadSchedule.clicked.connect(self.load_schedule)
-        self.btnManualUpload.clicked.connect(self.load_schedule)
+        self.btnManualUpload.clicked.connect(self.manual_stop_selection)
         self.btnCloseTrack.clicked.connect(lambda: self.set_maintenance(True))
         self.btnOpenTrack.clicked.connect(lambda: self.set_maintenance(False))
         self.maintLine.currentTextChanged.connect(self.update_block_combobox)
@@ -175,6 +175,41 @@ class CTCGUI(QMainWindow, Ui_MainWindow):
 
     def set_ctc(self, ctc):
         self.ctc = ctc
+
+    def manual_stop_selection(self):
+
+        line = self.scheduleTrainLine.currentText().strip().title()
+        # get train_id
+        train_id, ok = QInputDialog.getInt(self, "Manual Train", "Enter Train ID:")
+        if not ok:
+            return
+
+        # make empty list to get stops
+        stops = []
+        # possible stops
+        if line == "Green Line":
+            possible_stops = [f"Block {b['block_number']}" for b in self.track_layout.get('Green Line', [])]
+        else:
+            possible_stops = [f"Block {b['block_number']}" for b in self.track_layout.get('Red Line', [])]
+        # click done for completion
+        possible_stops.insert(0, "Done")
+
+        # allow user to select as many stops as they want
+        while True:
+            stop_item, ok = QInputDialog.getItem(self, "Select Stop", "Select a stop (choose 'Done' when finished):",
+                                                 possible_stops, 1, False)
+            if not ok:
+                break
+            if stop_item == "Done":
+                break
+            # get block num
+            stop_block = int(stop_item.replace("Block ", ""))
+            stops.append(stop_block)
+
+        # call manual scheduling func
+        self.ctc_office.schedule_manual_train(line, train_id, stops)
+        self.update_all()
+        QMessageBox.information(self, "Success", f"Manually scheduled Train {train_id} on {line} with stops: {stops}")
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

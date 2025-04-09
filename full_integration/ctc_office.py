@@ -396,6 +396,71 @@ class CTCOffice:
         self.real_active_trains.append(train_model)
         print(f"Scheduled Train {train.train_id} with route {route_numbers}")
 
+    def schedule_manual_train(self, line: str, train_id: int, stops: List[int]):
+
+        if line.lower().strip() != "green line":
+            print("red line not working")
+            return
+
+        yard_exit = 64  # start
+        yard_entrance = 58  # end
+
+        # ensure the final stop is the yard if not selected
+        if not stops or stops[-1] != yard_entrance:
+            stops.append(yard_entrance)
+
+        # build the full route from the yard exit through the manual stops.
+        route_numbers = []
+        current_position = yard_exit
+        for stop_block in stops:
+            try:
+                start_index = self.green_line_route.index(current_position)
+                target_index = self.green_line_route.index(stop_block)
+            except ValueError:
+                print(f"Error: {current_position} or {stop_block} not found in green_line_route.")
+                return
+            if target_index >= start_index:
+                segment = self.green_line_route[start_index:target_index + 1]
+            else:
+                segment = self.green_line_route[target_index:start_index + 1][::-1]
+            if route_numbers and route_numbers[-1] == current_position:
+                route_numbers += segment[1:]
+            else:
+                route_numbers += segment
+            current_position = stop_block
+
+        route_head = self.build_linked_route(route_numbers)
+
+        # check if a train with the train_id already exists.
+        existing_train = None
+        for t in self.active_trains:
+            if t.train_id == train_id:
+                existing_train = t
+                break
+
+        if existing_train is not None:
+            # update the existing train's route and stops. NOT WORKING. reschedules to block but cancels all other route stops.
+            existing_train.route_head = route_head
+            existing_train.scheduled_stops = stops
+            existing_train.next_stop_index = 0
+            self.update_authority(existing_train)
+            print(f"Manually updated Train {train_id} with new route: {route_numbers}")
+        else:
+
+            new_train = Train(
+                train_id=train_id,
+                route_head=route_head,
+                scheduled_stops=stops,
+                current_block=route_head,
+                next_stop_index=0
+            )
+            train_model = TrainModel(train_number=train_id, k_p=self.k_p, k_i=self.k_i)
+            train_model.add_classes(self.track_model)
+            self.update_authority(new_train)
+            self.active_trains.append(new_train)
+            self.real_active_trains.append(train_model)
+            print(f"Manually scheduled Train {train_id} with route: {route_numbers}")
+
     @staticmethod
     def update_authority(train: Train):
         print(f"Calculating authority for Train {train.train_id}:")
