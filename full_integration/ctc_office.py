@@ -471,16 +471,22 @@ class CTCOffice:
             print("No next stop; authority = 0.0")
             return
 
-        # If the train is physically on the target block, authority = 0.
+        # no more zero auth sent at station
+        # check if the target is a station. If so, send half the block's length as authority.
         target_stop = train.scheduled_stops[train.next_stop_index]
         if train.current_block and train.current_block.block_number == target_stop:
-            train.authority_meters = 0.0
-            print(f"Train {train.train_id} is at stop {target_stop}; authority = 0.0")
+            if target_stop in STATION_BLOCKS['BLOCK_TO_STATION']:
+                train.authority_meters = train.current_block.block_length / 2.0
+                print(f"Train {train.train_id} is at station {target_stop}; setting authority to half block length = {train.authority_meters} m")
+            else:
+                train.authority_meters = 0.0
+                print(f"Train {train.train_id} is at target {target_stop}; authority = 0.0")
             return
 
         total = 0.0  # init accumulator for total allowed distance
-        node = train.current_block  # start at train's current position in route
+        node = train.current_block # start at train's current position in route
 
+        # if train just passed stop, only count half of current block length.
         start_in_second_half = (train.last_stop_passed == node.block_number)
 
         # Sum lengths of blocks in route until target stop is reached.
@@ -490,7 +496,7 @@ class CTCOffice:
                 start_in_second_half = False
             else:
                 total += node.block_length
-            node = node.next  # move to next block
+            node = node.next # move to next block
 
         # If we found the target block, add half its length if it’s a station; otherwise, add full length.
         if node:
@@ -503,6 +509,7 @@ class CTCOffice:
         train.authority_meters = total
         print(f"Authority from block {train.current_block.block_number if train.current_block else '??'} "
               f"to {target_stop} = {total} m")
+
 
     def update_train_positions(self):
         if not self.ctc:
@@ -578,29 +585,40 @@ class CTCOffice:
             self.ctc.maintenance = maintenance_list.copy()
 
     def update(self):
+
         if not self.ctc:
             return
+
+        # Update stop signals from track controller.
         self.ctc.stop_signals = self.ctc.track_controller.stop_states
-        # Reset each block's authority to a 10-bit array of [False].
+
+        # Clear authority for all blocks.
         self.ctc.block_authority = [[False] * 10 for _ in range(150)]
         max_auth = 1023  # max value of 10 bits
 
-        # For each active train, update authority for the route.
+        # only update authority for a limited number of blocks ahead.
+        update_window = 2  # number of blocks to update
+
+        # For each active train, update authority for only the next few blocks.
         for train in self.active_trains:
-            remaining = train.authority_meters  # remaining allowed travel distance (in meters)
-            node = train.current_block  # start from train's current block
-            # Traverse the route until no remaining authority or end of route is reached.
-            while remaining > 0 and node:
-                auth_value = min(int(remaining), max_auth)  # cap authority value to max_auth
+            remaining = train.authority_meters # remaining allowed travel distance (in meters)
+            node = train.current_block # start from train's current block
+            window_count = 0
+            while remaining > 0 and node and window_count < update_window:
+                auth_value = min(int(remaining), max_auth) # cap authority value to max_auth
+
                 # Convert auth_value to a 10-bit boolean list (MSB first)
                 bits = [(auth_value >> i) & 1 == 1 for i in range(9, -1, -1)]
                 index = node.block_number - 1  # compute index for block in authority array
-                if 0 <= index < 150:
-                    self.ctc.block_authority[index] = bits  # assign the 10-bit list to the block
-                remaining -= node.block_length  # subtract block length from remaining authority
-                node = node.next  # move to next block
 
-        # Overwrite authority for blocks under maintenance.
+                if 0 <= index < 150:
+                    self.ctc.block_authority[index] = bits # assign the 10-bit list to the block
+
+                remaining -= node.block_length # subtract block length from remaining authority
+                node = node.next #move to next block
+                window_count += 1
+
+        # Override authority for blocks under maintenance.
         for i, m in enumerate(self.ctc.maintenance):
             if m:
                 self.ctc.block_authority[i] = [False] * 10
@@ -610,8 +628,11 @@ class CTCOffice:
             if stop:
                 self.ctc.block_authority[i] = [False] * 10
 
-        self.ctc.send_to_track_controller()  # update track controller with latest authority and maintenance
-        self.update_train_positions()  # update train positions based on block occupancy
+
+        self.ctc.send_to_track_controller() # update track controller with latest authority and maintenance
+        self.update_train_positions() # update train positions based on block occupancy
+
+
 
     def update_all_trains(self, world_time, delta_t=1):
         for train in self.real_active_trains:
