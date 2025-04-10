@@ -124,6 +124,7 @@ class TrainModel:
         self.blocknumbervector = []  # hold the next bunch of blocks given by the beacon stars on block one
         self.blocknumbervector_middle = [None]
         self.blocknumbervector_end = [None]
+        self.station_side = []  # holds the side of the station that the train is on
         self.START_BLOCK = start_block  # starting block number
 
         # TRAIN CONTROLLER VARIABLES (SAMARTH ADDED VARIABLES)
@@ -174,6 +175,7 @@ class TrainModel:
         print("Next station vames:", self.Next_station_names)
         print("Grade Vector:", self.grade_vector)
         print("Block Number Vector:", self.blocknumbervector)
+        print("station side vector: ", self.station_side)
         print("Power: ", self.power)
 
     def add_classes(self, Track_model):
@@ -238,17 +240,31 @@ class TrainModel:
         n = len(beaconvector)
         self.last_beacon = beaconvector[0:4]
         if beaconvector[0] != None:
-            number_of_blocks = (n - 4) / 19
+            number_of_blocks = (n - 4) / 21
             num_blocks = int(number_of_blocks)
-            self.grade_vector.extend(gradevector_REALSIM)  # adds the grade to the grade vector
-            self.blocknumbervector.extend(blocknumbervector_REALSIM)  # adds the block number to the block number vector
-            self.blocknumbervector_middle.extend(blocknumbervector_REALSIM)
-            self.blocknumbervector_end.extend(blocknumbervector_REALSIM)
+            if len(self.blocknumbervector) > 0:
+                if blocknumbervector_REALSIM[0] == self.blocknumbervector[len(self.blocknumbervector) - 1]:
+                    duplicate_flag = True #just means already got the first block
+                else:
+                    duplicate_flag = False
+            else:
+                duplicate_flag = False
+            if duplicate_flag == False:
+                self.grade_vector.extend(gradevector_REALSIM)  # adds the grade to the grade vector
+                self.blocknumbervector.extend(blocknumbervector_REALSIM)  # adds the block number to the block number vector
+                self.blocknumbervector_middle.extend(blocknumbervector_REALSIM)
+                self.blocknumbervector_end.extend(blocknumbervector_REALSIM)
+            else:
+                self.grade_vector.extend(gradevector_REALSIM[1:])
+                self.blocknumbervector.extend(blocknumbervector_REALSIM[1:])
+                self.blocknumbervector_middle.extend(blocknumbervector_REALSIM[1:])
+                self.blocknumbervector_end.extend(blocknumbervector_REALSIM[1:])
             for i in range(0, num_blocks):  # adds all block distances to the distance vector
+                if i == 0 and duplicate_flag == True:
+                    pass
                 number_str = beaconvector[4 + 10 * i:14 + 10 * i]
                 number = number_str[0:(len(number_str) - 1)]  # equals the first 9
-                distance_value = int(number, 2) + 0.6 * float(number_str[
-                                                                  len(number_str) - 1])  # adds the first 9 bits to 0.6 times the last bit to account for one block that is 86.6 meters
+                distance_value = int(number, 2) + 0.6 * float(number_str[len(number_str) - 1])  # adds the first 9 bits to 0.6 times the last bit to account for one block that is 86.6 meters
                 self.distance_vector.append(distance_value)
                 self.distance_vector_middle.append(distance_value)
                 self.distance_vector_end.append(distance_value)
@@ -260,8 +276,17 @@ class TrainModel:
 
                 self.underground_vector.append(beaconvector[4 + num_blocks * 13 + i])
                 self.at_station_vector.append(beaconvector[4 + num_blocks * 14 + i])
-                self.Next_station_names.append(
-                    beaconvector[4 + num_blocks * 15 + 4 * i:4 + num_blocks * 15 + 4 * (i + 1)])
+                self.Next_station_names.append(beaconvector[4 + num_blocks * 15 + 4 * i:4 + num_blocks * 15 + 4 * (i + 1)])
+                lr = str(beaconvector[4 + num_blocks * 19 + 2*i:4 + num_blocks * 19 + 2*(i + 1)])
+                
+                if lr == "11":
+                    self.station_side.append(2) #both doors can open
+                elif lr == "10":
+                    self.station_side.append(1) #left door can open
+                elif lr == "01":
+                    self.station_side.append(0) #right door can open
+                else:
+                    self.station_side.append(3) #neither door can open
                 
             self.display_train()
 

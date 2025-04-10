@@ -53,7 +53,22 @@ def generate_beacon_vector(row, tid):
         station_name = infra.split(";")[-1].strip()  # Extract the name after "STATION;"
         station = station_map.get(f"STATION; {station_name}", "0000")  # Look up in station_map
     
-    return f"{tid}{distance}{speed}{underground}{at_station}{station}"
+    # Determine station side bits
+    station_side = str(row["Station Side"]).strip().upper() if "Station Side" in row else ""
+    if station_side == "LEFT/RIGHT" or station_side == "BOTH":
+        station_side_bits = "11"
+        print("both sides found")
+    elif station_side == "RIGHT":
+        station_side_bits = "01"
+        print("right side found")
+    elif station_side == "LEFT":
+        station_side_bits = "10"
+        print("left side found")
+    else:
+        station_side_bits = "00"
+        print("no side found")
+
+    return f"{tid}{distance}{speed}{underground}{at_station}{station}{station_side_bits}"
 
 # === LOAD DATA ===
 df = pd.read_excel(EXCEL_FILE, sheet_name=SHEET_NAME)
@@ -72,11 +87,12 @@ selected["Beacon Vector"] = selected.apply(lambda r: generate_beacon_vector(r, T
 # Build long beacon vector
 beacon_vector = (
     TID +
-    "".join(selected["Beacon Vector"].str[4:14]) +
-    "".join(selected["Beacon Vector"].str[14:17]) +
-    "".join(selected["Beacon Vector"].str[17]) +
-    "".join(selected["Beacon Vector"].str[18]) +
-    "".join(selected["Beacon Vector"].str[19:])
+    "".join(selected["Beacon Vector"].str[4:14]) +  # Distance
+    "".join(selected["Beacon Vector"].str[14:17]) +  # Speed
+    "".join(selected["Beacon Vector"].str[17]) +  # Underground
+    "".join(selected["Beacon Vector"].str[18]) +  # At Station
+    "".join(selected["Beacon Vector"].str[19:23]) +  # Station Name
+    "".join(selected["Beacon Vector"].str[23:])  # Station Side Bits
 )
 
 # Output

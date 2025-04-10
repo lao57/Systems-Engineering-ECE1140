@@ -176,7 +176,7 @@ class Train_GUI(QWidget):
         self.authority_label.setText(f"Authority: {self.train.authority * 3.2808399:.1f} ft")
         self.kph_velocity_label.setText(f"Velocity: {self.train.velocity * 2.23693629:.1f} mph")
         self.velocity_dial.setValue(int(self.train.velocity * 2.23693629))  # Update the dial with the velocity
-        self.acceleration_label.setText(f"Acceleration: {self.train.acceleration * 0.81:.1f} miles/h^2")
+        self.acceleration_label.setText(f"Acceleration: {self.train.acceleration*80645.16:.1f} miles/h^2")
         self.distance_travelled_label.setText(f"Distance Travelled: {self.train.distance_travelled * 3.2808399:.1f} ft")
         
         # Display only the first value of each vector

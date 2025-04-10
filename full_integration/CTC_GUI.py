@@ -95,7 +95,7 @@ class CTCGUI(QMainWindow, Ui_MainWindow):
                 QTableWidgetItem(str(train.train_id)),
                 QTableWidgetItem("Green Line"),
                 QTableWidgetItem(str(train.current_block.block_number if train.current_block else "N/A")),
-                QTableWidgetItem(f"{train.authority_meters:.1f} m"),
+                QTableWidgetItem(f"{(train.authority_meters*3.2808399):.1f} ft"),
                 QTableWidgetItem(self.get_station_name(next_stop) if isinstance(next_stop, int) else str(next_stop))
             ]
             for col, item in enumerate(items):
