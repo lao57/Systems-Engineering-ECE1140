@@ -124,20 +124,20 @@ class CTCGUI(QMainWindow, Ui_MainWindow):
 
     def update_track_states(self):
         mapping = [
-            ("Crossing 1", self.ctc.crossing_states[18]),
-            ("Crossing 2", self.ctc.crossing_states[107]),
-            ("Switch 1", self.ctc.switch_states[11]),
-            ("Light 1", self.ctc.light_states[0]),
-            ("Switch 2", self.ctc.switch_states[27]),
-            ("Light 2", self.ctc.light_states[149]),
-            ("Switch 3", self.ctc.switch_states[57]),
-            ("Light 3", self.ctc.light_states[60]),
-            ("Switch 4", self.ctc.switch_states[61]),
-            ("Light 4", self.ctc.light_states[59]),
-            ("Switch 5", self.ctc.switch_states[75]),
-            ("Light 5", self.ctc.light_states[74]),
-            ("Switch 6", self.ctc.switch_states[85]),
-            ("Light 6", self.ctc.light_states[98])
+            ("Crossing 1", self.ctc.crossing_states[0]),
+            ("Crossing 2", self.ctc.crossing_states[1]),
+            ("Switch 1", self.ctc.switch_states[2]),
+            ("Light 1", self.ctc.light_states[3]),
+            ("Switch 2", self.ctc.switch_states[4]),
+            ("Light 2", self.ctc.light_states[5]),
+            ("Switch 3", self.ctc.switch_states[6]),
+            ("Light 3", self.ctc.light_states[7]),
+            ("Switch 4", self.ctc.switch_states[8]),
+            ("Light 4", self.ctc.light_states[9]),
+            ("Switch 5", self.ctc.switch_states[10]),
+            ("Light 5", self.ctc.light_states[11]),
+            ("Switch 6", self.ctc.switch_states[12]),
+            ("Light 6", self.ctc.light_states[75])
         ]
         for row, (desc, state) in enumerate(mapping):
             item = QTableWidgetItem("Active" if state else "Inactive")

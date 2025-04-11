@@ -14,6 +14,8 @@ from ctc import CTC
 from ctc_office import CTCOffice
 from CTC_GUI import CTCGUI
 from track_controller.TrackController import socket_client_thread
+from track_controller.TrackControllerRed import TrackControllerRed
+
 import threading
 
 
@@ -27,7 +29,9 @@ if __name__ == "__main__":
     # --- Create core modules ---
 
     track_model = TrackModelBackend.TrackModelBackend()
-    track_controller = TrackController.TrackController()
+    #track_controller = TrackController.TrackController()
+    track_controller = TrackControllerRed()
+
 
     # --- CTC Init ---
     track_layout = load_track_layout("assets/Track_Layout.xlsx")
@@ -78,6 +82,11 @@ if __name__ == "__main__":
 
     # --- Show Track Controller UI ---
     track_controller.show()
+
+    track_controller_tb = testbench_track_controller.TestBench(ctc, track_model)
+    track_controller_tb.show()
+
+
 
     ctc_gui = CTCGUI(ctc=ctc, ctc_office=ctc_office,
                      track_layout=track_layout,
