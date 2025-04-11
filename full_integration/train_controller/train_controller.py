@@ -106,14 +106,16 @@ class TrainController:
             cmd_speed = authority * 0.1
         else:
             stopping_distance = (self.cur_speed ** 2) / (2 * abs(self.max_sbrake_decel))
-            if self.authority <= stopping_distance + 5:
+            # if self.authority <= stopping_distance + 5:
+            if self.authority <= stopping_distance + 100:
                 self.e_brake_on = False
                 self.service_brake_decel = self.max_sbrake_decel
                 self.cmd_power = 0
                 return self.e_brake_on, self.service_brake_decel, self.cmd_power, \
                     self.set_cabin_temp, self.doors_status, self.lights_status, self.announce_station
 
-            if self.authority <= 15 and self.service_brake_decel == 0:  # 70 m
+            # if self.authority <= 15 and self.service_brake_decel == 0:  # 70 m
+            if self.authority <= 200 and self.service_brake_decel == 0:  # 70 m
                 self.e_brake_on = True
                 self.service_brake_decel = 0
                 self.cmd_power = 0
