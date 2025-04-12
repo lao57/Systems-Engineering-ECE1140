@@ -53,7 +53,7 @@ class TrainController:
     def iterate(self, cur_accel, prev_accel, cmd_speed: int | float, authority: int | float, cur_speed: int | float,
                 failure_modes: List[bool], underground: bool, cabin_temp: int | float,
                 doors_status: List[bool], lights_status: List[bool], station_to_be_reached: str,
-                world_time: dict):
+                world_time: dict, CTC_stop: bool):
         """
         :param cmd_speed: Commanded speed (m/s)
         :param authority: Authority (m)
