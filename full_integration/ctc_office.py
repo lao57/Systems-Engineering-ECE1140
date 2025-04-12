@@ -2,7 +2,7 @@ import sys
 from typing import List, Dict
 
 from PyQt6.QtCore import Qt
-from PyQt6.QtWidgets import QApplication, QTableWidgetItem
+from PyQt6.QtWidgets import QApplication, QTableWidgetItem,QWidget, QVBoxLayout, QCheckBox, QPushButton, QLabel
 
 import TrackModelBackend
 import track_gui_and_testbench_unified
@@ -318,6 +318,8 @@ class CTCOffice:
         self.k_i = k_i
         self.loop_int_ms = loop_int_ms
         self.stopping_time = 20*(1000/loop_int_ms)
+        self.TrainUIToggle = TrainUIToggle(self.real_active_trains)  # create TrainUIToggle instance
+        self.TrainUIToggle.show()
 
     def set_ctc(self, ctc: CTC):
         self.ctc = ctc  # assign ctc
@@ -396,8 +398,9 @@ class CTCOffice:
         self.update_authority(train)  # calculate authority
         self.active_trains.append(train)  # add train to active list of trains
         self.real_active_trains.append(train_model)
-        train_model.train_controller_gui.show()
-        train_model.train_gui.show()
+        #train_model.train_controller_gui.show()
+        #train_model.train_gui.show()
+        self.TrainUIToggle.update_ui()
         print(f"Scheduled Train {train.train_id} with route {route_numbers}")
 
     def schedule_manual_train(self, line: str, train_id: int, stops: List[int]):
@@ -463,6 +466,7 @@ class CTCOffice:
             self.update_authority(new_train)
             self.active_trains.append(new_train)
             self.real_active_trains.append(train_model)
+            self.TrainUIToggle.update_ui()
             print(f"Manually scheduled Train {train_id} with route: {route_numbers}")
 
     @staticmethod
@@ -546,10 +550,12 @@ class CTCOffice:
             if curr_num == 58:
                 print(f"Train {train.train_id} has reached YARD. Deleting train.")
                 self.active_trains.remove(train)
+                self.TrainUIToggle.update_ui()
                 for tm in self.real_active_trains:
                     if tm.train_number == train.train_id:
                         tm.__del__()
                         self.real_active_trains.remove(tm)
+                        self.TrainUIToggle.update_ui()
                         break
                 continue
 
@@ -686,3 +692,86 @@ class CTCOffice:
 
     def set_track_model(self, track_model):
         self.track_model = track_model
+
+
+
+class TrainUIToggle(QWidget):
+    def __init__(self, real_active_trains):
+        super().__init__()
+        self.real_active_trains = real_active_trains
+        self.checkboxes = {}  # Store checkboxes for each train
+        self.initUI()
+
+    def initUI(self):
+        self.setWindowTitle("Train UI Toggle")
+        self.setGeometry(0, 0, 200, 300)
+
+        # Main layout
+        self.layout = QVBoxLayout()
+
+        # Title label
+        title_label = QLabel("Toggle Train UIs")
+        title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.layout.addWidget(title_label)
+
+        # Add a button to toggle all UIs on or off
+        toggle_all_button = QPushButton("Toggle All UIs")
+        toggle_all_button.clicked.connect(self.toggle_all_uis)
+        self.layout.addWidget(toggle_all_button)
+
+        # Add a placeholder for train checkboxes
+        self.train_checkbox_layout = QVBoxLayout()
+        self.layout.addLayout(self.train_checkbox_layout)
+
+        self.setLayout(self.layout)
+
+        # Populate the UI with the initial list of trains
+        self.update_ui()
+
+    def update_ui(self):
+        """
+        Update the UI to reflect the current list of active trains.
+        """
+        # Clear existing checkboxes
+        for i in reversed(range(self.train_checkbox_layout.count())):
+            widget = self.train_checkbox_layout.itemAt(i).widget()
+            if widget:
+                widget.deleteLater()
+
+        # Recreate checkboxes for each train
+        self.checkboxes = {}
+        for train_model in self.real_active_trains:
+            checkbox = QCheckBox(f"Train {train_model.train_number}")
+            checkbox.setChecked(True)  # Default to showing the UI
+            checkbox.stateChanged.connect(self.toggle_train_ui)
+            self.train_checkbox_layout.addWidget(checkbox)
+            self.checkboxes[train_model.train_number] = checkbox
+
+    def toggle_train_ui(self, state):
+        """
+        Toggle the visibility of a specific train's UIs based on the checkbox state.
+        """
+        for train_model in self.real_active_trains:
+            checkbox = self.checkboxes.get(train_model.train_number)
+            if checkbox and checkbox.isChecked():
+                # Show the train UIs, but handle cases where the window might have been manually closed
+                if train_model.train_gui.isHidden():
+                    train_model.train_gui.show()
+                if train_model.train_controller_gui.isHidden():
+                    train_model.train_controller_gui.show()
+            elif checkbox:
+                # Hide the train UIs
+                train_model.train_gui.hide()
+                train_model.train_controller_gui.hide()
+
+    def toggle_all_uis(self):
+        """
+        Toggle the visibility of all train UIs.
+        """
+        all_checked = all(checkbox.isChecked() for checkbox in self.checkboxes.values())
+        new_state = not all_checked  # If all are checked, uncheck them; otherwise, check them
+
+        for train_model in self.real_active_trains:
+            checkbox = self.checkboxes.get(train_model.train_number)
+            if checkbox:
+                checkbox.setChecked(new_state)  # This will trigger `toggle_train_ui`

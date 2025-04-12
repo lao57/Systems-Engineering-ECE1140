@@ -336,7 +336,7 @@ class TrainModel:
         ebrake, sbrake_decel, cmd_power, modified_cabin_temp, open_doors, open_lights, announcement = \
             self.train_controller.iterate(self.speeds_vector[0], auth_to_cont, self.velocity, self.failure_modes,
                                           self.underground_vector, self.cabin_temp, self.doors_status,
-                                          self.lights_status, self.at_station_vector, world_time)
+                                          self.lights_status, self.at_station_vector, world_time, self.station_stop)
 
         self.power = cmd_power
         self.ebrake = ebrake
@@ -380,7 +380,7 @@ class TrainModel:
                                       min(float(self.speeds_vector[0]), max_speed),
                                       auth_to_cont, self.velocity, self.failure_modes, self.underground_vector[0],
                                       self.cabin_temp, self.doors_status, self.lights_status,
-                                      self.Next_station_names[0], world_time, )
+                                      self.Next_station_names[0], world_time,self.station_stop )
         # AFTER TRAIN CONTROLLER ITERATE -update the power, ebrake, sbrake_decel, and cabin_temp, etc
         self.power = self.train_controller.cmd_power
         self.ebrake = self.train_controller.e_brake_on
