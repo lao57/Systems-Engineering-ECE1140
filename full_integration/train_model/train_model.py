@@ -73,7 +73,7 @@ station_naming = {
 class TrainModel:
     """INITIALIZATION"""
 
-    def __init__(self, k_p=1.5e5, k_i=1.5e4, train_number=1, numberOfPeople=3, start_block=64):
+    def __init__(self, train_number=1, LOOP_INTERVAL_MS = 1000, k_p=1.5e5, k_i=1.5e4, numberOfPeople=3, start_block=64):
 
         # SPEED CALCULATION VARIABLES
         self.velocity = 0
@@ -96,6 +96,9 @@ class TrainModel:
         self.cabin_temp = 70
         self.announcement = False
         self.stop_flag = False #flag to make sure at a given stop passenger transaction only happens once
+        self.LOOP_INTERVAL_MS = LOOP_INTERVAL_MS  # 1 second in milliseconds
+        self.stopped_time = 0  # time spent stopped at a station
+        self.stopping_time = 15*(1000/LOOP_INTERVAL_MS)  # time to stop at a station
 
         # TRAIN PHYSICAL VARIABLES
         self.numberOfCars = 5  # according to profetta this is constant
@@ -291,32 +294,35 @@ class TrainModel:
             self.display_train()
 
     def baud_read(self):
-        """ Print the values to debug
-        print(f"baud_signal[0:4]: '{baud_signal[0:4]}' (type: {type(baud_signal[0:4])})")
-        print(f"self.Baud_ID: '{self.Baud_ID}' (type: {type(self.Baud_ID)})")"""
         #print(self.blocknumbervector[0])
         if self.blocknumbervector:
+            print("IN BAUD READ")
             authority = self.Track_model.get_block_authority(int(self.blocknumbervector[0]))
             if authority < self.authority:
                 self.authority = authority
-                self.authority_sent = authority
-            elif authority == self.authority_sent:
-                if authority == 1023:
-                    self.authority = 1023 #updates to max authority if it is 1023
-                    self.authority_sent = 1023
-            elif self.authority < 0 and authority > 0:
-                self.authority = authority
-                self.authority_sent = authority
-            self.authority_sent = authority
-            """ USED TO CHEAT FOR SINGLE STOPS ON ITERATION 3
-            if self.authority == 0:
-                self.authority_wait += 1
-                if self.authority_wait > 300:
-                    self.authority = 100
-                    self.next_station_names[0] = "Yard"
+                print("IN BAUD READ 1")
+
+            elif authority == self.authority_sent and authority == 1023:
+                self.authority = 1023 #updates to max authority if it is 1023
+                print("IN BAUD READ 2")
+
+            elif self.authority < 2 and authority < (self.distance_vector[0] + 10) and authority > (self.distance_vector[0] - 15):
+                #do nothing because they are just sending a halfblock authority
+                print("STOPPING in baud read")
+
+            elif self.authority < 2 and authority > 0 and authority < (self.distance_vector[0] + 10): #train undershot authority and is now given a hlafblock authority but is really already stopped toward the beginiing of block
+                self.authority = self.distance_vector[0] - authority - 1 
+                #sets authority to the halfway block since there is no error as authority is greater than 0
+                #should force train to be in previous case and stop the train
+
             
-            """
+            elif self.authority < 2 and authority > 0: #train was told to stop but is not told to got so shouldn't bother stopping
+                self.authority = authority
+
+            self.authority_sent = authority
+            print("Authority: ", authority, " PULLED FROM BAUD READ")
         else:
+            print("Authority: ", authority, " PULLED FROM START BLOCK")
             self.authority = self.Track_model.get_block_authority(self.START_BLOCK)#starting block
         # baud_signal.append(0)  | Potentail add if we are not getting enough range
 
@@ -327,8 +333,9 @@ class TrainModel:
         :param world_time: world time dict: {'day', 'hour', 'min'}
         """
         # TODO: parse underground_vector, at_station_vector
+        auth_to_cont = self.authority
         ebrake, sbrake_decel, cmd_power, modified_cabin_temp, open_doors, open_lights, announcement = \
-            self.train_controller.iterate(self.speeds_vector[0], self.authority, self.velocity, self.failure_modes,
+            self.train_controller.iterate(self.speeds_vector[0], auth_to_cont, self.velocity, self.failure_modes,
                                           self.underground_vector, self.cabin_temp, self.doors_status,
                                           self.lights_status, self.at_station_vector, world_time)
 
@@ -369,9 +376,10 @@ class TrainModel:
             self.train_controller.train_controller_mode = 'auto'
 
         # calling Train Controller function (also will need to be able to send at_station_vector[0] so that you can check if you are at a station if you are stopping)
+        auth_to_cont = self.authority
         self.train_controller.iterate(self.acceleration, self.previous_acceleration,
                                       min(float(self.speeds_vector[0]), max_speed),
-                                      self.authority, self.velocity, self.failure_modes, self.underground_vector[0],
+                                      auth_to_cont, self.velocity, self.failure_modes, self.underground_vector[0],
                                       self.cabin_temp, self.doors_status, self.lights_status,
                                       self.Next_station_names[0], world_time, )
         # AFTER TRAIN CONTROLLER ITERATE -update the power, ebrake, sbrake_decel, and cabin_temp, etc
@@ -509,9 +517,10 @@ class TrainModel:
             self.train_controller.train_controller_mode = 'auto'
 
         # calling Train Controller function (also will need to be able to send at_station_vector[0] so that you can check if you are at a station if you are stopping)
+        auth_to_cont = self.authority
         self.train_controller.iterate(self.acceleration, self.previous_acceleration,
                                       min(float(self.speeds_vector[0]), max_speed),
-                                      self.authority, self.velocity, self.failure_modes, self.underground_vector[0],
+                                      auth_to_cont, self.velocity, self.failure_modes, self.underground_vector[0],
                                       self.cabin_temp, self.doors_status, self.lights_status,
                                       self.Next_station_names[0], world_time, )
         # AFTER TRAIN CONTROLLER ITERATE -update the power, ebrake, sbrake_decel, and cabin_temp, etc

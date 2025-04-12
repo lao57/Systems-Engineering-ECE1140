@@ -25,7 +25,7 @@ if __name__ == "__main__":
     i = 0
     world_time = {'day': 0, 'hour': 0, 'min': 0}
     # --- Create core modules ---
-
+    LOOP_INTERVAL_MS = 10  # 1 second in milliseconds
     track_model = TrackModelBackend.TrackModelBackend()
     track_controller = TrackController.TrackController()
 
@@ -35,7 +35,7 @@ if __name__ == "__main__":
     schedules = schedule_loader.load_from_excel("assets/Train_Scheduling.xlsx")
 
     ctc = CTC()
-    ctc_office = CTCOffice(track_layout, schedules, k_p=k_p, k_i=k_i)
+    ctc_office = CTCOffice(track_layout, schedules, k_p=k_p, k_i=k_i, loop_int_ms=LOOP_INTERVAL_MS)
     ctc_office.set_ctc(ctc)
     ctc_office.set_track_model(track_model)
 
@@ -109,7 +109,7 @@ if __name__ == "__main__":
     # Use QTimer to control the update frequency
     update_timer = QTimer()
     update_timer.timeout.connect(update_world)
-    update_timer.start(10)
+    update_timer.start(LOOP_INTERVAL_MS)  # Update every 1 second
 
     # --- Run the application loop ---
     sys.exit(app.exec())

@@ -305,7 +305,7 @@ class CTCOffice:
     ]
 
     def __init__(self, track_layout: Dict[str, List[dict]], schedules: Dict[str, List],
-                 k_p=1000, k_i=100):
+                 k_p=1000, k_i=100, loop_int_ms = 1000):
         self.track_layout = track_layout  # save track layout
         self.schedules = schedules  # save schedule
         self.ctc: CTC = None  # set later
@@ -316,6 +316,8 @@ class CTCOffice:
         self.track_model = None
         self.k_p = k_p
         self.k_i = k_i
+        self.loop_int_ms = loop_int_ms
+        self.stopping_time = 20*(1000/loop_int_ms)
 
     def set_ctc(self, ctc: CTC):
         self.ctc = ctc  # assign ctc
@@ -389,7 +391,7 @@ class CTCOffice:
             current_block=route_head,
             next_stop_index=0  # was 1 before
         )
-        train_model = TrainModel(train_number=schedule.train_id,k_p=self.k_p, k_i=self.k_i)
+        train_model = TrainModel(train_number=schedule.train_id, LOOP_INTERVAL_MS=self.loop_int_ms, k_p=self.k_p, k_i=self.k_i)
         train_model.add_classes(self.track_model)
         self.update_authority(train)  # calculate authority
         self.active_trains.append(train)  # add train to active list of trains
@@ -454,7 +456,7 @@ class CTCOffice:
                 current_block=route_head,
                 next_stop_index=0
             )
-            train_model = TrainModel(train_number=train_id, k_p=self.k_p, k_i=self.k_i)
+            train_model = TrainModel(train_number=train_id, LOOP_INTERVAL_MS=self.loop_int_ms, k_p=self.k_p, k_i=self.k_i)
             train_model.add_classes(self.track_model)
             self.update_authority(new_train)
             self.active_trains.append(new_train)
@@ -569,7 +571,7 @@ class CTCOffice:
                 if nxt_num ==58:
                     print(f"Train {train.train_id} arriving at YARD. Starting final stop.")
                     if not hasattr(train, 'stop_timer'):
-                        train.stop_timer = 100  # Hold at yard entrance
+                        train.stop_timer = self.stopping_time  # Hold at yard entrance
 
 
                 # If train still has scheduled stops and it has reached the scheduled stop,
@@ -577,7 +579,7 @@ class CTCOffice:
                 elif train.next_stop_index < len(train.scheduled_stops) and nxt_num == train.scheduled_stops[
                     train.next_stop_index]:
                     if not hasattr(train, 'stop_timer'):
-                        train.stop_timer = 100  # hold for 10 seconds (adjust timer as needed)
+                        train.stop_timer = self.stopping_time  # hold for 10 seconds (adjust timer as needed)
                         print(f"Train {train.train_id} arrived at stop {nxt_num}. Holding for 10 seconds.")
 
     def update_maintenance(self, maintenance_list):
