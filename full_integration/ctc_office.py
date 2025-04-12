@@ -396,6 +396,8 @@ class CTCOffice:
         self.update_authority(train)  # calculate authority
         self.active_trains.append(train)  # add train to active list of trains
         self.real_active_trains.append(train_model)
+        train_model.train_controller_gui.show()
+        train_model.train_gui.show()
         print(f"Scheduled Train {train.train_id} with route {route_numbers}")
 
     def schedule_manual_train(self, line: str, train_id: int, stops: List[int]):

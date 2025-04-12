@@ -97,8 +97,6 @@ class TrainModel:
         self.announcement = False
         self.stop_flag = False #flag to make sure at a given stop passenger transaction only happens once
         self.LOOP_INTERVAL_MS = LOOP_INTERVAL_MS  # 1 second in milliseconds
-        self.stopped_time = 0  # time spent stopped at a station
-        self.stopping_time = 15*(1000/LOOP_INTERVAL_MS)  # time to stop at a station
 
         # TRAIN PHYSICAL VARIABLES
         self.numberOfCars = 5  # according to profetta this is constant
@@ -137,6 +135,7 @@ class TrainModel:
         self.max_engine_power = 120e3  # 4 motors; each can supply up to max 120 kW
         self.sample_period = 1
         self.comfortable_temp = 70
+        self.station_stop = False # flag to let samarth know if we are in a baud stop
 
         # GUI
         # self.train_controller_gui = TrainControllerGUI(self.k_p, self.k_i)
@@ -150,8 +149,6 @@ class TrainModel:
         self.train_controller = TrainController(self.k_p, self.k_i, self.max_engine_power, self.sample_period,
                                                 self.comfortable_temp, self.train_controller_gui,
                                                 self.train_controller_testbench)
-        self.train_controller_gui.show()
-        self.train_gui.show()
         # self.train_controller_testbench.show()
 
     def __del__(self):
@@ -300,27 +297,29 @@ class TrainModel:
             authority = self.Track_model.get_block_authority(int(self.blocknumbervector[0]))
             if authority < self.authority:
                 self.authority = authority
-                print("IN BAUD READ 1")
+                self.station_stop = False
 
             elif authority == self.authority_sent and authority == 1023:
                 self.authority = 1023 #updates to max authority if it is 1023
-                print("IN BAUD READ 2")
+                self.station_stop = False
 
             elif self.authority < 2 and authority < (self.distance_vector[0] + 10) and authority > (self.distance_vector[0] - 15):
                 #do nothing because they are just sending a halfblock authority
-                print("STOPPING in baud read")
+                self.station_stop = True
 
             elif self.authority < 2 and authority > 0 and authority < (self.distance_vector[0] + 10): #train undershot authority and is now given a hlafblock authority but is really already stopped toward the beginiing of block
                 self.authority = self.distance_vector[0] - authority - 1 
+                self.station_stop = False
                 #sets authority to the halfway block since there is no error as authority is greater than 0
                 #should force train to be in previous case and stop the train
 
             
             elif self.authority < 2 and authority > 0: #train was told to stop but is not told to got so shouldn't bother stopping
                 self.authority = authority
+                self.station_stop = False
 
             self.authority_sent = authority
-            print("Authority: ", authority, " PULLED FROM BAUD READ")
+
         else:
             print("Authority: ", authority, " PULLED FROM START BLOCK")
             self.authority = self.Track_model.get_block_authority(self.START_BLOCK)#starting block
