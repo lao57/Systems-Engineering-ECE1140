@@ -73,7 +73,7 @@ station_naming = {
 class TrainModel:
     """INITIALIZATION"""
 
-    def __init__(self, train_number=1, LOOP_INTERVAL_MS = 1000, k_p=1.5e5, k_i=1.5e4, numberOfPeople=3, start_block=64):
+    def __init__(self, train_number=1, LOOP_INTERVAL_MS = 1000, k_p=1.5e5, k_i=1.5e4, crew_count=3, start_block=64):
 
         # SPEED CALCULATION VARIABLES
         self.velocity = 0
@@ -100,9 +100,11 @@ class TrainModel:
 
         # TRAIN PHYSICAL VARIABLES
         self.numberOfCars = 5  # according to profetta this is constant
-        self.numberOfPeople = numberOfPeople # starts at 2 for the driver and the conductor
+        self.crew_count = crew_count # starts at 3 for the driver and the conductors
+        self.passenger_count = 0 # starts at 0 for the passengers
+        self.numberOfPeople = self.crew_count + self.passenger_count
         self.train_number = train_number
-        self.mass = self.numberOfCars * 40900 + numberOfPeople * 70  # 40 tons per cart plus 70 kg per person
+        self.mass = self.numberOfCars * 40900 + self.numberOfPeople * 70  # 40 tons per cart plus 70 kg per person
         self.weight_imperial = self.mass * 2.20462
         self.length = 32.3 * self.numberOfCars
         self.length_imperial = self.length * 3.2808399
@@ -397,8 +399,10 @@ class TrainModel:
         if self.announcement:
             self.announcement_text = "Arriving at: " + self.Next_station_names[0]
             if self.stop_flag == False:
-                self.numberOfPeople = self.Track_model.station_stop(self.blocknumbervector[0], self.numberOfPeople-2, max_num_passengers)
-                self.numberOfPeople += 2  # add the driver and conductor back
+                self.passenger_count = self.Track_model.station_stop(self.blocknumbervector[0], self.passenger_count, max_num_passengers)
+                self.numberOfPeople = self.passenger_count + self.crew_count  # add the driver and conductor back
+                self.mass = self.numberOfCars * 40900 + self.numberOfPeople * 70  # 40 tons per cart plus 70 kg per person
+                self.weight_imperial = self.mass * 2.20462
                 self.stop_flag = True
         else:
             self.announcement_text = "The Next station is: " + self.Next_station_names[0]

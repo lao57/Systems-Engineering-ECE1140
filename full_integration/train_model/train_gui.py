@@ -99,6 +99,7 @@ class Train_GUI(QWidget):
         # Create labels for train variables
         self.Train_Beacon_ID_Label = QLabel("Baud ID: 0", self)
         self.authority_label = QLabel("authority(m): 0", self)
+        self.cabin_temp_label = QLabel("Cabin Temperature: N/A", self)
         self.kph_velocity_label = QLabel("Velocity(KPH): N/A", self)
         self.acceleration_label = QLabel("Acceleration: N/A", self)
         self.distance_travelled_label = QLabel("Distance Travelled: N/A", self)
@@ -112,6 +113,9 @@ class Train_GUI(QWidget):
         self.weight_label = QLabel("Weight: N/A", self)
         self.num_cars_label = QLabel("Number of Carts: N/A", self)
         self.length_label = QLabel("Length: N/A", self)
+        self.passenger_count_label = QLabel("Passenger Count: N/A", self)
+        self.crew_count_label = QLabel("Crew Count: N/A", self)
+
 
         # Create a dial for velocity
         self.velocity_dial = QDial(self)
@@ -125,6 +129,7 @@ class Train_GUI(QWidget):
         # Layout for train variables
         train_layout = QVBoxLayout()
         input_layout.addWidget(self.authority_label)
+        train_layout.addWidget(self.cabin_temp_label)
         input_layout.addWidget(self.Train_Beacon_ID_Label)
         train_layout.addWidget(self.kph_velocity_label) #now mph
         train_layout.addWidget(self.acceleration_label)
@@ -137,6 +142,8 @@ class Train_GUI(QWidget):
         train_layout.addWidget(self.weight_label)  # Add the new labels
         train_layout.addWidget(self.num_cars_label)
         train_layout.addWidget(self.length_label)
+        train_layout.addWidget(self.passenger_count_label)
+        train_layout.addWidget(self.crew_count_label)
 
         # Layout for train controls
         control_layout = QVBoxLayout()
@@ -193,6 +200,11 @@ class Train_GUI(QWidget):
         self.weight_label.setText(f"Weight: {int(self.train.weight_imperial)} lbs")
         self.num_cars_label.setText(f"Number of Carts: {self.train.numberOfCars}")
         self.length_label.setText(f"Length: {int(self.train.length_imperial)} ft")
+        # Update passenger count and crew count
+        self.passenger_count_label.setText(f"Passenger Count: {self.train.passenger_count}")
+        self.crew_count_label.setText(f"Crew Count: {self.train.crew_count}")
+        # Update cabin temperature
+        self.cabin_temp_label.setText(f"Cabin Temperature: {self.train.cabin_temp:.1f} °F")
         
         self.toggle_left_door()
         self.toggle_right_door()
