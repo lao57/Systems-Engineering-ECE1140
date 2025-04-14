@@ -51,7 +51,7 @@ class TrainController:
         self.testbench = testbench
 
     def iterate(self, speed_limit: int | float, cmd_speed: int | float, authority: int | float, cur_speed: int | float,
-                failure_modes: List[bool], underground: bool, cabin_temp: int | float,
+                failure_modes: List[bool], underground: str, cabin_temp: int | float,
                 doors_status: List[bool], lights_status: List[bool], station_to_be_reached: str,
                 world_time: dict, station_stop: bool, station_side: str):
         """
@@ -155,11 +155,12 @@ class TrainController:
             self.cmd_power = self.k_p * self.speed_error[-1] + self.k_i * cur_integrated_error
 
         # Check if underground (turn on exterior lights)
-        if underground == 1:
+        if underground == '1':
             self.underground = True
             self.lights_status[1] = True
         else:
             self.underground = False
+            self.lights_status[1] = False
 
         # manual mode
         if self.train_controller_mode == "auto":
