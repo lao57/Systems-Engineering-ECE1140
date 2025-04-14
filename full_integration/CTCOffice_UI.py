@@ -1,4 +1,4 @@
-# Form implementation generated from reading ui file 'CTC_Office.ui'
+# Form implementation generated from reading ui file 'C:\Users\dillo\PycharmProjects\Trains\CTC_Office.ui'
 #
 # Created by: PyQt6 UI code generator 6.8.1
 #
@@ -115,7 +115,7 @@ class Ui_MainWindow(object):
         self.tableSystemAnalysis = QtWidgets.QTableWidget(parent=self.centralwidget)
         self.tableSystemAnalysis.setGeometry(QtCore.QRect(60, 610, 151, 101))
         self.tableSystemAnalysis.setObjectName("tableSystemAnalysis")
-        self.tableSystemAnalysis.setColumnCount(3)
+        self.tableSystemAnalysis.setColumnCount(1)
         self.tableSystemAnalysis.setRowCount(2)
         item = QtWidgets.QTableWidgetItem()
         self.tableSystemAnalysis.setVerticalHeaderItem(0, item)
@@ -123,10 +123,6 @@ class Ui_MainWindow(object):
         self.tableSystemAnalysis.setVerticalHeaderItem(1, item)
         item = QtWidgets.QTableWidgetItem()
         self.tableSystemAnalysis.setHorizontalHeaderItem(0, item)
-        item = QtWidgets.QTableWidgetItem()
-        self.tableSystemAnalysis.setHorizontalHeaderItem(1, item)
-        item = QtWidgets.QTableWidgetItem()
-        self.tableSystemAnalysis.setHorizontalHeaderItem(2, item)
         self.maintLine = QtWidgets.QComboBox(parent=self.centralwidget)
         self.maintLine.setGeometry(QtCore.QRect(600, 80, 251, 32))
         font = QtGui.QFont()
@@ -182,9 +178,12 @@ class Ui_MainWindow(object):
         self.TrackStates.setHorizontalHeaderItem(0, item)
         item = QtWidgets.QTableWidgetItem()
         self.TrackStates.setItem(0, 0, item)
+        self.worldTime = QtWidgets.QLabel(parent=self.centralwidget)
+        self.worldTime.setGeometry(QtCore.QRect(350, 440, 121, 61))
+        self.worldTime.setObjectName("worldTime")
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(parent=MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 1405, 22))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 1405, 21))
         self.menubar.setObjectName("menubar")
         MainWindow.setMenuBar(self.menubar)
         self.statusbar = QtWidgets.QStatusBar(parent=MainWindow)
@@ -233,10 +232,6 @@ class Ui_MainWindow(object):
         item.setText(_translate("MainWindow", "Green"))
         item = self.tableSystemAnalysis.horizontalHeaderItem(0)
         item.setText(_translate("MainWindow", "Throughput"))
-        item = self.tableSystemAnalysis.horizontalHeaderItem(1)
-        item.setText(_translate("MainWindow", "# of Failures"))
-        item = self.tableSystemAnalysis.horizontalHeaderItem(2)
-        item.setText(_translate("MainWindow", "Failure %"))
         self.maintLine.setCurrentText(_translate("MainWindow", "Green Line"))
         self.maintLine.setItemText(0, _translate("MainWindow", "Green Line"))
         self.maintLine.setItemText(1, _translate("MainWindow", "Red Line"))
@@ -274,3 +269,4 @@ class Ui_MainWindow(object):
         __sortingEnabled = self.TrackStates.isSortingEnabled()
         self.TrackStates.setSortingEnabled(False)
         self.TrackStates.setSortingEnabled(__sortingEnabled)
+        self.worldTime.setText(_translate("MainWindow", "Time: "))
