@@ -1,5 +1,5 @@
 import sys
-import importlib.util
+import threading
 from PyQt6.QtWidgets import QApplication
 from PyQt6.QtCore import QTimer
 import track_controller.TrackController as TrackController
@@ -8,24 +8,18 @@ import track_gui_and_testbench_unified
 import track_controller.testbench_track_controller as testbench_track_controller
 from train_controller.train_controller_gui import TrainControllerGUI
 from train_model.train_model import TrainModel
-from track_loader import load_track_layout
-from schedule_loader import ScheduleLoader
-from ctc import CTC
-from ctc_office import CTCOffice
+from ctc_office import CTCOffice, CTC, ScheduleLoader, load_track_layout
 from CTC_GUI import CTCGUI
 from track_controller.TrackController import socket_client_thread
-import threading
-
-
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     k_p = 20
     k_i = 5
-    i = 0
-    world_time = {'day': 0, 'hour': 0, 'min': 0}
+    world_time = {'day': 0, 'hour': 6, 'min': 30, 'sec': 0} #30 mins before 7 to give setup time
+
     # --- Create core modules ---
-    LOOP_INTERVAL_MS = 10  # 1 second in milliseconds
+    LOOP_INTERVAL_MS = 10 # 1 second in milliseconds
     track_model = TrackModelBackend.TrackModelBackend()
     track_controller = TrackController.TrackController()
 
@@ -43,12 +37,12 @@ if __name__ == "__main__":
     # socket_thread.start()
 
     # --- Wire components ---
-    
+
     ctc.connect_track_controller(track_controller)
     track_controller.set_ctc(ctc)
     track_controller.set_track_model(track_model)
     track_model.set_track_controller(track_controller)
-    #track_model.set_train_model(train_model)
+    # track_model.set_train_model(train_model)
 
     print("[Main] TrackModel connected to TrackController")
 
@@ -76,6 +70,7 @@ if __name__ == "__main__":
         track_model.gui.update_gui_display()
         print("[Main] Backend synced with Track Controller")
 
+
     # --- Show Track Controller UI ---
     track_controller.show()
 
@@ -90,26 +85,48 @@ if __name__ == "__main__":
     window.show()
 
     # --- Set up continuous controller update ---
-    #update_timer = QTimer()
-    #update_timer.timeout.connect(track_controller.update)
-    #update_timer.timeout.connect(track_model.update)
-    #update_timer.timeout.connect(train_model.update_train)
-    #update_timer.start(1000)  # Update every 1 second
+    # update_timer = QTimer()
+    # update_timer.timeout.connect(track_controller.update)
+    # update_timer.timeout.connect(track_model.update)
+    # update_timer.timeout.connect(train_model.update_train)
+    # update_timer.start(1000)  # Update every 1 second
 
     def update_world():
         """Update the world state periodically."""
         global world_time
+
+        # Increment world time by 1 second per update cycle.
+        world_time['sec'] += 1
+        if world_time['sec'] >= 60:
+            world_time['sec'] = 0
+            world_time['min'] += 1
+            if world_time['min'] >= 60:
+                world_time['min'] = 0
+                world_time['hour'] += 1
+                if world_time['hour'] >= 24:
+                    world_time['hour'] = 0
+                    world_time['day'] += 1
+
+        # Compute current minutes since midnight.
+        current_minutes = world_time['hour'] * 60 + world_time['min']
+
+        # Launch pending trains if their departure time (expected arrival minus 30 min) is reached.
+        ctc_office.launch_pending_trains(current_minutes)
+
+        # Call update functions on each component.
         ctc_gui.update_all()
         track_controller.update()
         track_model.update()
-        if len(track_model.blocks) > 0: # Update train model only if blocks exist
+        if len(track_model.blocks) > 0:  # Update train models only if blocks exist
             ctc_office.update_all_trains(world_time, delta_t=1)
-            #print(len(track_model.blocks))
+
+        # Update the world clock display on the CTC UI.
+        ctc_gui.update_world_clock(world_time)
+
 
     # Use QTimer to control the update frequency
     update_timer = QTimer()
     update_timer.timeout.connect(update_world)
     update_timer.start(LOOP_INTERVAL_MS)  # Update every 1 second
 
-    # --- Run the application loop ---
     sys.exit(app.exec())
