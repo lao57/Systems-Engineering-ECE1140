@@ -12,7 +12,6 @@ class CTCGUI(QMainWindow, Ui_MainWindow):
         super().__init__()
         self.setupUi(self)
 
-
         self.ctc = ctc if ctc is not None else CTC()
         self.track_layout = track_layout if track_layout is not None else load_track_layout("Systems-Engineering-ECE1140/full_integration/assets/Track_Layout.xlsx")
         self.schedule_loader = schedule_loader if schedule_loader is not None else ScheduleLoader(self.track_layout)
@@ -156,7 +155,6 @@ class CTCGUI(QMainWindow, Ui_MainWindow):
                 self.tableSystemAnalysis.setItem(row, col, item)
 
     def update_wayside_controllers(self):
-        # Update the global state arrays (switches, lights, crossings) from the Track Controller.
         if self.track_controller and hasattr(self.track_controller, "wayside_controllers"):
             for wayside_name, config in self.track_controller.wayside_controllers.items():
                 for i, switch_state in enumerate(config["switch_states"]):
@@ -170,46 +168,38 @@ class CTCGUI(QMainWindow, Ui_MainWindow):
                         self.ctc.crossing_states[config["crossings"][i]] = crossing_state
 
     def get_block_authority(self):
-
         return self.ctc.get_block_authority()
 
     def set_ctc(self, ctc):
         self.ctc = ctc
 
     def manual_stop_selection(self):
-
         line = self.scheduleTrainLine.currentText().strip().title()
-        # get train_id
         train_id, ok = QInputDialog.getInt(self, "Manual Train", "Enter Train ID:")
         if not ok:
             return
-
-        # make empty list to get stops
         stops = []
-        # possible stops
         if line == "Green Line":
             possible_stops = [f"Block {b['block_number']}" for b in self.track_layout.get('Green Line', [])]
         else:
             possible_stops = [f"Block {b['block_number']}" for b in self.track_layout.get('Red Line', [])]
-        # click done for completion
         possible_stops.insert(0, "Done")
-
-        # allow user to select as many stops as they want
         while True:
-            stop_item, ok = QInputDialog.getItem(self, "Select Stop", "Select a stop (choose 'Done' when finished):",
-                                                 possible_stops, 1, False)
+            stop_item, ok = QInputDialog.getItem(self, "Select Stop", "Select a stop (choose 'Done' when finished):", possible_stops, 1, False)
             if not ok:
                 break
             if stop_item == "Done":
                 break
-            # get block num
             stop_block = int(stop_item.replace("Block ", ""))
             stops.append(stop_block)
-
-        # call manual scheduling func
         self.ctc_office.schedule_manual_train(line, train_id, stops)
         self.update_all()
         QMessageBox.information(self, "Success", f"Manually scheduled Train {train_id} on {line} with stops: {stops}")
+
+    # update clock in UI
+    def update_world_clock(self, world_time: dict):
+        time_str = f"Time: Day {world_time['day']} {world_time['hour']:02d}:{world_time['min']:02d}:{world_time['sec']:02d}"
+        self.worldTime.setText(time_str)
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
