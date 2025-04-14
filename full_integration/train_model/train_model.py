@@ -338,7 +338,8 @@ class TrainModel:
         ebrake, sbrake_decel, cmd_power, modified_cabin_temp, open_doors, open_lights, announcement = \
             self.train_controller.iterate(self.speeds_vector[0], auth_to_cont, self.velocity, self.failure_modes,
                                           self.underground_vector, self.cabin_temp, self.doors_status,
-                                          self.lights_status, self.at_station_vector, world_time, self.station_stop)
+                                          self.lights_status, self.at_station_vector, world_time, self.station_stop,
+                                          self.station_side)
 
         self.power = cmd_power
         self.ebrake = ebrake
@@ -378,11 +379,11 @@ class TrainModel:
 
         # calling Train Controller function (also will need to be able to send at_station_vector[0] so that you can check if you are at a station if you are stopping)
         auth_to_cont = self.authority
-        self.train_controller.iterate(self.acceleration, self.previous_acceleration,
+        self.train_controller.iterate(self.speeds_vector[0],
                                       min(float(self.speeds_vector[0]), max_speed),
                                       auth_to_cont, self.velocity, self.failure_modes, self.underground_vector[0],
                                       self.cabin_temp, self.doors_status, self.lights_status,
-                                      self.Next_station_names[0], world_time,self.station_stop )
+                                      self.Next_station_names[0], world_time, self.station_stop, self.station_side)
         # AFTER TRAIN CONTROLLER ITERATE -update the power, ebrake, sbrake_decel, and cabin_temp, etc
         self.power = self.train_controller.cmd_power
         self.ebrake = self.train_controller.e_brake_on
@@ -521,11 +522,11 @@ class TrainModel:
 
         # calling Train Controller function (also will need to be able to send at_station_vector[0] so that you can check if you are at a station if you are stopping)
         auth_to_cont = self.authority
-        self.train_controller.iterate(self.acceleration, self.previous_acceleration,
+        self.train_controller.iterate(self.speeds_vector[0],
                                       min(float(self.speeds_vector[0]), max_speed),
                                       auth_to_cont, self.velocity, self.failure_modes, self.underground_vector[0],
                                       self.cabin_temp, self.doors_status, self.lights_status,
-                                      self.Next_station_names[0], world_time, )
+                                      self.Next_station_names[0], world_time, self.station_stop, self.station_side)
         # AFTER TRAIN CONTROLLER ITERATE -update the power, ebrake, sbrake_decel, and cabin_temp, etc
         self.power = self.train_controller.cmd_power
         self.ebrake = self.train_controller.e_brake_on
@@ -664,8 +665,8 @@ class TrainModel:
         self.train_controller_gui.update_cabin_temp(self.cabin_temp)
         self.train_controller_gui.update_doors_status(self.doors_status)
         self.train_controller_gui.update_lights_status(self.lights_status)
-        # self.train_controller_gui.update_most_recent_station(self.station_to_be_reached)
+        # self.train_controller_gui.update_most_recent_station(self.Next_station_names[0])
         self.train_controller_gui.update_speed_limit(self.train_controller.speed_limit)
         self.train_controller_gui.update_authority(self.authority)
         self.train_controller_gui.update_failure_modes(self.failure_modes)
-        # self.train_controller_gui.update_underground(self.underground)
+        self.train_controller_gui.update_underground(self.train_controller.underground)

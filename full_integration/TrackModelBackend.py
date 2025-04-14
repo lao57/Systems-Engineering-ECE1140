@@ -235,6 +235,7 @@ class TrackModelBackend:
     def station_stop(self, block, number_of_passengers_on_train, max_num_passengers):
         #shouldn't be just four needs to have some type of number of passengers on the block
         passengers_on_block = 4
+        new_number_of_passengers_on_train = number_of_passengers_on_train
         new_number_of_passengers_on_train += passengers_on_block
         if new_number_of_passengers_on_train > max_num_passengers:
             # If the number of passengers exceeds the maximum, set it to the maximum

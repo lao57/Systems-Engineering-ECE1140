@@ -50,10 +50,10 @@ class TrainController:
         self.gui = gui
         self.testbench = testbench
 
-    def iterate(self, cur_accel, prev_accel, cmd_speed: int | float, authority: int | float, cur_speed: int | float,
+    def iterate(self, speed_limit: int | float, cmd_speed: int | float, authority: int | float, cur_speed: int | float,
                 failure_modes: List[bool], underground: bool, cabin_temp: int | float,
                 doors_status: List[bool], lights_status: List[bool], station_to_be_reached: str,
-                world_time: dict, CTC_stop: bool):
+                world_time: dict, station_stop: bool, station_side: str):
         """
         :param cmd_speed: Commanded speed (m/s)
         :param authority: Authority (m)
@@ -125,27 +125,18 @@ class TrainController:
         # End of safety critical section
 
         # about to reach station
-        # TODO: Parse beacon signal
-        # if station_to_be_reached != self.most_recent_station and station_to_be_reached in self.stations:
-        #     self.most_recent_station = station_to_be_reached
-        #     # For now, open both doors
-        #     self.doors_status = doors_status
-        #     self.announce_station = True
-        # else:
-        #     self.doors_status = doors_status
-        #     self.announce_station = False
-
-        # self.cmd_speed = cmd_speed
-        # self.speed_limit = self.stations[self.most_recent_station]['speed_limit']
-        # if self.speed_limit > self.max_train_speed:  # never exceed max train speed
-        #     self.speed_limit = self.max_train_speed
-        # clamp cmd_speed
-        # speed_limit = min(cmd_speed, self.max_train_speed)
-        # self.speed_limit = speed_limit
-
-        # self.speed_limit = cmd_speed
+        if station_stop and cur_speed == 0:
+            self.announce_station = True
+            if station_side == 'Left':
+                self.doors_status = [True, False]
+            else:
+                self.doors_status = [False, True]
+        else:
+            self.announce_station = True
+            self.doors_status = [False, False]
 
         # compute current speed error
+        self.speed_limit = speed_limit
         cmd_speed = 0.75 * cmd_speed
         self.speed_error.append(cmd_speed - cur_speed)
         # deliver power (according to control law)
@@ -164,9 +155,11 @@ class TrainController:
             self.cmd_power = self.k_p * self.speed_error[-1] + self.k_i * cur_integrated_error
 
         # Check if underground (turn on exterior lights)
-        # TODO: Parse beacon signal
-        # if underground:
-        #     self.lights_status[1] = True
+        if underground == 1:
+            self.underground = True
+            self.lights_status[1] = True
+        else:
+            self.underground = False
 
         # manual mode
         if self.train_controller_mode == "auto":
@@ -207,8 +200,8 @@ class TrainController:
             self.service_brake_decel = 0.0
 
         # Check if nighttime (between 8 pm and 6 am)
-        if world_time['hour'] >= 20 or world_time['hour'] <= 6:
-            self.lights_status[0] = True
+        # if world_time['hour'] >= 20 or world_time['hour'] <= 6:
+        #     self.lights_status[0] = True
 
         # Check if comfortable cabin temp (F)
         self.cur_cabin_temp = cabin_temp
