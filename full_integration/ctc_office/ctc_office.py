@@ -319,7 +319,7 @@ class CTCOffice:
 
         from PyQt6.QtWidgets import QWidget  # already imported above
         self.TrainUIToggle = TrainUIToggle(self.real_active_trains)
-        self.TrainUIToggle.show()
+        # self.TrainUIToggle.show()
 
     def set_ctc(self, ctc: CTC):
         self.ctc = ctc  # assign ctc

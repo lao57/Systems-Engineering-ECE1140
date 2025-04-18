@@ -36,7 +36,7 @@ class TestBench(QMainWindow):
 
         # Create 150 buttons in a grid
         self.block_buttons = []
-        for block_num in range(1, 151):
+        for block_num in range(1, 76):
             btn = QPushButton(f"Block {block_num}")
             btn.setCheckable(True)
             btn.clicked.connect(lambda checked, block=block_num - 1: self.toggle_block(block))

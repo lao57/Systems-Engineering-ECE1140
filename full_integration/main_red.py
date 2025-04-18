@@ -79,15 +79,15 @@ if __name__ == "__main__":
 
 
 
-    ctc_gui = CTCGUI(ctc=ctc, ctc_office=ctc_office,
-                     track_layout=track_layout,
-                     schedule_loader=schedule_loader,
-                     track_controller=track_controller)
-    ctc_gui.show()
+    # ctc_gui = CTCGUI(ctc=ctc, ctc_office=ctc_office,
+    #                  track_layout=track_layout,
+    #                  schedule_loader=schedule_loader,
+    #                  track_controller=track_controller)
+    # ctc_gui.show()
 
     # --- Show Unified TrackModelUI + Testbench window and pass backend ---
-    window = track_gui_and_testbench_unified.UnifiedTrackUI(backend=track_model)
-    window.show()
+    # window = track_gui_and_testbench_unified.UnifiedTrackUI(backend=track_model)
+    # window.show()
 
     # --- Set up continuous controller update ---
     # update_timer = QTimer()
@@ -116,17 +116,17 @@ if __name__ == "__main__":
         current_minutes = world_time['hour'] * 60 + world_time['min']
 
         # Launch pending trains if their departure time (expected arrival minus 30 min) is reached.
-        ctc_office.launch_pending_trains(current_minutes)
+        # ctc_office.launch_pending_trains(current_minutes)
 
         # Call update functions on each component.
-        ctc_gui.update_all()
+        # ctc_gui.update_all()
         track_controller.update()
-        track_model.update()
+        # track_model.update()
         if len(track_model.blocks) > 0:  # Update train models only if blocks exist
             ctc_office.update_all_trains(world_time, delta_t=1)
 
         # Update the world clock display on the CTC UI.
-        ctc_gui.update_world_clock(world_time)
+        # ctc_gui.update_world_clock(world_time)
 
 
     # Use QTimer to control the update frequency
