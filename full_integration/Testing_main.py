@@ -74,6 +74,11 @@ if __name__ == "__main__":
     # --- Show Track Controller UI ---
     track_controller.show()
 
+    track_controller_tb = testbench_track_controller.TestBench(ctc, track_model)
+    track_controller_tb.show()
+
+
+
     ctc_gui = CTCGUI(ctc=ctc, ctc_office=ctc_office,
                      track_layout=track_layout,
                      schedule_loader=schedule_loader,
