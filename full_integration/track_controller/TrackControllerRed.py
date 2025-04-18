@@ -33,7 +33,7 @@ class TrackControllerRed(QMainWindow):
         # Define wayside controllers and their block assignments
         self.wayside_controllers = {
             "wayside4": {
-                "blocks": list(range(1, 76)),  # Blocks 1-76
+                "blocks": list(range(1, 77)),  # Blocks 1-76
                 "switches": [8, 15, 51, 43, 37, 32, 26],  # Switches controlled by Wayside 1 (indices 0 and 1)
                 "lights": [0, 75, 70, 65],  # Lights controlled by Wayside 1
                 "crossings": [10, 46],  # Crossings controlled by Wayside 1
@@ -107,7 +107,7 @@ class TrackControllerRed(QMainWindow):
         # Switch Buttons
         self.switch_buttons = []
         switch_layout = QHBoxLayout()
-        for i in range(3):  # Max switches across all waysides
+        for i in range(7):  # Max switches across all waysides
             btn = QPushButton(f"Switch {i + 1}: {'On' if False else 'Off'}")
             btn.setStyleSheet(f"background-color: {'green' if False else 'red'}")
             btn.clicked.connect(lambda checked, idx=i: self.toggle_switch_state(idx))
@@ -139,7 +139,7 @@ class TrackControllerRed(QMainWindow):
 
         self.stop_buttons = []
         stop_layout = QHBoxLayout()
-        for i in range(6):  # Max crossings across all waysides
+        for i in range(12):  # Max stops across all waysides
             btn = QPushButton(f"Stop {i + 1}: {'stop' if False else 'allow'}")
             btn.setStyleSheet(f"background-color: {'red' if False else 'green'}")
             btn.clicked.connect(lambda checked, idx=i: self.toggle_stop_state(idx))
