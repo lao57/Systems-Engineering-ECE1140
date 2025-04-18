@@ -6,18 +6,18 @@ from train_controller.testbench_gui import TestbenchGUI
 from train_model.train_gui import Train_GUI
 from train_controller.train_controller_gui_v2 import TrainControllerGUIv2
 
-service_brake_deceleration = 1.2  # m/s^2
-emergency_brake_deceleration = 2.73  # m/s^2
-cabinLen = 32.2  # m
-cabinHeight = 3.42  # m
-cabinWidth = 2.65  # m
-g = 9.8  # m/s^2
-static_rolling_ressistance = 0.1  # m/s^2
-max_speed = 19.444  # m/s
-max_num_passengers = 73  # max number of people in the train - 1 driver and 1 conductor
+SERVICE_BRAKE_DECELERATION = 1.2  # m/s^2
+EMERGENCY_BRAKE_DECELERATION = 2.73  # m/s^2
+CABIN_LENGTH = 32.2  # m
+CABIN_HEIGHT = 3.42  # m
+CABIN_WIDTH = 2.65  # m
+G_CONSTANT = 9.8  # m/s^2
+STATIC_ROLLING_RESSISTANCE = 0.1  # m/s^2
+MAX_SPEED = 19.444  # m/s
+MAX_NUM_PASSENGERS = 73  # max number of people in the train - 1 driver and 1 conductor
 
 # Static dictionary to convert three-bit binary numbers to specific values
-binary_to_value = {
+BIN_TO_SPEED_LIM = {
     '000': 0,
     '001': 15,
     '010': 20,
@@ -28,29 +28,7 @@ binary_to_value = {
     '111': 70
 }
 
-# static dictionary for authority (NOT REALLY NEEDED ANYMORE)
-
-"""
-station_map = {
-    "STATION; PIONEER": "0001",
-    "STATION; EDGEBROOK": "0010",
-    "STATION": "0011",
-    "STATION; WHITED": "0100",
-    "STATION; SOUTH BANK": "0101",
-    "STATION; CENTRAL": "0110",
-    "STATION; INGLEWOOD": "0111",
-    "STATION; OVERBROOK": "1000",
-    "STATION; GLENBURY": "1001",
-    "STATION; DORMONT": "1010",
-    "STATION; MT LEBANON": "1011",
-    "STATION; POPLAR": "1100",
-    "STATION; CASTLE SHANNON": "1101"
-}
-
-
-"""
-
-station_naming = {
+STATION_NAMING = {
     '0001': "PIONEER",
     '0010': "EDGEBROOK",
     '0100': "WHITED",
@@ -74,6 +52,16 @@ class TrainModel:
     """INITIALIZATION"""
 
     def __init__(self, train_number=1, LOOP_INTERVAL_MS = 1000, k_p=1.5e5, k_i=1.5e4, crew_count=3, start_block=64):
+        """
+        Initialize the TrainModel instance.
+
+        :param train_number: Unique identifier for the train.
+        :param loop_interval_ms: Loop interval in milliseconds.
+        :param k_p: Proportional gain for the train controller.
+        :param k_i: Integral gain for the train controller.
+        :param crew_count: Number of crew members on the train.
+        :param start_block: Starting block number for the train.
+        """
 
         # SPEED CALCULATION VARIABLES
         self.velocity = 0
@@ -154,12 +142,18 @@ class TrainModel:
         # self.train_controller_testbench.show()
 
     def __del__(self):
+        """
+        Destructor for TrainModel.
+        """
         print("Train Model Deleted")
         self.train_controller_gui.close()
         self.train_gui.close()
         # self.train_controller_testbench.close()
 
     def display_train(self):
+        """
+        Display the current status of the train.
+        """
         print("--------------------------TRAIN STATUS--------------------------")
         print("Authority: ", self.authority)
         print("velocity: ", self.velocity)
@@ -181,24 +175,37 @@ class TrainModel:
         print("Power: ", self.power)
 
     def add_classes(self, Track_model):
+        """
+        Add external classes to the TrainModel.
+
+        :param track_model: Instance of the TrackModel class.
+        """
         self.Track_model = Track_model
 
     """SIGNAL FUNCTIONS"""
 
     def pickup_beacon_signal(self):
         #print("block number than beacon signal")
+        """
+        Pick up the beacon signal from the current block.
+
+        This method retrieves the beacon signal from the track model and parses
+        it if it is new and valid. It also processes the grade and block number
+        vectors associated with the beacon signal.
+        """
+
 
         if self.blocknumbervector:
             beacon_signal = self.Track_model.get_beacon_from_block(self.blocknumbervector[0])
         else:
-            beacon_signal = self.Track_model.get_beacon_from_block(64)
+            beacon_signal = self.Track_model.get_beacon_from_block(self.START_BLOCK)
         if beacon_signal[0:4] != self.last_beacon and beacon_signal[0:4] != 0000 and beacon_signal[0:4] != None:
             if self.blocknumbervector:
                 grade_vector_holder = self.Track_model.get_grade_from_block(self.blocknumbervector[0])
                 if grade_vector_holder and isinstance(grade_vector_holder, (list, str)):
                     try:
                         # Join the elements if it's a list, split by spaces, and convert to integers
-                        # grade_vector_holder_parsed = [int(num) for num in ''.join(grade_vector_holder).split()]
+
                         grade_vector_holder_parsed = [float(num) for num in grade_vector_holder.split()]
                         parse_blocknumbervector = self.Track_model.get_block_vector_from_block(self.blocknumbervector[0])
                         blocknumbervector_holder = [int(num) for num in ''.join(parse_blocknumbervector).split()]
@@ -209,36 +216,36 @@ class TrainModel:
                 else:
                     #print(f"Invalid grade_vector_holder: {grade_vector_holder}")
                     grade_vector_holder_parsed = []  # Default to an empty list if input is invalid
-                """
-                if grade_vector_holder != "nan":
-                    print(f"grade vector holder: {grade_vector_holder}")
-                    grade_vector_holder_parsed = [int(num) for num in ''.join(grade_vector_holder).split()]
-                    parse_blocknumbervector = self.Track_model.get_block_vector_from_block(
-                        self.blocknumbervector[0])  # there will be some function from the track
-                    blocknumbervector_holder = [int(num) for num in ''.join(parse_blocknumbervector).split()]
-                    self.beacon_parse(beacon_signal, grade_vector_holder_parsed, blocknumbervector_holder)
-                    """
+
             else:
                 # grade_vector_holder = self.Track_model.get_grade_from_block(62)
-                grade_vector_holder = self.Track_model.get_grade_from_block(64)
+                grade_vector_holder = self.Track_model.get_grade_from_block(self.START_BLOCK)
                 if grade_vector_holder != "nan":
                     #print(f"grade vector holder: {grade_vector_holder}")
-                    # grade_vector_holder_parsed = [int(num) for num in ''.join(grade_vector_holder).split()]
+
                     grade_vector_holder_parsed = [float(num) for num in grade_vector_holder.split()]
-                    # grade_vector_holder_parsed = [float(num) for num in grade_vector_holder.split()]
-                    # grade_vector_holder_parsed = [int(float(num)) for num in grade_vector_holder.split(', ')]
-                    # parse_blocknumbervector = self.Track_model.get_block_vector_from_block(62)
-                    parse_blocknumbervector = self.Track_model.get_block_vector_from_block(64)
+
+                    parse_blocknumbervector = self.Track_model.get_block_vector_from_block(self.START_BLOCK)
                     blocknumbervector_holder = [int(num) for num in ''.join(parse_blocknumbervector).split()]
                     self.beacon_parse(beacon_signal, grade_vector_holder_parsed, blocknumbervector_holder)
-            """
-            the idea here is that I will be pinging the block that I am currently on
-            then I make sure that I have not already read this beacon if I have not
-            then I parse it plus the grade and block number vector
-            """
+            
+            #the idea here is that I will be pinging the block that I am currently on
+            #then I make sure that I have not already read this beacon if I have not
+            #then I parse it plus the grade and block number vector
+            
         pass
 
     def beacon_parse(self, beaconvector, gradevector_REALSIM, blocknumbervector_REALSIM):
+        """
+        Parse the beacon signal and update train state.
+
+        This method processes the beacon signal, grade vector, and block number vector
+        to update the train's internal state, including distance, speed, and station information.
+
+        :param beacon_vector: The beacon signal vector.
+        :param grade_vector_realsim: The grade vector from the track model.
+        :param block_number_vector_realsim: The block number vector from the track model.
+        """
         n = len(beaconvector)
         self.last_beacon = beaconvector[0:4]
         if beaconvector[0] != None:
@@ -273,7 +280,7 @@ class TrainModel:
                 self.imperial_distance_vector.append(distance_value * 3.2808399)  # converts meters to feet
 
                 speed_str = beaconvector[4 + num_blocks * 10 + 3 * i:7 + num_blocks * 10 + 3 * i]
-                speed_limit = binary_to_value[speed_str] * 0.277778 # kmph to m/s
+                speed_limit = BIN_TO_SPEED_LIM[speed_str] * 0.277778 # kmph to m/s
                 self.speeds_vector.append(speed_limit)
 
                 self.underground_vector.append(beaconvector[4 + num_blocks * 13 + i])
@@ -295,7 +302,7 @@ class TrainModel:
     def baud_read(self):
         #print(self.blocknumbervector[0])
         if self.blocknumbervector:
-            print("IN BAUD READ")
+            #print("IN BAUD READ") #FOR TESTING THIS FUNCTION
             authority = self.Track_model.get_block_authority(int(self.blocknumbervector[0]))
             if authority < self.authority:
                 self.authority = authority
@@ -380,7 +387,7 @@ class TrainModel:
         # calling Train Controller function (also will need to be able to send at_station_vector[0] so that you can check if you are at a station if you are stopping)
         auth_to_cont = self.authority
         self.train_controller.iterate(self.speeds_vector[0],
-                                      min(float(self.speeds_vector[0]), max_speed),
+                                      min(float(self.speeds_vector[0]), MAX_SPEED),
                                       auth_to_cont, self.velocity, self.failure_modes, self.underground_vector[0],
                                       self.cabin_temp, self.doors_status, self.lights_status,
                                       self.Next_station_names[0], world_time, self.station_stop, self.station_side)
@@ -400,7 +407,7 @@ class TrainModel:
         if self.announcement:
             self.announcement_text = "Arriving at: " + self.Next_station_names[0]
             if self.stop_flag == False:
-                self.passenger_count = self.Track_model.station_stop(self.blocknumbervector[0], self.passenger_count, max_num_passengers)
+                self.passenger_count = self.Track_model.station_stop(self.blocknumbervector[0], self.passenger_count, MAX_NUM_PASSENGERS)
                 self.numberOfPeople = self.passenger_count + self.crew_count  # add the driver and conductor back
                 self.mass = self.numberOfCars * 40900 + self.numberOfPeople * 70  # 40 tons per cart plus 70 kg per person
                 self.weight_imperial = self.mass * 2.20462
@@ -420,7 +427,7 @@ class TrainModel:
             print(f"no grade vector 1")  # Default to 0 if grade_vector is empty or None
 
         # Calculate gravitational acceleration
-        gravitational_acceleration = g * np.sin(np.arctan(grade_value / 100))
+        gravitational_acceleration = G_CONSTANT * np.sin(np.arctan(grade_value / 100))
 
         """
         # Acceleration Calculation
@@ -437,16 +444,16 @@ class TrainModel:
         """
         if self.ebrake:
             self.acceleration = (
-                        0 - self.sbrake_decel * service_brake_deceleration - self.ebrake * emergency_brake_deceleration - gravitational_acceleration - static_rolling_ressistance)
+                        0 - self.sbrake_decel * SERVICE_BRAKE_DECELERATION - self.ebrake * EMERGENCY_BRAKE_DECELERATION - gravitational_acceleration - STATIC_ROLLING_RESSISTANCE)
         else:
             if (self.velocity <= 0):  # see Ipad for notes on this derivation but avoids divide by zero error
                 self.acceleration = ((not (self.failure_modes[0])) * np.sqrt(
                     (2 * self.power) / (self.mass)) - self.sbrake_decel * (not (self.failure_modes[
-                    2])) * service_brake_deceleration - self.ebrake * emergency_brake_deceleration - gravitational_acceleration)
+                    2])) * SERVICE_BRAKE_DECELERATION - self.ebrake * EMERGENCY_BRAKE_DECELERATION - gravitational_acceleration)
             else:  # normal acceleration calculation
                 self.acceleration = ((not (self.failure_modes[0])) * self.power / (
                             self.mass * self.velocity) - self.sbrake_decel * (not (self.failure_modes[
-                    2])) * service_brake_deceleration - self.ebrake * emergency_brake_deceleration - gravitational_acceleration)
+                    2])) * SERVICE_BRAKE_DECELERATION - self.ebrake * EMERGENCY_BRAKE_DECELERATION - gravitational_acceleration)
 
         self.previous_velocity = self.velocity
         self.velocity += (1 / 2) * (self.acceleration + self.previous_acceleration) * delta_t
@@ -523,7 +530,7 @@ class TrainModel:
         # calling Train Controller function (also will need to be able to send at_station_vector[0] so that you can check if you are at a station if you are stopping)
         auth_to_cont = self.authority
         self.train_controller.iterate(self.speeds_vector[0],
-                                      min(float(self.speeds_vector[0]), max_speed),
+                                      min(float(self.speeds_vector[0]), MAX_SPEED),
                                       auth_to_cont, self.velocity, self.failure_modes, self.underground_vector[0],
                                       self.cabin_temp, self.doors_status, self.lights_status,
                                       self.Next_station_names[0], world_time, self.station_stop, self.station_side)
@@ -543,7 +550,7 @@ class TrainModel:
         if self.announcement:
             self.announcement_text = "Arriving at: " + self.Next_station_names[0]
             if self.stop_flag == False:
-                self.numberOfPeople = self.Track_model.station_stop(self.blocknumbervector[0], self.numberOfPeople-2, max_num_passengers)
+                self.numberOfPeople = self.Track_model.station_stop(self.blocknumbervector[0], self.numberOfPeople-2, MAX_NUM_PASSENGERS)
                 self.numberOfPeople += 2  # add the driver and conductor back
                 self.stop_flag = True
         else:
@@ -561,7 +568,7 @@ class TrainModel:
             print(f"no grade vector 1")  # Default to 0 if grade_vector is empty or None
 
         # Calculate gravitational acceleration
-        gravitational_acceleration = g * np.sin(np.arctan(grade_value / 100))
+        gravitational_acceleration = G_CONSTANT * np.sin(np.arctan(grade_value / 100))
 
         """
         # Acceleration Calculation
@@ -578,16 +585,16 @@ class TrainModel:
         """
         if self.ebrake:
             self.acceleration = (
-                        0 - self.sbrake_decel * service_brake_deceleration - self.ebrake * emergency_brake_deceleration - gravitational_acceleration - static_rolling_ressistance)
+                        0 - self.sbrake_decel * SERVICE_BRAKE_DECELERATION - self.ebrake * EMERGENCY_BRAKE_DECELERATION - gravitational_acceleration - STATIC_ROLLING_RESSISTANCE)
         else:
             if (self.velocity <= 0):  # see Ipad for notes on this derivation but avoids divide by zero error
                 self.acceleration = ((not (self.failure_modes[0])) * np.sqrt(
                     (2 * self.power) / (self.mass)) - self.sbrake_decel * (not (self.failure_modes[
-                    2])) * service_brake_deceleration - self.ebrake * emergency_brake_deceleration - gravitational_acceleration)
+                    2])) * SERVICE_BRAKE_DECELERATION - self.ebrake * EMERGENCY_BRAKE_DECELERATION - gravitational_acceleration)
             else:  # normal acceleration calculation
                 self.acceleration = ((not (self.failure_modes[0])) * self.power / (
                             self.mass * self.velocity) - self.sbrake_decel * (not (self.failure_modes[
-                    2])) * service_brake_deceleration - self.ebrake * emergency_brake_deceleration - gravitational_acceleration)
+                    2])) * SERVICE_BRAKE_DECELERATION - self.ebrake * EMERGENCY_BRAKE_DECELERATION - gravitational_acceleration)
 
         self.previous_velocity = self.velocity
         self.velocity += (1 / 2) * (self.acceleration + self.previous_acceleration) * delta_t
