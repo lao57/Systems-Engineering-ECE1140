@@ -2,15 +2,15 @@ import sys
 import threading
 from PyQt6.QtWidgets import QApplication
 from PyQt6.QtCore import QTimer
-import track_controller.TrackController as TrackController
-import track_model.TrackModelBackend as TrackModelBackend
+import track_controller.track_controller as track_controller
+import track_model.track_model_backend as track_model_backend
 import track_model.track_gui_and_testbench_unified as track_gui_and_testbench_unified
 import track_controller.testbench_track_controller as testbench_track_controller
 from train_controller.train_controller_gui import TrainControllerGUI
 from train_model.train_model import TrainModel
 from ctc_office.ctc_office import CTCOffice, CTC, ScheduleLoader, load_track_layout
-from ctc_office.CTC_GUI import CTCGUI
-from track_controller.TrackController import socket_client_thread
+from ctc_office.ctc_gui import CTCGUI
+from track_controller.track_controller import socket_client_thread
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
@@ -20,8 +20,8 @@ if __name__ == "__main__":
 
     # --- Create core modules ---
     LOOP_INTERVAL_MS = 10 # 1 second in milliseconds
-    track_model = TrackModelBackend.TrackModelBackend()
-    track_controller = TrackController.TrackController()
+    track_model = track_model_backend.TrackModelBackend()
+    track_controller = track_controller.TrackController()
 
     # --- CTC Init ---
     track_layout = load_track_layout("assets/Track_Layout.xlsx")

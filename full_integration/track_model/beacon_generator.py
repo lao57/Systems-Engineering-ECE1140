@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 
 # === CONFIG ===
-EXCEL_FILE = "green_line.xlsx"     # file name
+EXCEL_FILE = "assets/green_line_map.xlsx"     # file name
 SHEET_NAME = 0
 TID = input("Enter TID for this beacon (e.g. 0001): ")
 

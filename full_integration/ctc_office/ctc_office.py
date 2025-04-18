@@ -4,7 +4,7 @@ from typing import List, Dict
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QApplication, QTableWidgetItem, QWidget, QVBoxLayout, QCheckBox, QPushButton, QLabel
 
-import track_model.TrackModelBackend as TrackModelBackend
+import track_model.track_model_backend as track_model_backend
 import track_model.track_gui_and_testbench_unified as track_gui_and_testbench_unified
 import track_controller.testbench_track_controller as testbench_track_controller
 from train_controller.train_controller_gui import TrainControllerGUI
