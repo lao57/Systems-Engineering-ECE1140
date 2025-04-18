@@ -3,13 +3,13 @@ import threading
 from PyQt6.QtWidgets import QApplication
 from PyQt6.QtCore import QTimer
 import track_controller.TrackController as TrackController
-import TrackModelBackend
-import track_gui_and_testbench_unified
+import track_model.TrackModelBackend as TrackModelBackend
+import track_model.track_gui_and_testbench_unified as track_gui_and_testbench_unified
 import track_controller.testbench_track_controller as testbench_track_controller
 from train_controller.train_controller_gui import TrainControllerGUI
 from train_model.train_model import TrainModel
-from ctc_office import CTCOffice, CTC, ScheduleLoader, load_track_layout
-from CTC_GUI import CTCGUI
+from ctc_office.ctc_office import CTCOffice, CTC, ScheduleLoader, load_track_layout
+from ctc_office.CTC_GUI import CTCGUI
 from track_controller.TrackController import socket_client_thread
 
 if __name__ == "__main__":

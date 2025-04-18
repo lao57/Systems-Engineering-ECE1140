@@ -3,8 +3,8 @@ from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QFileDialog, QTableWidgetItem, QMessageBox, QInputDialog
 )
 from PyQt6.QtCore import Qt, QTimer
-from CTCOffice_UI import Ui_MainWindow
-from ctc_office import CTC, ScheduleLoader, load_track_layout, CTCOffice, STATION_BLOCKS
+from ctc_office.CTCOffice_UI import Ui_MainWindow
+from ctc_office.ctc_office import CTC, ScheduleLoader, load_track_layout, CTCOffice, STATION_BLOCKS
 
 class CTCGUI(QMainWindow, Ui_MainWindow):
 
