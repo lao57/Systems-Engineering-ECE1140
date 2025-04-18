@@ -2,10 +2,10 @@ import numpy as np
 import pandas as pd
 
 # === CONFIG ===
-EXCEL_FILE = "assets/green_line_map.xlsx"     # file name
+EXCEL_FILE = "assets/green_line.xlsx"     # file name
 SHEET_NAME = 0
 TID = input("Enter TID for this beacon (e.g. 0001): ")
-
+0
 # === Lookup table configs ===
 speed_bin_map = {
     0: "000", 15: "001", 20: "010", 25: "011",
