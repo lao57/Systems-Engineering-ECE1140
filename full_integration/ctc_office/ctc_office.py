@@ -10,6 +10,9 @@ import track_controller.testbench_track_controller as testbench_track_controller
 from train_controller.train_controller_gui import TrainControllerGUI
 from train_model.train_model import TrainModel
 
+
+
+
 # CTC (from ctc.py)
 class CTC:
     def __init__(self):
@@ -66,7 +69,7 @@ STATION_BLOCKS = {
         'OVERBROOK': 57,
         'GLENBURY': 65,
         'DORMONT': 73,
-        'MT LEBANON': 77,
+        #'MT LEBANON': 77,
         'POPLAR': 88,
         'CASTLE SHANNON': 96,
         'DORMONT2': 105,
@@ -251,6 +254,7 @@ class TrackBlock:
         self.block_number = block_number
         self.block_length = block_length
         self.next = None  # pointer to next block in route
+        self.prev = None  # pointer to previous block in route
 
 class Train:
     def __init__(self, train_id: int, route_head: TrackBlock, scheduled_stops: List[int] = None,
@@ -315,6 +319,7 @@ class CTCOffice:
         self.loop_int_ms = loop_int_ms
         self.stopping_time = 20 * (1000 / loop_int_ms)
         self.pending_trains: List[ScheduleEntry] = [] #pending trains for dispatch
+        self.zero_authority = [False] * 150 #zero authority for all blocks
 
 
         from PyQt6.QtWidgets import QWidget  # already imported above
@@ -327,17 +332,30 @@ class CTCOffice:
     def build_linked_route(self, route_numbers: List[int]) -> TrackBlock:
         head = None  # first block in route
         curr = None  # pointer to current end of linked list
-        # Iterate through each block number in the route
-        for num in route_numbers:
-            length = self.green_blocks[num]['block_length'] if num in self.green_blocks else 0.0
-            node = TrackBlock(num, length)
-            if head is None:
-                head = node
-                curr = node
-            else:
-                curr.next = node
-                curr = node
+        index = 0
+        block_num = route_numbers[index] if index < len(route_numbers) else None
+        length = self.green_blocks[block_num]['block_length'] if block_num in self.green_blocks else 0.0
+        node = TrackBlock(index, length)
+        curr = node
+        head = node
+        node.prev = None
+        curr.next = self.recursive_link_helper(route_numbers, 0)
+        if curr.next:
+            curr.next.prev = curr
         return head
+
+
+    def recursive_link_helper(self, route_numbers: List[int], index: int) -> TrackBlock:
+        if index >= len(route_numbers):
+            return None
+        block_num = route_numbers[index]
+        length = self.green_blocks[block_num]['block_length'] if block_num in self.green_blocks else 0.0
+        node = TrackBlock(block_num, length)
+        node.next = self.recursive_link_helper(route_numbers, index + 1)
+        if node.next:
+            node.next.prev = node
+        return node
+
 
     #instead of immediate dispatch add to pending
     def add_pending_train(self, schedule_entry: ScheduleEntry):
@@ -466,6 +484,9 @@ class CTCOffice:
 
         # If the target block is reached exactly, and it is a station, give half block length.
         target_stop = train.scheduled_stops[train.next_stop_index]
+        node = train.current_block
+        #print(f"node: {node}")
+        #print(f"current block number: {node.block_number}")
         if train.current_block and train.current_block.block_number == target_stop:
             if target_stop in STATION_BLOCKS['BLOCK_TO_STATION']:
                 train.authority_meters = train.current_block.block_length / 2.0
@@ -481,7 +502,25 @@ class CTCOffice:
         start_in_second_half = (train.last_stop_passed == node.block_number) if node else False
 
         # Sum block lengths until reaching the target stop.
-        while node and node.block_number != target_stop:
+        while node.block_number != target_stop:
+            print(node.block_number)
+            if self.ctc.block_occupancy[(node.next.block_number-1)] and node != train.current_block:
+                #the next node is occupied
+                #print (self.ctc.block_occupancy)
+                #print(f"Train {train.train_id} cannot proceed; block {node.block_number} is occupied.")
+                total -= node.prev.block_length
+                total -= int((0.5*node.prev.prev.block_length))
+
+                self.zero_authority[node.prev.block_number-1] = True
+                #print(f"stopping block  {node.prev.block_number} previous.")
+                self.zero_authority[node.prev.prev.block_number-1] = True
+                #print(f"stoppping block {node.prev.prev.block_number} previous to previous.")
+                train.authority_meters = total
+                #print(f"total authority = {total} m")
+                return
+
+                
+
             if start_in_second_half:
                 total += node.block_length / 2.0
                 start_in_second_half = False
@@ -502,24 +541,26 @@ class CTCOffice:
         if not self.ctc:
             return
         # Create list of blocks currently occupied (1-indexed).
-        occupied_blocks = [i + 1 for i, occ in enumerate(self.ctc.get_block_occupancy()) if occ]
+        occupied_blocks = [i + 1 for i, occ in enumerate(self.ctc.block_occupancy) if occ]
         for train in self.active_trains[:]:
-            if train.current_block is None:
+            #print(f"Updating position for Train {train.train_id}:")
+            if train.current_block is None: 
                 continue
             curr_num = train.current_block.block_number
             # If train is holding at a stop, decrement its timer.
             if hasattr(train, 'stop_timer'):
                 train.stop_timer -= 1
                 if train.stop_timer <= 0:
-                    print(f"Train {train.train_id} hold at stop complete.")
+                    #print(f"Train {train.train_id} hold at stop complete.")
                     del train.stop_timer
                     train.last_stop_passed = curr_num
                     train.next_stop_index += 1
+                    print(f"in station stop {train.train_id}:")
                     self.update_authority(train)
                 continue
             # Delete train if it has reached the YARD (block 58).
             if curr_num == 58:
-                print(f"Train {train.train_id} has reached YARD. Deleting train.")
+                #print(f"Train {train.train_id} has reached YARD. Deleting train.")
                 self.active_trains.remove(train)
                 for tm in self.real_active_trains:
                     if tm.train_number == train.train_id:
@@ -529,6 +570,7 @@ class CTCOffice:
                 continue
             # If current block is still occupied, do nothing.
             if curr_num in occupied_blocks:
+                self.update_authority(train)
                 continue
             # Check the next block in route.
             nxt = train.current_block.next
@@ -538,8 +580,19 @@ class CTCOffice:
             nxt_num = nxt.block_number
             # If next block is occupied, assume train moved.
             if nxt_num in occupied_blocks:
-                train.current_block = nxt
-                self.update_authority(train)
+                if nxt.next:
+                    if nxt.next.block_number in occupied_blocks:
+                        train.current_block = nxt.next
+                        #print(f"in nxt 1 {train.train_id}:")
+                        self.update_authority(train)
+                    else:
+                        train.current_block = nxt
+                        #print(f"in nxt 2 {train.train_id}:")
+                        self.update_authority(train)
+                else:
+                    train.current_block = nxt
+                    #print(f"in nxt 3 {train.train_id}:")
+                    self.update_authority(train)
                 if nxt_num == 58:
                     print(f"Train {train.train_id} arriving at YARD. Starting final stop.")
                     if not hasattr(train, 'stop_timer'):
@@ -548,6 +601,11 @@ class CTCOffice:
                     if not hasattr(train, 'stop_timer'):
                         train.stop_timer = self.stopping_time
                         print(f"Train {train.train_id} arrived at stop {nxt_num}. Holding for 10 seconds.")
+            else:
+                # If next block is not occupied, assume train moved.
+
+                #print(f"Train {train.train_id} in else statement final of UTP {nxt_num}.")
+                self.update_authority(train)
 
     def update_maintenance(self, maintenance_list):
         if self.ctc:
@@ -556,6 +614,7 @@ class CTCOffice:
     def update(self):
         if not self.ctc:
             return
+        self.update_train_positions()
         # Update stop signals from the track controller.
         self.ctc.stop_signals = self.ctc.track_controller.stop_states
         # Clear authority for all blocks.
@@ -566,13 +625,20 @@ class CTCOffice:
         for train in self.active_trains:
             remaining = train.authority_meters
             node = train.current_block
+            #print(f"Updating authority for Train {train.train_id}:")
+            #print(f"current block number: {node.block_number}")
+            #print(f"remaining authority: {remaining}")
             window_count = 0
             while remaining > 0 and node and window_count < update_window:
                 auth_value = min(int(remaining), max_auth)
                 bits = [(auth_value >> i) & 1 == 1 for i in range(9, -1, -1)]
                 index = node.block_number - 1
                 if 0 <= index < 150:
+                    #print(f"index: {index}, bits: {bits}")
+                    if self.zero_authority[index]:
+                        bits = [False] * 10
                     self.ctc.block_authority[index] = bits
+                    #print(f"index: {index}, bits: {bits}")
                 remaining -= node.block_length
                 node = node.next
                 window_count += 1
@@ -586,7 +652,8 @@ class CTCOffice:
                 self.ctc.block_authority[i] = [False] * 10
 
         self.ctc.send_to_track_controller()
-        self.update_train_positions()
+        
+        self.zero_authority = [False] * 150  # reset zero authority for next update
 
     def update_all_trains(self, world_time, delta_t=1):
         for train in self.real_active_trains:
