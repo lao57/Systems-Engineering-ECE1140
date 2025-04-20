@@ -151,7 +151,10 @@ class TrainControllerGUIv2(QWidget):
 
         status = QGroupBox("Environment Status")
         status_layout = QVBoxLayout()
-        for w in [self.station_lbl, self.announcement_lbl,
+        # for w in [self.station_lbl, self.announcement_lbl,
+        #           self.left_door_status_lbl, self.right_door_status_lbl,
+        #           self.out_light_status_lbl, self.underground_lbl]:
+        for w in [self.announcement_lbl,
                   self.left_door_status_lbl, self.right_door_status_lbl,
                   self.out_light_status_lbl, self.underground_lbl]:
             status_layout.addWidget(w)
@@ -261,13 +264,17 @@ class TrainControllerGUIv2(QWidget):
         self.p_gain_lbl.setText(f"K_P (Proportional gain): {self.k_p}")
         self.i_gain_lbl.setText(f"K_I (Proportional gain): {self.k_i}")
 
-    def update_most_recent_station(self, station_name):
-        if self.most_recent_station != station_name:
-            self.announcement = True
-        else:
-            self.announcement = False
-        self.most_recent_station = station_name
-        self.station_lbl.setText(f"Most recent station: {self.most_recent_station}")
+    # def update_most_recent_station(self, station_name):
+    #     if self.most_recent_station != station_name:
+    #         self.announcement = True
+    #     else:
+    #         self.announcement = False
+    #     self.most_recent_station = station_name
+    #     self.station_lbl.setText(f"Most recent station: {self.most_recent_station}")
+    #     self.announcement_lbl.setText(f"Time to announce: {self.announcement}")
+
+    def update_announcement(self, announcement):
+        self.announcement = announcement
         self.announcement_lbl.setText(f"Time to announce: {self.announcement}")
 
     def update_doors_status(self, doors_status):

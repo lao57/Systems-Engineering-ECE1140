@@ -673,6 +673,7 @@ class TrainModel:
         self.train_controller_gui.update_doors_status(self.doors_status)
         self.train_controller_gui.update_lights_status(self.lights_status)
         # self.train_controller_gui.update_most_recent_station(self.Next_station_names[0])
+        self.train_controller_gui.update_announcement(self.announcement)
         self.train_controller_gui.update_speed_limit(self.train_controller.speed_limit)
         self.train_controller_gui.update_authority(self.authority)
         self.train_controller_gui.update_failure_modes(self.failure_modes)

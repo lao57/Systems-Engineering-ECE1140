@@ -503,7 +503,6 @@ class CTCOffice:
 
         # Sum block lengths until reaching the target stop.
         while node.block_number != target_stop:
-            print(node.block_number)
             if self.ctc.block_occupancy[(node.next.block_number-1)] and node != train.current_block:
                 #the next node is occupied
                 #print (self.ctc.block_occupancy)

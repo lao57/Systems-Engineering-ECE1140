@@ -132,7 +132,7 @@ class TrainController:
             else:
                 self.doors_status = [False, True]
         else:
-            self.announce_station = True
+            self.announce_station = False
             self.doors_status = [False, False]
 
         # compute current speed error
