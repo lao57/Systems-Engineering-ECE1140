@@ -154,7 +154,7 @@ class TrainControllerGUIv2(QWidget):
         # for w in [self.station_lbl, self.announcement_lbl,
         #           self.left_door_status_lbl, self.right_door_status_lbl,
         #           self.out_light_status_lbl, self.underground_lbl]:
-        for w in [self.announcement_lbl,
+        for w in [self.announcement_lbl, self.cur_cabin_temp_lbl,
                   self.left_door_status_lbl, self.right_door_status_lbl,
                   self.out_light_status_lbl, self.underground_lbl]:
             status_layout.addWidget(w)
