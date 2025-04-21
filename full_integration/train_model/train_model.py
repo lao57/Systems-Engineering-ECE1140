@@ -84,6 +84,7 @@ class TrainModel:
         self.cabin_temp = 70
         self.announcement = False
         self.stop_flag = False #flag to make sure at a given stop passenger transaction only happens once
+        self.middle_correction = False # to make sure the train is fully on the block during a stop
         self.LOOP_INTERVAL_MS = LOOP_INTERVAL_MS  # 1 second in milliseconds
 
         # TRAIN PHYSICAL VARIABLES
@@ -300,6 +301,7 @@ class TrainModel:
             self.display_train()
 
     def baud_read(self):
+        print("IN BAUD READ")
         #print(self.blocknumbervector[0])
         if self.blocknumbervector:
             #print("IN BAUD READ") #FOR TESTING THIS FUNCTION
@@ -307,18 +309,38 @@ class TrainModel:
             if authority < self.authority:
                 self.authority = authority
                 self.station_stop = False
+                print("baud 1")
 
             elif authority == self.authority_sent and authority == 1023:
                 self.authority = 1023 #updates to max authority if it is 1023
                 self.station_stop = False
+                print("baud 2")
 
-            elif self.authority < 2 and authority < (self.distance_vector[0] + 10) and authority > (self.distance_vector[0] - 15):
+            elif self.middle_correction == True and authority < self.distance_vector_middle[0] + 10 and authority > 0:
+                authority = self.distance_vector_middle[0] - authority - 1
+                self.authority = authority
+                print("baud 2.2")
+
+
+            elif self.middle_correction:
+                self.middle_correction = False
+                print("baud 2.3")
+
+
+            elif self.authority < 2 and authority < (self.distance_vector[0] + 3) and authority > (self.distance_vector[0] - 3):
                 #do nothing because they are just sending a halfblock authority
                 self.station_stop = True
+                print("baud 3")
+                print("front", self.blocknumbervector[0])
+                print("middle", self.blocknumbervector_middle[0])
+                print("end", self.blocknumbervector_end[0])
+                if self.blocknumbervector_end[0] != self.blocknumbervector[0]:
+                    self.middle_correction = True
 
-            elif self.authority < 2 and authority > 0 and authority < (self.distance_vector[0] + 10): #train undershot authority and is now given a hlafblock authority but is really already stopped toward the beginiing of block
+            elif self.authority < 2 and authority > 0 and authority < (self.distance_vector[0] + 3): #train undershot authority and is now given a hlafblock authority but is really already stopped toward the beginiing of block
                 self.authority = self.distance_vector[0] - authority - 1 
                 self.station_stop = False
+                print("baud 4")
                 #sets authority to the halfway block since there is no error as authority is greater than 0
                 #should force train to be in previous case and stop the train
 
@@ -326,6 +348,9 @@ class TrainModel:
             elif self.authority < 2 and authority > 0: #train was told to stop but is not told to got so shouldn't bother stopping
                 self.authority = authority
                 self.station_stop = False
+                print("baud 5")
+
+            
 
             self.authority_sent = authority
 
