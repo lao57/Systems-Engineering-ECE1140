@@ -501,6 +501,10 @@ class TrackController(QMainWindow):
             return authority_bits  # Already an integer
         binary_str = ''.join(['1' if bit else '0' for bit in authority_bits])
         return int(binary_str, 2)
+    
+    def get_stop_signals(self):
+        """Return the combined stop signals for all blocks."""
+        return self.stop_states
 
     def receive_authority(self, authority):
         self.block_authority = [bit.copy() if isinstance(bit, list) else bit for bit in authority]
