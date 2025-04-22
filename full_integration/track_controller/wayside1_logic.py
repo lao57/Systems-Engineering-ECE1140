@@ -39,24 +39,24 @@ def update_wayside(block_occupancy, prev_switch_states, block_authorities, maint
     Z_ready = YZ_occupied
 
     # A has priority if both are ready or two_way is occupied by a train from Z
-    A_has_priority = A_ready and (not Z_ready or two_way_occupied)
+    Z_has_priority = Z_ready and (not A_ready or two_way_occupied)
 
     # Allow movement logic
-    allow_Z = not two_way_occupied and A_has_priority
-    allow_A = not two_way_occupied and not A_has_priority
+    allow_Z = not two_way_occupied and Z_has_priority
+    allow_A = not two_way_occupied and not Z_has_priority
 
     # Switch 1 (Block 12): Check occupancy
     block_12_idx = 12 - offset
 
     switch_states[0] = (
-        (not block_occupancy[block_12_idx] and not two_way_occupied and A_has_priority)  # Allow switch if block 12 is empty and no train is in two_way
+        (not block_occupancy[block_12_idx] and not two_way_occupied and Z_has_priority)  # Allow switch if block 12 is empty and no train is in two_way
         or (block_occupancy[block_12_idx] and prev_switch_states[0])  # Keep previous state if block 12 is occupied
     )
 
     # Switch 2 (Block 28): Check occupancy
     block_28_idx = 28 - offset
     switch_states[1] = (
-        (not block_occupancy[block_28_idx] and not two_way_occupied and not A_has_priority)  # Allow switch if block 28 is empty and no train is in two_way
+        (not block_occupancy[block_28_idx] and not two_way_occupied and not Z_has_priority)  # Allow switch if block 28 is empty and no train is in two_way
         or (block_occupancy[block_28_idx] and prev_switch_states[1])  # Keep previous state if block 28 is occupied
     )
 
