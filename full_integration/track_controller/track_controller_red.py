@@ -331,6 +331,7 @@ class TrackControllerRed(QMainWindow):
                     for i, crossing_index in enumerate(config["crossings"]):
                         if i < len(config["crossing_states"]):
                             self.crossing_states[crossing_index] = config["crossing_states"][i]
+                    continue  # Skip executing any local logic for wayside4
 
                 if config["logic_function"] is not None:
                     wayside = WAYSIDE(
