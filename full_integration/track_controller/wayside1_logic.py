@@ -42,8 +42,8 @@ def update_wayside(block_occupancy, prev_switch_states, block_authorities, maint
     A_has_priority = A_ready and (not Z_ready or two_way_occupied)
 
     # Allow movement logic
-    allow_A = not two_way_occupied and A_has_priority
-    allow_Z = not two_way_occupied and not A_has_priority
+    allow_Z = not two_way_occupied and A_has_priority
+    allow_A = not two_way_occupied and not A_has_priority
 
     # Switch 1 (Block 12): Check occupancy
     block_12_idx = 12 - offset
