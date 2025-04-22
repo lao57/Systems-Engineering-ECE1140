@@ -38,6 +38,7 @@ class CTC:
             self.switch_states = self.track_controller.get_switch_state().copy()
             self.light_states = self.track_controller.get_light_state().copy()
             self.crossing_states = self.track_controller.get_crossing_state().copy()
+            self.stop_signals = self.track_controller.stop_states
 
     def send_to_track_controller(self):
         if self.track_controller:
@@ -317,7 +318,7 @@ class CTCOffice:
         self.k_p = k_p
         self.k_i = k_i
         self.loop_int_ms = loop_int_ms
-        self.stopping_time = 20 * (1000 / loop_int_ms)
+        self.stopping_time = 100 #20 * (1000 / loop_int_ms)
         self.pending_trains: List[ScheduleEntry] = [] #pending trains for dispatch
         self.zero_authority = [False] * 150 #zero authority for all blocks
 
@@ -628,6 +629,11 @@ class CTCOffice:
             #print(f"current block number: {node.block_number}")
             #print(f"remaining authority: {remaining}")
             window_count = 0
+            for i, stop in enumerate(self.ctc.get_stop_signals()):
+                if stop:
+                    if self.zero_authority[i] == False:
+                        self.zero_authority[i] = True
+
             while remaining > 0 and node and window_count < update_window:
                 auth_value = min(int(remaining), max_auth)
                 bits = [(auth_value >> i) & 1 == 1 for i in range(9, -1, -1)]
