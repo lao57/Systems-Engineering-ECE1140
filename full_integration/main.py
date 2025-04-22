@@ -11,6 +11,7 @@ from train_model.train_model import TrainModel
 from ctc_office.ctc_office import CTCOffice, CTC, ScheduleLoader, load_track_layout
 from ctc_office.ctc_gui import CTCGUI
 from track_controller.track_controller import socket_client_thread
+from PyQt6.QtWidgets import QApplication, QTableWidgetItem, QWidget, QVBoxLayout, QCheckBox, QPushButton, QLabel, QGroupBox, QHBoxLayout
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
@@ -135,3 +136,4 @@ if __name__ == "__main__":
     update_timer.start(LOOP_INTERVAL_MS)  # Update every 1 second
 
     sys.exit(app.exec())
+
