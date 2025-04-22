@@ -51,7 +51,7 @@ STATION_NAMING = {
 class TrainModel:
     """INITIALIZATION"""
 
-    def __init__(self, train_number=1, LOOP_INTERVAL_MS = 1000, k_p=1.5e5, k_i=1.5e4, crew_count=3, start_block=64):
+    def __init__(self, train_number=1, LOOP_INTERVAL_MS = 1000, k_p=1.5e5, k_i=1.5e4, line = "green", start_block=64, crew_count=3):
         """
         Initialize the TrainModel instance.
 
@@ -123,6 +123,7 @@ class TrainModel:
         self.k_p = k_p
         self.k_i = k_i
         self.dt = 1  # sampling time
+        self.line = line
         self.max_engine_power = 120e3  # 4 motors; each can supply up to max 120 kW
         self.sample_period = 1
         self.comfortable_temp = 70

@@ -23,6 +23,25 @@ station_naming = {
     '1111': "EXTRA" 
 }
 
+station_naming_red = {
+    '0001': "SHADYSIDE",
+    '0010': "HERRON AVE",
+    '0100': "SWISSVILLE",
+    '0101': "PENN STATION",
+    '0110': "STEEL PLAZA",
+    '0111': "FIRST AVE",
+    '1000': "STATION SQUARE",
+    '1001': "SOUTH HILLS JUNCTION",
+    '1010': "EXTRA",
+    '1011': "EXTRA",
+    '1100': "EXTRA",
+    '1101': "EXTRA",
+    '0011': "EXTRA",
+    '0000': "To be Announced",
+    '1110': "EXTRA",
+    '1111': "EXTRA" 
+    }
+
 class Train_GUI(QWidget):
     def __init__(self, train_model):
         super().__init__()
@@ -193,8 +212,14 @@ class Train_GUI(QWidget):
         self.underground_vector_label.setText(f"Underground(1 = yes): {self.train.underground_vector[0]}")
         self.at_station_vector_label.setText(f"At Station(1 = yes): {self.train.at_station_vector[0]}")
         if self.train.announcement == True:
-            self.station_name_vector_label.setText(f"Now Arriving at: {station_naming[self.train.Next_station_names[0]]}")
-        self.station_name_vector_label.setText(f"Next Station: {station_naming[self.train.Next_station_names[0]]}")
+            if self.train.line == 'red':
+                self.station_name_vector_label.setText(f"Now Arriving at: {station_naming_red[self.train.Next_station_names[0]]}")
+            else:
+                self.station_name_vector_label.setText(f"Now Arriving at: {station_naming[self.train.Next_station_names[0]]}")
+        if self.train.line == 'red':
+            self.station_name_vector_label.setText(f"Next Station: {station_naming_red[self.train.Next_station_names[0]]}")
+        else:
+            self.station_name_vector_label.setText(f"Next Station: {station_naming[self.train.Next_station_names[0]]}")
         
         # Update the new labels
         self.weight_label.setText(f"Weight: {int(self.train.weight_imperial)} lbs")

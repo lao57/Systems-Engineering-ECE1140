@@ -403,7 +403,7 @@ class CTCOffice:
             next_stop_index=0
         )
         train_model = TrainModel(train_number=schedule_entry.train_id, LOOP_INTERVAL_MS=self.loop_int_ms,
-                                 k_p=self.k_p, k_i=self.k_i)
+                                 k_p=self.k_p, k_i=self.k_i, line = "green", start_block = 64)
         train_model.add_classes(self.track_model)
         self.update_authority(train)
         self.active_trains.append(train)
@@ -466,7 +466,7 @@ class CTCOffice:
                 current_block=route_head,
                 next_stop_index=0
             )
-            train_model = TrainModel(train_number=train_id, LOOP_INTERVAL_MS=self.loop_int_ms, k_p=self.k_p, k_i=self.k_i)
+            train_model = TrainModel(train_number=train_id, LOOP_INTERVAL_MS=self.loop_int_ms, k_p=self.k_p, k_i=self.k_i, line = "green", start_block = 64)
             train_model.add_classes(self.track_model)
             self.update_authority(new_train)
             self.active_trains.append(new_train)
@@ -559,7 +559,7 @@ class CTCOffice:
                     self.update_authority(train)
                 continue
             # Delete train if it has reached the YARD (block 58).
-            if curr_num == 58:
+            if curr_num == 58: # and train.next_stop_index >= len(train.scheduled_stops):
                 #print(f"Train {train.train_id} has reached YARD. Deleting train.")
                 self.active_trains.remove(train)
                 for tm in self.real_active_trains:
