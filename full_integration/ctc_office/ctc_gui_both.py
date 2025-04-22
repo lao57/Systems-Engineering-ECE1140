@@ -14,7 +14,7 @@ class CTCGUI(QMainWindow, Ui_MainWindow):
 
         self.ctc = ctc if ctc is not None else CTC()
         self.track_layout = load_track_layout(
-            "C:/Users/dillo/PycharmProjects/Systems-Engineering-ECE1140/full_integration/assets/Track_Layout.xlsx")
+            "assets/Track_Layout.xlsx")
 
         self.schedule_loader = schedule_loader if schedule_loader is not None else ScheduleLoader(self.track_layout)
         if ctc_office is not None:
