@@ -10,6 +10,7 @@ class TrackModelBackend:
 
         self.blocks = {}  # Stores track block data
         self.occupancy_status = [False]*150  # Block occupancy states
+        self.failure_occupancy = [False]*150
         self.switch_states = []     # Switch states
         self.light_signals = []       # Light signals
         self.crossing_states = []    # Railway crossings

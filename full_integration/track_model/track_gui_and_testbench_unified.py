@@ -68,6 +68,10 @@ class UnifiedTrackUI(QWidget):
         self.temp_slider.valueChanged.connect(self.update_temperature)
         testbench_layout.addWidget(self.temp_slider)
 
+        self.heater_label = QLabel("Track Heater: OFF")
+        self.heater_label.setFont(QFont("Arial", 12))
+        testbench_layout.addWidget(self.heater_label)
+
         main_layout.addLayout(testbench_layout)
 
         # Track Model Section
@@ -139,6 +143,7 @@ class UnifiedTrackUI(QWidget):
         """Toggle the failure status and update the label."""
         self.failures[failure] = checked
         self.failure_status_labels[failure].setText("Active" if checked else "Inactive")
+        self.backend.handle_failures(self.failures)
 
     def reset_failures(self):
         """Reset all failures to inactive when switching blocks."""
@@ -150,6 +155,8 @@ class UnifiedTrackUI(QWidget):
     def update_temperature(self):
         self.temperature = self.temp_slider.value()
         self.temp_label.setText(f"Temperature: {self.temperature}°F")
+        self.backend.update_temperature(self.temperature)
+        self.heater_label.setText("Track Heater: ON" if self.temperature <= 32 else "Track Heater: OFF")
 
     def upload_file(self):
         file_path, _ = QFileDialog.getOpenFileName(self, "Open Layout File", "", "CSV Files (*.csv)")

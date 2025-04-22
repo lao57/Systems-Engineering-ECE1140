@@ -246,20 +246,19 @@ class TrackMapViewer(QtWidgets.QMainWindow):
                 x = grid_x * spacing + offset_x
                 y = grid_y * spacing + offset_y
 
-                # new: red if occupied, else green
                 if self.backend.get_occupancy_status(block_number - 1):
-                    color = QtGui.QColor(255, 0, 0)
+                    color = QtGui.QColor(255, 0, 0)  # Red if occupied
                 else:
-                    color = QtGui.QColor(0, 128, 0)
-
-                if "STATION" in infra:
-                    color = QtGui.QColor(0, 0, 255)
-                elif "SWITCH" in infra:
-                    color = QtGui.QColor(255, 165, 0)
-                elif "RAILWAY CROSSING" in infra:
-                    color = QtGui.QColor(128, 128, 128)
-                elif "UNDERGROUND" in infra:
-                    color = QtGui.QColor(128, 0, 128)
+                    if "STATION" in infra:
+                        color = QtGui.QColor(0, 0, 255)  # Blue
+                    elif "SWITCH" in infra:
+                        color = QtGui.QColor(255, 165, 0)  # Orange
+                    elif "RAILWAY CROSSING" in infra:
+                        color = QtGui.QColor(128, 128, 128)  # Gray
+                    elif "UNDERGROUND" in infra:
+                        color = QtGui.QColor(128, 0, 128)  # Purple
+                    else:
+                        color = QtGui.QColor(0, 128, 0)  # Default green
 
                 rect = QtWidgets.QGraphicsRectItem(x, y, block_size, block_size)
                 rect.setBrush(color)
