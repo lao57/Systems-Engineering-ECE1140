@@ -117,6 +117,7 @@ class TrackMapViewer(QtWidgets.QMainWindow):
 
 
 
+
             }
         }
         # start with Green
@@ -199,9 +200,9 @@ class TrackMapViewer(QtWidgets.QMainWindow):
         else:
             self.custom_positions = self.line_positions["Green"]
 
-        QtCore.QTimer.singleShot(100, lambda: self.draw_green_line(sheet))
+        QtCore.QTimer.singleShot(100, lambda: self.draw_green_line(sheet, skip_fit=False))
 
-    def draw_green_line(self, sheet):
+    def draw_green_line(self, sheet, skip_fit=False):
         def parse_switch_connections(infra_text):
             import re
             connections = []
@@ -298,7 +299,8 @@ class TrackMapViewer(QtWidgets.QMainWindow):
                 self.graphicsView.scene().addItem(line)
 
         # After drawing everything, fit to the layout
-        self.fit_to_view()
+        if not skip_fit:
+            self.fit_to_view()
 
     def resizeEvent(self, event):
         """Handle window resize events"""
@@ -308,7 +310,7 @@ class TrackMapViewer(QtWidgets.QMainWindow):
 
     def update(self):
         if hasattr(self, 'last_sheet'):
-            self.draw_green_line(self.last_sheet)
+            self.draw_green_line(self.last_sheet, skip_fit=True)
 
 
 if __name__ == "__main__":
@@ -316,6 +318,11 @@ if __name__ == "__main__":
         app = QtWidgets.QApplication(sys.argv)
         viewer = TrackMapViewer()
         viewer.show()
+        ## to run map by itself
+        #backend = TrackModelBackend()  # ✅ Instantiate backend
+        #viewer = TrackMapViewer(backend)  # ✅ Pass backend to the viewer
+        #viewer.show()
+        ##
         sys.exit(app.exec())
     except Exception as e:
         print("Fatal Exception:", e)
