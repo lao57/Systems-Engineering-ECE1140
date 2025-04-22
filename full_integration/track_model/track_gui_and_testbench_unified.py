@@ -6,9 +6,14 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont
-from track_model.track_model_backend import TrackModelBackend
 
-
+# Try both import methods to handle different running contexts
+try:
+    # When run from main.py
+    from track_model.track_model_backend import TrackModelBackend
+except ImportError:
+    # When run directly
+    from track_model_backend import TrackModelBackend
 class UnifiedTrackUI(QWidget):
     def __init__(self, backend=None):
         super().__init__()
@@ -199,6 +204,7 @@ def main():
     window.setCentralWidget(unified_ui)
     window.resize(800, 600)
     window.show()
+
 
     sys.exit(app.exec())
 

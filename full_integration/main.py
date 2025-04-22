@@ -11,6 +11,7 @@ from train_model.train_model import TrainModel
 from ctc_office.ctc_office import CTCOffice, CTC, ScheduleLoader, load_track_layout
 from ctc_office.ctc_gui import CTCGUI
 from track_controller.track_controller import socket_client_thread
+from track_model.track_map import TrackMapViewer
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
@@ -133,5 +134,8 @@ if __name__ == "__main__":
     update_timer = QTimer()
     update_timer.timeout.connect(update_world)
     update_timer.start(LOOP_INTERVAL_MS)  # Update every 1 second
+
+    map_viewer = TrackMapViewer(track_model)
+    map_viewer.show()
 
     sys.exit(app.exec())
