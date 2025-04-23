@@ -216,7 +216,7 @@ class TrainController:
                     failure_modes: List[bool], underground: bool, cabin_temp: int | float,
                     doors_status: List[bool], lights_status: List[bool], station_to_be_reached: str,
                     driver_inputs: dict, world_time: dict):
-        self.service_brake_decel = driver_inputs['sbrake']
+        # self.service_brake_decel = driver_inputs['sbrake']
 
         if driver_inputs['ebrake']:
             self.e_brake_on = True

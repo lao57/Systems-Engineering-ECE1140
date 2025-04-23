@@ -738,7 +738,7 @@ class TrainUIToggle(QWidget):
         self.checkboxes = {}
         for train_model in self.real_active_trains:
             checkbox = QCheckBox(f"Train {train_model.train_number}")
-            checkbox.setChecked(True)
+            # checkbox.setChecked(True)
             checkbox.stateChanged.connect(self.toggle_train_ui)
             self.train_checkbox_layout.addWidget(checkbox)
             self.checkboxes[train_model.train_number] = checkbox

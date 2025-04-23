@@ -136,6 +136,9 @@ class TrainModel:
         self.train_gui = Train_GUI(self)
         self.ebrake_gui_signal = False
 
+        self.train_gui.hide()
+        self.train_controller_gui.hide()
+
         # OTHER MODULES
         self.Track_model = None  # holds the actual track information
         self.train_controller = TrainController(self.k_p, self.k_i, self.max_engine_power, self.sample_period,
@@ -409,11 +412,13 @@ class TrainModel:
             self.lights_status[0] = self.train_controller_gui.lights_status[0]
         else:
             self.train_controller.train_controller_mode = 'auto'
+            self.cmd_velocity = min(float(self.speeds_vector[0]), MAX_SPEED)
 
         # calling Train Controller function (also will need to be able to send at_station_vector[0] so that you can check if you are at a station if you are stopping)
         auth_to_cont = self.authority
         self.train_controller.iterate(self.speeds_vector[0],
-                                      min(float(self.speeds_vector[0]), MAX_SPEED),
+                                      # min(float(self.speeds_vector[0]), MAX_SPEED),
+                                      self.cmd_velocity,
                                       auth_to_cont, self.velocity, self.failure_modes, self.underground_vector[0],
                                       self.cabin_temp, self.doors_status, self.lights_status,
                                       self.Next_station_names[0], world_time, self.station_stop, self.station_side)
@@ -552,11 +557,13 @@ class TrainModel:
             self.lights_status[0] = self.train_controller_gui.lights_status[0]
         else:
             self.train_controller.train_controller_mode = 'auto'
+            self.cmd_velocity = min(float(self.speeds_vector[0]), MAX_SPEED)
 
         # calling Train Controller function (also will need to be able to send at_station_vector[0] so that you can check if you are at a station if you are stopping)
         auth_to_cont = self.authority
         self.train_controller.iterate(self.speeds_vector[0],
-                                      min(float(self.speeds_vector[0]), MAX_SPEED),
+                                      # min(float(self.speeds_vector[0]), MAX_SPEED),
+                                      self.cmd_velocity,
                                       auth_to_cont, self.velocity, self.failure_modes, self.underground_vector[0],
                                       self.cabin_temp, self.doors_status, self.lights_status,
                                       self.Next_station_names[0], world_time, self.station_stop, self.station_side)
