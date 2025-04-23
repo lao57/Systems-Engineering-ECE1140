@@ -318,7 +318,7 @@ class CTCOffice:
         self.k_p = k_p
         self.k_i = k_i
         self.loop_int_ms = loop_int_ms
-        self.stopping_time = 100 #20 * (1000 / loop_int_ms)
+        self.stopping_time = 20 * (1000 / loop_int_ms)
         self.pending_trains: List[ScheduleEntry] = [] #pending trains for dispatch
         self.zero_authority = [False] * 150 #zero authority for all blocks
 
@@ -382,7 +382,7 @@ class CTCOffice:
                 start_index = self.green_line_route.index(current_position)
                 target_index = self.green_line_route.index(stop_block)
             except ValueError:
-                print(f"Error: {current_position} or {stop_block} not found in route array.")
+                #print(f"Error: {current_position} or {stop_block} not found in route array.")
                 return
             if target_index >= start_index:
                 segment = self.green_line_route[start_index:target_index + 1]
@@ -393,7 +393,7 @@ class CTCOffice:
             else:
                 route_numbers += segment
             current_position = stop_block
-        print("route_numbers: ", route_numbers)
+        #print("route_numbers: ", route_numbers)
         route_head = self.build_linked_route(route_numbers)
         train = Train(
             train_id=schedule_entry.train_id,
@@ -409,7 +409,7 @@ class CTCOffice:
         self.active_trains.append(train)
         self.real_active_trains.append(train_model)
         self.TrainUIToggle.update_ui()
-        print(f"Dispatched Train {train.train_id} with route {route_numbers}")
+        #print(f"Dispatched Train {train.train_id} with route {route_numbers}")
 
     # Instead of immediately scheduling a train when loaded, add it to pending.
     def schedule_train(self, line: str, train_index: int):
@@ -418,11 +418,11 @@ class CTCOffice:
         except (KeyError, IndexError):
             return
         self.add_pending_train(schedule)
-        print(f"Train {schedule.train_id} scheduled with departure time (minutes): {schedule.departure_time}")
+        #print(f"Train {schedule.train_id} scheduled with departure time (minutes): {schedule.departure_time}")
 
     def schedule_manual_train(self, line: str, train_id: int, stops: List[int]):
         if line.lower().strip() != "green line":
-            print("red line not working")
+            #print("red line not working")
             return
         yard_exit = 64
         yard_entrance = 58
@@ -457,7 +457,7 @@ class CTCOffice:
             existing_train.scheduled_stops = stops
             existing_train.next_stop_index = 0
             self.update_authority(existing_train)
-            print(f"Manually updated Train {train_id} with new route: {route_numbers}")
+            #print(f"Manually updated Train {train_id} with new route: {route_numbers}")
         else:
             new_train = Train(
                 train_id=train_id,
@@ -472,15 +472,15 @@ class CTCOffice:
             self.active_trains.append(new_train)
             self.real_active_trains.append(train_model)
             self.TrainUIToggle.update_ui()
-            print(f"Manually scheduled Train {train_id} with route: {route_numbers}")
+            #print(f"Manually scheduled Train {train_id} with route: {route_numbers}")
 
 
     def update_authority(self, train: Train):
-        print(f"Calculating authority for Train {train.train_id}:")
+        #print(f"Calculating authority for Train {train.train_id}:")
         # Check if no more stops remain.
         if train.next_stop_index >= len(train.scheduled_stops):
             train.authority_meters = 0.0
-            print("No next stop; authority = 0.0")
+            #print("No next stop; authority = 0.0")
             return
 
         # If the target block is reached exactly, and it is a station, give half block length.
@@ -491,10 +491,10 @@ class CTCOffice:
         if train.current_block and train.current_block.block_number == target_stop:
             if target_stop in STATION_BLOCKS['BLOCK_TO_STATION']:
                 train.authority_meters = train.current_block.block_length / 2.0
-                print(f"Train {train.train_id} is at station {target_stop}; setting authority to half block length = {train.authority_meters} m")
+                #print(f"Train {train.train_id} is at station {target_stop}; setting authority to half block length = {train.authority_meters} m")
             else:
                 train.authority_meters = 0.0
-                print(f"Train {train.train_id} is at target {target_stop}; authority = 0.0")
+                #print(f"Train {train.train_id} is at target {target_stop}; authority = 0.0")
             return
 
         total = 0.0  # initialize total allowed distance
@@ -535,7 +535,7 @@ class CTCOffice:
                 total += node.block_length
         # Do not add target block’s full length so that authority becomes zero upon arrival.
         train.authority_meters = total
-        print(f"Authority from block {train.current_block.block_number if train.current_block else '??'} to {target_stop} = {total} m")
+        #print(f"Authority from block {train.current_block.block_number if train.current_block else '??'} to {target_stop} = {total} m")
 
     def update_train_positions(self):
         if not self.ctc:
@@ -555,7 +555,7 @@ class CTCOffice:
                     del train.stop_timer
                     train.last_stop_passed = curr_num
                     train.next_stop_index += 1
-                    print(f"in station stop {train.train_id}:")
+                    #print(f"in station stop {train.train_id}:")
                     self.update_authority(train)
                 continue
             # Delete train if it has reached the YARD (block 58).
@@ -575,7 +575,7 @@ class CTCOffice:
             # Check the next block in route.
             nxt = train.current_block.next
             if not nxt:
-                print(f"Train {train.train_id} finished route at block {curr_num}.")
+                #print(f"Train {train.train_id} finished route at block {curr_num}.")
                 continue
             nxt_num = nxt.block_number
             # If next block is occupied, assume train moved.
@@ -594,13 +594,13 @@ class CTCOffice:
                     #print(f"in nxt 3 {train.train_id}:")
                     self.update_authority(train)
                 if nxt_num == 58:
-                    print(f"Train {train.train_id} arriving at YARD. Starting final stop.")
+                    #print(f"Train {train.train_id} arriving at YARD. Starting final stop.")
                     if not hasattr(train, 'stop_timer'):
                         train.stop_timer = self.stopping_time
                 elif train.next_stop_index < len(train.scheduled_stops) and nxt_num == train.scheduled_stops[train.next_stop_index]:
                     if not hasattr(train, 'stop_timer'):
                         train.stop_timer = self.stopping_time
-                        print(f"Train {train.train_id} arrived at stop {nxt_num}. Holding for 10 seconds.")
+                        #print(f"Train {train.train_id} arrived at stop {nxt_num}. Holding for 10 seconds.")
             else:
                 # If next block is not occupied, assume train moved.
 

@@ -209,17 +209,24 @@ class Train_GUI(QWidget):
         self.distance_vector_label.setText(f"Distance Left on Block: {self.train.imperial_distance_vector[0]:.1f}")
         # self.speeds_vector_label.setText(f"Speed Limit: {(float(self.train.speeds_vector[0])*0.62137119):.1f} mph")
         self.speeds_vector_label.setText(f"Speed Limit: {(float(self.train.speeds_vector[0]) * 2.23694):.1f} mph")
-        self.underground_vector_label.setText(f"Underground(1 = yes): {self.train.underground_vector[0]}")
-        self.at_station_vector_label.setText(f"At Station(1 = yes): {self.train.at_station_vector[0]}")
+        if self.train.underground_vector[0] == '1':
+            self.underground_vector_label.setText(f"Underground")
+        else:
+            self.underground_vector_label.setText(f"Above Ground")
+        if self.train.at_station_vector[0] == '1':
+            self.at_station_vector_label.setText(f"At Station")
+        else:
+            self.at_station_vector_label.setText(f"Not at Station")
         if self.train.announcement == True:
             if self.train.line == 'red':
                 self.station_name_vector_label.setText(f"Now Arriving at: {station_naming_red[self.train.Next_station_names[0]]}")
             else:
                 self.station_name_vector_label.setText(f"Now Arriving at: {station_naming[self.train.Next_station_names[0]]}")
-        if self.train.line == 'red':
-            self.station_name_vector_label.setText(f"Next Station: {station_naming_red[self.train.Next_station_names[0]]}")
         else:
-            self.station_name_vector_label.setText(f"Next Station: {station_naming[self.train.Next_station_names[0]]}")
+            if self.train.line == 'red':
+                self.station_name_vector_label.setText(f"Next Station: {station_naming_red[self.train.Next_station_names[0]]}")
+            else:
+                self.station_name_vector_label.setText(f"Next Station: {station_naming[self.train.Next_station_names[0]]}")
         
         # Update the new labels
         self.weight_label.setText(f"Weight: {int(self.train.weight_imperial)} lbs")
