@@ -1,9 +1,11 @@
 import sys
 import pandas as pd
+from PyQt6 import QtWidgets
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
-    QSlider, QFileDialog, QGridLayout, QComboBox
+    QSlider, QFileDialog, QGridLayout, QComboBox,
 )
+
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont
 
@@ -26,10 +28,23 @@ class UnifiedTrackUI(QWidget):
         }
         self.temperature = 70
         self.df_layout = None
-        self.initUI()
+        self.setupUI()
 
-    def initUI(self):
-        main_layout = QVBoxLayout()
+    def setupUI(self):
+        splitter = QtWidgets.QSplitter(Qt.Orientation.Horizontal)
+        left_panel = QVBoxLayout()
+        right_panel = QVBoxLayout()
+        from track_model.track_map import TrackMapViewer
+        #from track_map import TrackMapViewer #to use without main
+        self.map_left = TrackMapViewer(self.backend)
+        self.map_right = TrackMapViewer(self.backend)
+
+        # Layout to hold maps side-by-side
+        map_row = QHBoxLayout()
+        map_row.addWidget(self.map_left)
+        map_row.addWidget(self.map_right)
+
+        right_panel.addLayout(map_row)
 
         # -- Testbench Section --
         tb = QVBoxLayout()
@@ -54,7 +69,7 @@ class UnifiedTrackUI(QWidget):
         tb.addWidget(self.temp_slider)
         self.heater_label = QLabel("Track Heater: OFF", font=QFont("Arial",12))
         tb.addWidget(self.heater_label)
-        main_layout.addLayout(tb)
+        left_panel.addLayout(tb)
 
         # -- Track Model Section --
         tm = QVBoxLayout()
@@ -92,9 +107,27 @@ class UnifiedTrackUI(QWidget):
         grid.addWidget(self.station_label,5,1)
 
         tm.addLayout(grid)
-        main_layout.addLayout(tm)
+        left_panel.addLayout(tm)
 
-        self.setLayout(main_layout)
+        # Wrap left_panel in a QWidget
+        left_widget = QtWidgets.QWidget()
+        left_widget.setLayout(left_panel)
+
+        # Wrap right_panel in a QWidget
+        right_widget = QtWidgets.QWidget()
+        right_widget.setLayout(right_panel)
+
+        splitter.addWidget(left_widget)
+        splitter.addWidget(right_widget)
+
+        # Set initial sizes: [controls width, map width]
+        splitter.setSizes([400, 1000])
+
+        layout = QtWidgets.QHBoxLayout()
+        layout.addWidget(splitter)
+        self.setLayout(layout)
+
+
 
     def toggle_failure(self, failure, checked):
         print("fILURE: ", failure, checked)
@@ -104,7 +137,7 @@ class UnifiedTrackUI(QWidget):
         if idx >= 0 and self.df_layout is not None:
             print("entered df func")
             blk = int(self.df_layout.iloc[idx]["Block Number"])
-            self.backend.update_block_occupancy(blk, checked)
+            self.backend.update_block_occupancy(blk - 1, blk, blk + 1, checked)
             self.occupancy_label.setText(f"Track Occupancy: {'❌' if checked else '✅'}")
 
     def reset_failures(self):

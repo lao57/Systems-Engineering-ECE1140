@@ -135,7 +135,7 @@ if __name__ == "__main__":
     update_timer.timeout.connect(update_world)
     update_timer.start(LOOP_INTERVAL_MS)  # Update every 1 second
 
-    map_viewer = TrackMapViewer(track_model)
-    map_viewer.show()
+    #map_viewer = TrackMapViewer(track_model)
+    #map_viewer.show()
 
     sys.exit(app.exec())
