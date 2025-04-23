@@ -8,7 +8,7 @@ from PyQt6.QtWidgets import (
 
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont
-from networkx.classes import non_edges
+
 
 try:
     from track_model.track_model_backend import TrackModelBackend

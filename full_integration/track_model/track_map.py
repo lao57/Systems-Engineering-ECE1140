@@ -1,6 +1,6 @@
 import sys, os, openpyxl
 from PyQt6 import QtWidgets, QtGui, QtCore
-from networkx.classes import non_edges
+
 
 try:
     # When run from main.py
