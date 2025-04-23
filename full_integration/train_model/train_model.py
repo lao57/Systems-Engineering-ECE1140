@@ -540,7 +540,6 @@ class TrainModel:
         # update gui
         self.update_gui(world_time)
         self.train_gui.update_train_model_GUI(1)
-        print(f"Current Velocity: {self.velocity}")
 
     def update_train_no_signal_pickup(self, world_time, delta_t=1):
         if self.Track_model.ready == False:

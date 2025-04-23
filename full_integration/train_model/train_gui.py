@@ -3,7 +3,7 @@ from PyQt6.QtWidgets import (
     QApplication, QWidget, QPushButton, QVBoxLayout, QLabel, QLineEdit, QHBoxLayout,
     QFileDialog, QFrame, QDial, QGroupBox, QGridLayout
 )
-from PyQt6.QtGui import QPixmap
+from PyQt6.QtGui import QPixmap, QIcon
 from PyQt6.QtCore import Qt, QTimer
 import train_model.train_model as train_class
 import numpy as np
@@ -50,6 +50,7 @@ class Train_GUI(QWidget):
     def __init__(self, train_model):
         super().__init__()
         self.train = train_model
+        self.setWindowIcon(QIcon('group3logo.png'))  
         self.initUI()
 
     def initUI(self):
@@ -60,7 +61,7 @@ class Train_GUI(QWidget):
         self.banner_frame.setLayout(self.banner_layout)
 
         self.logo_label = QLabel(self)
-        pixmap = QPixmap("group3logo.png").scaled(100, 100, Qt.AspectRatioMode.KeepAspectRatio)
+        pixmap = QPixmap("Systems-Engineering-ECE1140/full_integration/assets/group3logo.png").scaled(100, 100, Qt.AspectRatioMode.KeepAspectRatio)
         self.logo_label.setPixmap(pixmap)
         self.banner_layout.addWidget(self.logo_label, alignment=Qt.AlignmentFlag.AlignLeft)
 
@@ -114,7 +115,7 @@ class Train_GUI(QWidget):
 
         main_layout.addLayout(content_layout)
         self.setLayout(main_layout)
-        self.setWindowTitle('Train GUI')
+        self.setWindowTitle('Group 3 || Train Model User Interface')
         self.setGeometry(300, 300, 800, 600)
         self.show()
 
@@ -153,7 +154,6 @@ class Train_GUI(QWidget):
     def update_train_model_GUI(self, delta_t):
         self.update_train_labels()
         self.update_clock(delta_t)  # Update the clock each time the train is updated
-        print(f"Velocity in GUI: {self.train.velocity}")
 
     def update_train_labels(self):
         self.Train_Beacon_ID_Label.setText(f"Train Number: {self.train.train_number}")
@@ -206,7 +206,7 @@ class Train_GUI(QWidget):
         file_name, _ = QFileDialog.getOpenFileName(self, "Upload Banner Image", "", "Images (*.png *.xpm *.jpg);;All Files (*)")
         if file_name:
             pixmap = QPixmap(file_name)
-            pixmap = pixmap.scaled(100, 100, Qt.AspectRatioMode.KeepAspectRatio)  # Scale image to fit the banner
+            pixmap = pixmap.scaled(250, 250, Qt.AspectRatioMode.KeepAspectRatio)  # Scale image to fit the banner
             self.banner_image_label.setPixmap(pixmap)
             self.upload_image_button.deleteLater()  # Delete the button after clicking
 
