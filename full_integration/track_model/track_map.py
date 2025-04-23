@@ -1,5 +1,7 @@
 import sys, os, openpyxl
 from PyQt6 import QtWidgets, QtGui, QtCore
+from networkx.classes import non_edges
+
 try:
     # When run from main.py
     from track_model.track_model_backend import TrackModelBackend
@@ -76,6 +78,8 @@ class TrackMapViewer(QtWidgets.QMainWindow):
         self.graphicsView.setBackgroundBrush(QtGui.QBrush(QtGui.QColor(20, 20, 20)))
         self.backend=backend
         self.backend.addUI(self)
+        self.current_line = None
+
 
         # two layouts: Green and Red
         self.line_positions = {
@@ -113,6 +117,15 @@ class TrackMapViewer(QtWidgets.QMainWindow):
                 6:(15, -22), 5:(14,-22), 4:(13,-22), 3:(12,-23),2:(11,-24), 1:(11,-25),
             },
             "Red": {
+                1:(16,-16), 2:(17,-17), 3:(18,-18), 4:(19,-19), 5:(20,-19), 6:(21,-19), 7:(22,-19), 8:(22,-18),
+                9:(22,-17), 10:(21,-16), 11:(20,-15), 12:(19,-15), 13:(18,-15), 14:(17,-15), 15:(16,-15), 16:(15,-15),
+                17:(14,-15), 18:(13,-15), 19:(12,-15), 20:(11,-15), 21:(10,-14), 22:(9, -13), 23:(8,-12), 24:(8,-11),
+                25:(8,-10), 26:(8,-9), 27:(8,-8), 28:(8,-7), 29:(8,-6), 30:(8,-5), 31:(8,-4), 32:(8,-3), 33:(8,-2), 34:(8,-1),
+                35:(8,0), 36:(8,1), 37:(8,2), 38:(8,3), 39:(8,4), 40:(8,5), 41:(8,6), 42:(8,7), 43:(8,8), 44:(8,9), 45:(8,10),
+                46:(8,11), 47:(7,12), 48:(6,13), 49:(5,13), 50:(4,13), 51:(3,13), 52:(2,13), 53:(1,13), 54:(0,13),
+                55:(-1,12), 56:(-2,11), 57:(-3,10), 58:(-3,9), 59:(-3,8), 60:(-2,7), 61:(-1,7), 62:(0,8), 63:(1,9),
+                64:(2,10), 65:(2,11), 66:(2,12), 67:(7,8), 68:(6,7), 69:(6,6), 70:(6,5), 71:(7,4), 72:(7,-3), 73:(6,-4),
+                74:(6,-5), 75:(6,-6), 76:(7,-7),
 
 
 
@@ -194,15 +207,22 @@ class TrackMapViewer(QtWidgets.QMainWindow):
             return
 
         # pick mapping by sheet name (e.g. "Red ..." vs "Green ...")
-        title = sheet.title.lower()
-        if "red" in title:
+        filename = os.path.basename(response).lower()
+        print(f"Loaded sheet title: {filename}")
+        if "red" in filename:
+            self.current_line = "Red"
             self.custom_positions = self.line_positions["Red"]
-        else:
+            QtCore.QTimer.singleShot(100, lambda: self.draw_layout(sheet, line="Red", skip_fit=False))
+        elif "green" in filename:
+            self.current_line = "Green"
             self.custom_positions = self.line_positions["Green"]
+            QtCore.QTimer.singleShot(100, lambda: self.draw_layout(sheet, line="Green", skip_fit=False))
+        else:
+            QtWidgets.QMessageBox.warning(self, "Unknown Layout", "Filename must contain 'red' or 'green'.")
+            self.custom_positions = {}
+            return
 
-        QtCore.QTimer.singleShot(100, lambda: self.draw_green_line(sheet, skip_fit=False))
-
-    def draw_green_line(self, sheet, skip_fit=False):
+    def draw_layout(self, sheet, line="Green", skip_fit=False):
         def parse_switch_connections(infra_text):
             import re
             connections = []
@@ -310,18 +330,18 @@ class TrackMapViewer(QtWidgets.QMainWindow):
 
     def update(self):
         if hasattr(self, 'last_sheet'):
-            self.draw_green_line(self.last_sheet, skip_fit=True)
+            self.draw_layout(self.last_sheet,line=self.current_line, skip_fit=True)
 
 
 if __name__ == "__main__":
     try:
         app = QtWidgets.QApplication(sys.argv)
-        viewer = TrackMapViewer()
-        viewer.show()
-        ## to run map by itself
-        #backend = TrackModelBackend()  # ✅ Instantiate backend
-        #viewer = TrackMapViewer(backend)  # ✅ Pass backend to the viewer
+        #viewer = TrackMapViewer()
         #viewer.show()
+        ## to run map by itself
+        backend = TrackModelBackend()  # ✅ Instantiate backend
+        viewer = TrackMapViewer(backend)  # ✅ Pass backend to the viewer
+        viewer.show()
         ##
         sys.exit(app.exec())
     except Exception as e:
