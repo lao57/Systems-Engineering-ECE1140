@@ -1,8 +1,12 @@
 import sys
-from PyQt6.QtWidgets import QApplication, QWidget, QPushButton, QVBoxLayout, QLabel, QLineEdit, QHBoxLayout, QFileDialog, QFrame, QDial
+from PyQt6.QtWidgets import (
+    QApplication, QWidget, QPushButton, QVBoxLayout, QLabel, QLineEdit, QHBoxLayout,
+    QFileDialog, QFrame, QDial, QGroupBox, QGridLayout
+)
 from PyQt6.QtGui import QPixmap
 from PyQt6.QtCore import Qt, QTimer
 import train_model.train_model as train_class
+import numpy as np
 
 station_naming = {
     '0001': "PIONEER",
@@ -49,160 +53,114 @@ class Train_GUI(QWidget):
         self.initUI()
 
     def initUI(self):
-        # Create the blue banner at the top
+        # Top banner
         self.banner_frame = QFrame(self)
         self.banner_frame.setStyleSheet("background-color: #001573; height: 100px;")
         self.banner_layout = QHBoxLayout()
         self.banner_frame.setLayout(self.banner_layout)
 
-        # Add the group3logo.png image to the top left
         self.logo_label = QLabel(self)
-        pixmap = QPixmap("group3logo.png")
-        pixmap = pixmap.scaled(100, 100, Qt.AspectRatioMode.KeepAspectRatio)  # Scale image to fit the banner
+        pixmap = QPixmap("group3logo.png").scaled(100, 100, Qt.AspectRatioMode.KeepAspectRatio)
         self.logo_label.setPixmap(pixmap)
         self.banner_layout.addWidget(self.logo_label, alignment=Qt.AlignmentFlag.AlignLeft)
 
-        # Create an upload image button for the banner
         self.upload_image_button = QPushButton('Upload Image', self)
         self.upload_image_button.setStyleSheet("color: white; background-color: #333; padding: 5px; border-radius: 5px;")
         self.upload_image_button.clicked.connect(self.upload_image)
-        self.banner_layout.addWidget(self.upload_image_button, alignment=Qt.AlignmentFlag.AlignLeft)
+        self.banner_layout.addWidget(self.upload_image_button)
 
-        # Create a label to hold the uploaded image
         self.banner_image_label = QLabel(self)
         self.banner_image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.banner_layout.addWidget(self.banner_image_label, alignment=Qt.AlignmentFlag.AlignCenter)
-        
-        # Create a clock label
+        self.banner_layout.addWidget(self.banner_image_label)
+
         self.clock_label = QLabel(self)
-        self.clock_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.clock_label.setAlignment(Qt.AlignmentFlag.AlignRight)
         self.clock_label.setStyleSheet("font-size: 20px; color: white;")
-        self.banner_layout.addWidget(self.clock_label, alignment=Qt.AlignmentFlag.AlignRight)
-        self.elapsed_seconds = 0
+        self.banner_layout.addWidget(self.clock_label)
 
-        # Create toggle buttons for train controls
-        self.left_door_button = QPushButton('Toggle Left Door', self)
-        self.left_door_button.clicked.connect(self.toggle_left_door)
-        self.left_door_button.setEnabled(True)
+        # Initialize labels and controls first
+        self.init_labels()
 
-        self.right_door_button = QPushButton('Toggle Right Door', self)
-        self.right_door_button.clicked.connect(self.toggle_right_door)
-        self.right_door_button.setEnabled(True)
+        # Data group boxes
+        self.travel_metrics_group = self.create_group_box("Travel Metrics", [
+            "Train_Beacon_ID_Label", "authority_label", "kph_velocity_label", "acceleration_label",
+            "distance_travelled_label", "distance_vector_label", "speeds_vector_label",
+            "underground_vector_label", "at_station_vector_label", "station_name_vector_label"
+        ])
 
-        self.interior_light_button = QPushButton('Toggle Interior Light', self)
-        self.interior_light_button.clicked.connect(self.toggle_interior_light)
-        self.interior_light_button.setEnabled(True)
+        self.passenger_group = self.create_group_box("Passenger Information", [
+            "passenger_count_label", "crew_count_label", "cabin_temp_label"
+        ])
 
-        self.exterior_light_button = QPushButton('Toggle Exterior Light', self)
-        self.exterior_light_button.clicked.connect(self.toggle_exterior_light)
-        self.exterior_light_button.setEnabled(True)
+        self.train_specs_group = self.create_group_box("Train Specs", [
+            "weight_label", "num_cars_label", "length_label"
+        ])
 
-        self.ebrake_button = QPushButton('Emergency Brake', self)
-        self.ebrake_button.setStyleSheet("background-color: red")
-        self.ebrake_button.clicked.connect(self.toggle_ebrake)
-        self.ebrake_button.setEnabled(True)
+        self.controls_group = self.create_group_box("Controls", [
+            "left_door_button", "right_door_button", "interior_light_button",
+            "exterior_light_button", "ebrake_button", "velocity_dial",
+            "signal_pickup_button", "brake_status_button", "engine_status_button"
+        ])
 
-        # Create toggle buttons for new train controls
-        self.signal_pickup_button = QPushButton('Toggle Signal Pickup', self)
-        self.signal_pickup_button.clicked.connect(self.toggle_signal_pickup)
-        self.signal_pickup_button.setEnabled(True)
-
-        self.brake_status_button = QPushButton('Toggle Brake Status', self)
-        self.brake_status_button.clicked.connect(self.toggle_brake_status)
-        self.brake_status_button.setEnabled(True)
-
-        self.engine_status_button = QPushButton('Toggle Engine Status', self)
-        self.engine_status_button.clicked.connect(self.toggle_engine_status)
-        self.engine_status_button.setEnabled(True)
-
-        # Create labels for train variables
-        self.Train_Beacon_ID_Label = QLabel("Baud ID: 0", self)
-        self.authority_label = QLabel("authority(m): 0", self)
-        self.cabin_temp_label = QLabel("Cabin Temperature: N/A", self)
-        self.kph_velocity_label = QLabel("Velocity(KPH): N/A", self)
-        self.acceleration_label = QLabel("Acceleration: N/A", self)
-        self.distance_travelled_label = QLabel("Distance Travelled: N/A", self)
-        self.distance_vector_label = QLabel("Distance Vector: N/A", self)
-        self.speeds_vector_label = QLabel("Speeds Vector: N/A", self)
-        self.underground_vector_label = QLabel("Underground Vector: N/A", self)
-        self.at_station_vector_label = QLabel("At Station Vector: N/A", self)
-        self.station_name_vector_label = QLabel("Next Station: N/A", self)
-        
-        # Add new labels for weight, number of carts, and length of the train
-        self.weight_label = QLabel("Weight: N/A", self)
-        self.num_cars_label = QLabel("Number of Carts: N/A", self)
-        self.length_label = QLabel("Length: N/A", self)
-        self.passenger_count_label = QLabel("Passenger Count: N/A", self)
-        self.crew_count_label = QLabel("Crew Count: N/A", self)
-
-
-        # Create a dial for velocity
-        self.velocity_dial = QDial(self)
-        self.velocity_dial.setRange(0, 75)  # Assuming max velocity is 70 mph
-        self.velocity_dial.setNotchesVisible(True)
-        self.velocity_dial.setEnabled(True)
-
-        # Layout for input fields
-        input_layout = QVBoxLayout()
-
-        # Layout for train variables
-        train_layout = QVBoxLayout()
-        input_layout.addWidget(self.authority_label)
-        train_layout.addWidget(self.cabin_temp_label)
-        input_layout.addWidget(self.Train_Beacon_ID_Label)
-        train_layout.addWidget(self.kph_velocity_label) #now mph
-        train_layout.addWidget(self.acceleration_label)
-        train_layout.addWidget(self.distance_travelled_label)
-        train_layout.addWidget(self.distance_vector_label)
-        train_layout.addWidget(self.speeds_vector_label)
-        train_layout.addWidget(self.underground_vector_label)
-        train_layout.addWidget(self.at_station_vector_label)
-        train_layout.addWidget(self.station_name_vector_label)
-        train_layout.addWidget(self.weight_label)  # Add the new labels
-        train_layout.addWidget(self.num_cars_label)
-        train_layout.addWidget(self.length_label)
-        train_layout.addWidget(self.passenger_count_label)
-        train_layout.addWidget(self.crew_count_label)
-
-        # Layout for train controls
-        control_layout = QVBoxLayout()
-        control_layout.addWidget(self.left_door_button)
-        control_layout.addWidget(self.right_door_button)
-        control_layout.addWidget(self.interior_light_button)
-        control_layout.addWidget(self.exterior_light_button)
-        control_layout.addWidget(self.ebrake_button)
-        control_layout.addWidget(self.velocity_dial)  # Add the dial to the control layout
-        control_layout.addWidget(self.signal_pickup_button)  # Add the new buttons
-        control_layout.addWidget(self.brake_status_button)
-        control_layout.addWidget(self.engine_status_button)
-
-        # Main layout
+        # Layout setup
         main_layout = QVBoxLayout()
-        main_layout.addWidget(self.banner_frame)  # Add the banner first
-        content_layout = QHBoxLayout()
-        content_layout.addLayout(input_layout)
-        content_layout.addLayout(train_layout)
-        content_layout.addLayout(control_layout)
-        main_layout.addLayout(content_layout)
+        main_layout.addWidget(self.banner_frame)
+        content_layout = QGridLayout()
 
+        content_layout.addWidget(self.travel_metrics_group, 0, 0)
+        content_layout.addWidget(self.passenger_group, 1, 1)
+        content_layout.addWidget(self.train_specs_group, 1, 0)
+        content_layout.addWidget(self.controls_group, 0, 1)
+
+        main_layout.addLayout(content_layout)
         self.setLayout(main_layout)
         self.setWindowTitle('Train GUI')
-        self.setGeometry(300, 300, 600, 400)
+        self.setGeometry(300, 300, 800, 600)
         self.show()
 
-        # Initialize the timer
         self.timer = QTimer()
+        self.elapsed_seconds = 0
+
+    def init_labels(self):
+        # Create all labels and controls
+        for name in [
+            "Train_Beacon_ID_Label", "authority_label", "cabin_temp_label", "kph_velocity_label",
+            "acceleration_label", "distance_travelled_label", "distance_vector_label",
+            "speeds_vector_label", "underground_vector_label", "at_station_vector_label",
+            "station_name_vector_label", "weight_label", "num_cars_label", "length_label",
+            "passenger_count_label", "crew_count_label"]:
+            setattr(self, name, QLabel("N/A", self))
+
+        for name in [
+            "left_door_button", "right_door_button", "interior_light_button", "exterior_light_button",
+            "ebrake_button", "signal_pickup_button", "brake_status_button", "engine_status_button"]:
+            btn = QPushButton(name.replace("_", " ").title(), self)
+            btn.clicked.connect(getattr(self, f"toggle_{name.replace('_button','')}", lambda: None))
+            setattr(self, name, btn)
+
+        self.velocity_dial = QDial(self)
+        self.velocity_dial.setRange(0, 75)
+        self.velocity_dial.setNotchesVisible(True)
+
+    def create_group_box(self, title, elements):
+        group_box = QGroupBox(title)
+        layout = QVBoxLayout()
+        for elem in elements:
+            layout.addWidget(getattr(self, elem))
+        group_box.setLayout(layout)
+        return group_box
 
     def update_train_model_GUI(self, delta_t):
         self.update_train_labels()
         self.update_clock(delta_t)  # Update the clock each time the train is updated
+        print(f"Velocity in GUI: {self.train.velocity}")
 
     def update_train_labels(self):
         self.Train_Beacon_ID_Label.setText(f"Train Number: {self.train.train_number}")
         self.authority_label.setText(f"Authority: {self.train.authority * 3.2808399:.1f} ft")
-        self.kph_velocity_label.setText(f"Velocity: {self.train.velocity * 2.23693629:.1f} mph")
+        self.kph_velocity_label.setText(f"Velocity: {np.average([self.train.velocity, self.train.previous_velocity]) * 2.23693629:.1f} mph")
         self.velocity_dial.setValue(int(self.train.velocity * 2.23693629))  # Update the dial with the velocity
-        self.acceleration_label.setText(f"Acceleration: {self.train.acceleration*80645.16:.1f} miles/h^2")
+        self.acceleration_label.setText(f"Acceleration: {np.average([self.train.acceleration, self.train.previous_acceleration])*8052.97:.1f} miles/h^2")
         self.distance_travelled_label.setText(f"Distance Travelled: {self.train.distance_travelled * 3.2808399:.1f} ft")
         
         # Display only the first value of each vector
