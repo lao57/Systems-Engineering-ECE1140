@@ -112,22 +112,40 @@ def update_wayside(block_occupancy, prev_switch_states, block_authorities, maint
     #top part of the map
     switch_states[1 - offset] = False #always off since we are doing one loop
     switch_states[2 - offset] = (ABC_ready and (not long_path)) or block_occupancy[16 - offset] and prev_switch_states[2 - offset] #if A is ready and nothing is in the long path
+    
     light_states[1 - offset] = not long_path #if anything is on the long path stop the train on A
     #top part of the map
-
+    stop_signals[1 - offset] = not light_states[1 - offset] 
+    stop_signals[2 - offset] = not light_states[1 - offset] 
+    stop_signals[3 - offset] = not light_states[1 - offset] 
 
     switch_states[7 - offset] = tsr_ready and (not long_path_no_top_loop) or block_occupancy[27 - offset] and prev_switch_states[7 - offset] #switch allowing train to enter into the long path on the top loop
     light_states[2 - offset] = not (long_path_no_top_loop)
+    
+    stop_signals[4 - offset] = not light_states[2 - offset] 
+    stop_signals[5 - offset] = not light_states[2 - offset] 
+    stop_signals[6 - offset] = not light_states[2 - offset] 
 
     switch_states[5 - offset] = qpo and (not long_path_no_bot_loop) or block_occupancy[38 - offset] and prev_switch_states[5 - offset] #switch allowing train to enter into the long path on the bottom loop
     light_states[3 -offset] = not (long_path_no_bot_loop)
-   
+    
+    stop_signals[7 - offset] = not light_states[3 - offset] 
+    stop_signals[8 - offset] = not light_states[3 - offset] 
+    stop_signals[9 - offset] = not light_states[3 - offset]   
+
     switch_states[3 - offset] = (bottom_curve and (not long_path)) or (block_occupancy[51] and prev_switch_states[3 - offset])
     light_states[4 - offset] = not (long_path) or block_occupancy[1-offset] or block_occupancy[2-offset] or block_occupancy[3-offset]
+    
+    stop_signals[10 - offset] = not light_states[4 - offset] 
+    stop_signals[11 - offset] = not light_states[4 - offset] 
+    stop_signals[12 - offset] = not light_states[4 - offset]   
 
     switch_states[4 - offset] = into_bottom_loop and not H_bot or (block_occupancy[44-offset] and prev_switch_states[4 - offset])#if a train is heading into O from I then allow it 
 
     switch_states[6 - offset] =  H_mid and (not H_top) or (block_occupancy[33-offset] and prev_switch_states[6 - offset])#if a train is heading into R from Hmid then allow it 
+
+    crossing_states[1-offset] = block_occupancy[10 - offset] or block_occupancy[11 - offset] or  block_occupancy[12 - offset]
+    crossing_states[2-offset] = block_occupancy[46 - offset] or block_occupancy[47 - offset] or  block_occupancy[48 - offset]
 
 
     return switch_states, light_states, crossing_states, stop_signals, dont_spawn
