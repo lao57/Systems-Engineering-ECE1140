@@ -13,7 +13,7 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     k_p = 20
     k_i = 5
-    world_time = {'day': 0, 'hour': 6, 'min': 30, 'sec': 0} #30 mins before 7 to give setup time
+    world_time = {'day': 0, 'hour': 6, 'min': 0, 'sec': 0} #30 mins before 7 to give setup time
 
 
 
@@ -77,8 +77,8 @@ if __name__ == "__main__":
     window = track_gui_and_testbench_unified.UnifiedTrackUI(backend=track_model)
     window.show()
 
-    green_tb = testbench_track_controller.TestBench(ctc, track_model)
-    green_tb.show()
+    # green_tb = testbench_track_controller.TestBench(ctc, track_model)
+    # green_tb.show()
 
     ctc_gui = CTCGUI(
         ctc=ctc,

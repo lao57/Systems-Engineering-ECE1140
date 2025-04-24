@@ -8,8 +8,8 @@ import track_model.track_gui_and_testbench_unified as track_gui_and_testbench_un
 import track_controller.testbench_track_controller as testbench_track_controller
 from train_controller.train_controller_gui import TrainControllerGUI
 from train_model.train_model import TrainModel
-from ctc_office.ctc_office import CTCOffice, CTC, ScheduleLoader, load_track_layout
-from ctc_office.ctc_gui import CTCGUI
+from ctc_office.ctc_office_both import CTCOffice, CTC, ScheduleLoader, load_track_layout
+from ctc_office.ctc_gui_both import CTCGUI
 from track_controller.track_controller import socket_client_thread
 from track_model.track_map import TrackMapViewer
 
