@@ -1,5 +1,5 @@
 import pandas as pd
-
+import random
 
 class TrackModelBackend:
     def __init__(self):
@@ -95,7 +95,7 @@ class TrackModelBackend:
 
     def parse_track_data(self, df):
         """Parse track data from the Excel sheet and update backend data."""
-        # print(f"parsiing track data from {df}")
+        #print(f"parsiing track data from {df}")
         self.blocks.clear()
         for _, row in df.iterrows():
             block_num = int(row["Block Number"])
@@ -256,14 +256,30 @@ class TrackModelBackend:
 
     """Added by Liam as a place holder when Lamine flushes out his passenger transactionthis is the function I am calling in the train model"""
 
-    def station_stop(self, block, number_of_passengers_on_train, max_num_passengers):
-        # shouldn't be just four needs to have some type of number of passengers on the block
-        passengers_on_block = 4
-        new_number_of_passengers_on_train = number_of_passengers_on_train
-        new_number_of_passengers_on_train += passengers_on_block
-        if new_number_of_passengers_on_train > max_num_passengers:
-            # If the number of passengers exceeds the maximum, set it to the maximum
-            passengers_getting_off = new_number_of_passengers_on_train - max_num_passengers
-        new_number_of_passengers_on_train = min(new_number_of_passengers_on_train, max_num_passengers)
 
-        return new_number_of_passengers_on_train
+
+
+    def station_stop(self, block, number_of_passengers_on_train, max_num_passengers):
+        """
+        Simulate a train stopping at a station with random passenger boarding/disembarking behavior.
+        Includes error handling to prevent crash during simulation.
+        """
+        try:
+            number_of_passengers_on_train = max(0, number_of_passengers_on_train)
+            max_num_passengers = max(1, max_num_passengers)
+
+            passengers_on_block = random.randint(0, 10)
+            passengers_getting_off = random.randint(0, number_of_passengers_on_train // 2)
+
+            new_number_of_passengers_on_train = number_of_passengers_on_train - passengers_getting_off
+            room_left = max_num_passengers - new_number_of_passengers_on_train
+            passengers_boarding = min(passengers_on_block, max(0, room_left))
+            new_number_of_passengers_on_train += passengers_boarding
+
+            print(
+                f"[Station Stop] Block {block}: +{passengers_boarding} boarded, -{passengers_getting_off} disembarked")
+
+            return new_number_of_passengers_on_train
+        except Exception as e:
+            print(f"[Station Stop ERROR] Block {block}: {e}")
+            return number_of_passengers_on_train
