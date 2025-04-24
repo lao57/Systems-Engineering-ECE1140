@@ -8,6 +8,7 @@ from PyQt6.QtWidgets import (
 
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont
+from PyQt6.QtCore import QTimer
 
 
 try:
@@ -39,6 +40,27 @@ class UnifiedTrackUI(QWidget):
         #from track_map import TrackMapViewer #to use without main
         self.map_left = TrackMapViewer(self.backend)
         self.map_right = TrackMapViewer(self.backend)
+
+        import openpyxl
+        green_path = "assets/green_line.xlsx"
+        red_path = "assets/red_line.xlsx"
+
+        wb_green = openpyxl.load_workbook(green_path, data_only=True)
+        wb_red = openpyxl.load_workbook(red_path, data_only=True)
+
+        self.map_right.last_sheet = wb_green.active
+        self.map_left.last_sheet = wb_red.active
+
+        self.map_right.current_line = "Green"
+        self.map_left.current_line = "Red"
+
+        self.map_right.custom_positions = self.map_right.line_positions["Green"]
+        self.map_left.custom_positions = self.map_left.line_positions["Red"]
+
+        self.map_right.draw_layout(self.map_right.last_sheet, line="Green")
+        QTimer.singleShot(100, self.map_right.fit_to_view)
+        self.map_left.draw_layout(self.map_left.last_sheet, line="Red")
+        QTimer.singleShot(100, self.map_left.fit_to_view)
 
         # Layout to hold maps side-by-side
         map_row = QHBoxLayout()
@@ -133,21 +155,30 @@ class UnifiedTrackUI(QWidget):
 
 
     def toggle_failure(self, failure, checked):
-        print("fILURE: ", failure, checked)
+        #print("fILURE: ", failure, checked)
         self.failures[failure] = checked
         self.failure_status_labels[failure].setText("Active" if checked else "Inactive")
         idx = self.block_selector.currentIndex()
         if idx >= 0 and self.df_layout is not None:
-            print("entered df func")
+            #print("entered df func")
             blk = int(self.df_layout.iloc[idx]["Block Number"])
-            self.backend.update_block_occupancy(blk - 1, blk, blk + 1, checked)
+            blk_index = blk - 1
+            self.backend.update_block_occupancy(blk_index, occupied=checked, failure_type=failure)
             self.occupancy_label.setText(f"Track Occupancy: {'❌' if checked else '✅'}")
 
     def reset_failures(self):
+        idx = self.block_selector.currentIndex()
+        if idx < 0 or self.df_layout is None:
+            return
+
+        blk = int(self.df_layout.iloc[idx]["Block Number"]) - 1
+        failure_map = self.backend.block_failure_map.get(blk, {})
+
         for f in self.failures:
-            self.failures[f] = False
-            self.failure_toggles[f].setChecked(False)
-            self.failure_status_labels[f].setText("Inactive")
+            state = failure_map.get(f, False)
+            self.failures[f] = state
+            self.failure_toggles[f].setChecked(state)
+            self.failure_status_labels[f].setText("Active" if state else "Inactive")
 
     def update_temperature(self):
         self.temperature = self.temp_slider.value()
@@ -210,6 +241,14 @@ class UnifiedTrackUI(QWidget):
             self.station_label.setText("Station: YES")
         else:
             self.station_label.setText("Station: N/A")
+
+        if blk in self.map_right.line_positions["Green"]:
+            if hasattr(self.map_right, 'last_sheet'):
+                self.map_right.draw_layout(self.map_right.last_sheet, line="Green", skip_fit=True)
+
+        elif blk in self.map_left.line_positions["Red"]:
+            if hasattr(self.map_left, 'last_sheet'):
+                self.map_left.draw_layout(self.map_left.last_sheet, line="Red", skip_fit=True)
 
 
 def main():

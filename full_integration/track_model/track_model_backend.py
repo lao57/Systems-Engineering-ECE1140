@@ -12,12 +12,15 @@ class TrackModelBackend:
         self.blocks = {}  # Stores track block data
         self.occupancy_status = [False] * 150  # Block occupancy states
         self.failure_occupancy = [False] * 150
+        self.override_occupancy = [False] * 150  # Track failures affecting occupancy
+
         self.switch_states = []  # Switch states
         self.light_signals = []  # Light signals
         self.crossing_states = []  # Railway crossings
         self.track_circuit_failures = []  # Track circuit failure states
         self.block_authority = []  # 10-bit block authority as string
         self.failure_status = []  # Track circuit failure status
+        self.block_failure_map = {}  # Example: {12: {"Broken Rail": True, "Maintenance": False, ...}}
 
         # Addng UI
         self.ui = None  # Placeholder for UI component
@@ -126,6 +129,7 @@ class TrackModelBackend:
         self.block_authority = [False, False, False, False, False, False, False, False, False, False] * len(
             self.blocks)  # 10-bit block authority as string
         self.failure_status = [False] * len(self.blocks)  # Track circuit failure status
+        self.override_occupancy = [False] * len(self.blocks)  # Reset override flags
         self.ui.failure_vector = [[False] * 5 for _ in range(len(self.blocks))]  # Track circuit failure status
 
         """
@@ -163,12 +167,21 @@ class TrackModelBackend:
                     for block_num in self.blocks:
                         self.update_block_occupancy(block_num, False)
 
-    def update_block_occupancy(self, block_num_begin, block_num_middle, block_num_end, occupied=True):
-        """Update block occupancy state."""
-        for blk in [block_num_begin, block_num_middle, block_num_end]:
+    def update_block_occupancy(self, center_block, occupied=True, failure_type=""):
+        print(f"[Backend] Marking blocks occupied: {[center_block - 1, center_block, center_block + 1]} for {failure_type}")
+
+        # Set occupancy for surrounding blocks
+        for blk in [center_block - 1, center_block, center_block + 1]:
             if 0 <= blk < len(self.occupancy_status) and blk in self.blocks:
                 self.blocks[blk]["occupancy"] = occupied
                 self.occupancy_status[blk] = occupied
+                self.override_occupancy[blk] = occupied
+
+        # Only mark the failure on the center block (for correct toggle behavior)
+        if center_block not in self.block_failure_map:
+            self.block_failure_map[center_block] = {}
+        self.block_failure_map[center_block][failure_type] = occupied
+
         if self.ui:
             self.ui.update()
 
@@ -212,7 +225,11 @@ class TrackModelBackend:
             return
         else:
             self.ui.update()
-            self.occupancy_status = [False] * 150  # lamine needs to fix add failures
+            #self.occupancy_status = [False] * 150  # lamine needs to fix add failures
+            for i in range(len(self.occupancy_status)):
+                if not self.override_occupancy[i]:  # Only reset if not overridden by failure
+                    self.occupancy_status[i] = False
+
             self.switch_states = self.track_controller.switch_states
             self.light_signals = self.track_controller.light_states
             self.crossing_states = self.track_controller.crossing_states

@@ -137,7 +137,7 @@ class TrackMapViewer(QtWidgets.QWidget):
 
         # Setup mouse wheel zooming
         self.graphicsView.wheelEvent = self.wheel_zoom
-        QtCore.QTimer.singleShot(0, self.load_layout)
+        #QtCore.QTimer.singleShot(0, self.load_layout)
 
     def wheel_zoom(self, event):
         """Custom wheel event for zooming"""
@@ -317,9 +317,11 @@ class TrackMapViewer(QtWidgets.QWidget):
                 line.setPen(pen)
                 self.graphicsView.scene().addItem(line)
 
+
         # After drawing everything, fit to the layout
         if not skip_fit:
             self.fit_to_view()
+
 
     def resizeEvent(self, event):
         """Handle window resize events"""

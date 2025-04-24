@@ -98,6 +98,7 @@ class TrainController:
                     self.set_cabin_temp, self.doors_status, self.lights_status, self.announce_station
 
         if self.e_brake_on and self.train_controller_mode != 'auto':     # driver input
+            self.cmd_power = 0
             return self.e_brake_on, self.service_brake_decel, self.cmd_power, \
                 self.set_cabin_temp, self.doors_status, self.lights_status, self.announce_station
 

@@ -68,7 +68,9 @@ if __name__ == "__main__":
             track_model.receive_block_authority(block_num, authority)
 
         # Update GUI state
-        track_model.gui.update_gui_display()
+        #track_model.gui.update_gui_display()
+        track_model.ui.update()  # Correct call
+
         print("[Main] Backend synced with Track Controller")
 
 
@@ -88,6 +90,7 @@ if __name__ == "__main__":
 
     # --- Show Unified TrackModelUI + Testbench window and pass backend ---
     window = track_gui_and_testbench_unified.UnifiedTrackUI(backend=track_model)
+    track_model.addUI(window)  # ✅ Ensure backend can call UI updates
     window.show()
 
     # --- Set up continuous controller update ---
@@ -123,6 +126,7 @@ if __name__ == "__main__":
         ctc_gui.update_all()
         track_controller.update()
         track_model.update()
+        track_model.ui.update()  # Force GUI refresh
         if len(track_model.blocks) > 0:  # Update train models only if blocks exist
             ctc_office.update_all_trains(world_time, delta_t=1)
 
