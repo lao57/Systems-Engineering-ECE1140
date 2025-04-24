@@ -28,7 +28,7 @@ BIN_TO_SPEED_LIM = {
     '111': 70
 }
 
-STATION_NAMING = {
+STATION_NAMING_GREEN = {
     '0001': "PIONEER",
     '0010': "EDGEBROOK",
     '0100': "WHITED",
@@ -51,7 +51,7 @@ STATION_NAMING = {
 class TrainModel:
     """INITIALIZATION"""
 
-    def __init__(self, train_number=1, LOOP_INTERVAL_MS = 1000, k_p=1.5e5, k_i=1.5e4, crew_count=3, start_block=64):
+    def __init__(self, train_number=1, LOOP_INTERVAL_MS = 1000, k_p=1.5e5, k_i=1.5e4, line = "green", start_block=64, crew_count=3):
         """
         Initialize the TrainModel instance.
 
@@ -123,6 +123,7 @@ class TrainModel:
         self.k_p = k_p
         self.k_i = k_i
         self.dt = 1  # sampling time
+        self.line = line
         self.max_engine_power = 120e3  # 4 motors; each can supply up to max 120 kW
         self.sample_period = 1
         self.comfortable_temp = 70
@@ -134,6 +135,9 @@ class TrainModel:
         self.train_controller_testbench = None  # TestbenchGUI()
         self.train_gui = Train_GUI(self)
         self.ebrake_gui_signal = False
+
+        self.train_gui.hide()
+        self.train_controller_gui.hide()
 
         # OTHER MODULES
         self.Track_model = None  # holds the actual track information
@@ -297,11 +301,15 @@ class TrainModel:
                     self.station_side.append(0) #right door can open
                 else:
                     self.station_side.append(3) #neither door can open
-                
-            self.display_train()
+            for i in range(len(self.Next_station_names) - 1, 0, -1):
+                if self.Next_station_names[i] != "0000" and self.Next_station_names[i-1] == "0000":
+                    self.Next_station_names[i-1] = self.Next_station_names[i]
+                    
+            #self.display_train()
+            
 
     def baud_read(self):
-        print("IN BAUD READ")
+        #print("IN BAUD READ")
         #print(self.blocknumbervector[0])
         if self.blocknumbervector:
             #print("IN BAUD READ") #FOR TESTING THIS FUNCTION
@@ -309,38 +317,38 @@ class TrainModel:
             if authority < self.authority:
                 self.authority = authority
                 self.station_stop = False
-                print("baud 1")
+                #print("baud 1")
 
             elif authority == self.authority_sent and authority == 1023:
                 self.authority = 1023 #updates to max authority if it is 1023
                 self.station_stop = False
-                print("baud 2")
+                #print("baud 2")
 
             elif self.middle_correction == True and authority < self.distance_vector_middle[0] + 10 and authority > 0:
                 authority = self.distance_vector_middle[0] - authority - 1
                 self.authority = authority
-                print("baud 2.2")
+                #print("baud 2.2")
 
 
             elif self.middle_correction:
                 self.middle_correction = False
-                print("baud 2.3")
+                #print("baud 2.3")
 
 
             elif self.authority < 2 and authority < (self.distance_vector[0] + 3) and authority > (self.distance_vector[0] - 3):
                 #do nothing because they are just sending a halfblock authority
                 self.station_stop = True
-                print("baud 3")
-                print("front", self.blocknumbervector[0])
-                print("middle", self.blocknumbervector_middle[0])
-                print("end", self.blocknumbervector_end[0])
+                #print("baud 3")
+                #print("front", self.blocknumbervector[0])
+                #print("middle", self.blocknumbervector_middle[0])
+                #print("end", self.blocknumbervector_end[0])
                 if self.blocknumbervector_end[0] != self.blocknumbervector[0]:
                     self.middle_correction = True
 
             elif self.authority < 2 and authority > 0 and authority < (self.distance_vector[0] + 3): #train undershot authority and is now given a hlafblock authority but is really already stopped toward the beginiing of block
                 self.authority = self.distance_vector[0] - authority - 1 
                 self.station_stop = False
-                print("baud 4")
+                #print("baud 4")
                 #sets authority to the halfway block since there is no error as authority is greater than 0
                 #should force train to be in previous case and stop the train
 
@@ -348,14 +356,14 @@ class TrainModel:
             elif self.authority < 2 and authority > 0: #train was told to stop but is not told to got so shouldn't bother stopping
                 self.authority = authority
                 self.station_stop = False
-                print("baud 5")
+                #print("baud 5")
 
             
 
             self.authority_sent = authority
 
         else:
-            print("Authority: ", authority, " PULLED FROM START BLOCK")
+            #print("Authority: ", authority, " PULLED FROM START BLOCK")
             self.authority = self.Track_model.get_block_authority(self.START_BLOCK)#starting block
         # baud_signal.append(0)  | Potentail add if we are not getting enough range
 
@@ -408,11 +416,13 @@ class TrainModel:
             self.lights_status[0] = self.train_controller_gui.lights_status[0]
         else:
             self.train_controller.train_controller_mode = 'auto'
+            self.cmd_velocity = min(float(self.speeds_vector[0]), MAX_SPEED)
 
         # calling Train Controller function (also will need to be able to send at_station_vector[0] so that you can check if you are at a station if you are stopping)
         auth_to_cont = self.authority
         self.train_controller.iterate(self.speeds_vector[0],
-                                      min(float(self.speeds_vector[0]), MAX_SPEED),
+                                      # min(float(self.speeds_vector[0]), MAX_SPEED),
+                                      self.cmd_velocity,
                                       auth_to_cont, self.velocity, self.failure_modes, self.underground_vector[0],
                                       self.cabin_temp, self.doors_status, self.lights_status,
                                       self.Next_station_names[0], world_time, self.station_stop, self.station_side)
@@ -551,11 +561,13 @@ class TrainModel:
             self.lights_status[0] = self.train_controller_gui.lights_status[0]
         else:
             self.train_controller.train_controller_mode = 'auto'
+            self.cmd_velocity = min(float(self.speeds_vector[0]), MAX_SPEED)
 
         # calling Train Controller function (also will need to be able to send at_station_vector[0] so that you can check if you are at a station if you are stopping)
         auth_to_cont = self.authority
         self.train_controller.iterate(self.speeds_vector[0],
-                                      min(float(self.speeds_vector[0]), MAX_SPEED),
+                                      # min(float(self.speeds_vector[0]), MAX_SPEED),
+                                      self.cmd_velocity,
                                       auth_to_cont, self.velocity, self.failure_modes, self.underground_vector[0],
                                       self.cabin_temp, self.doors_status, self.lights_status,
                                       self.Next_station_names[0], world_time, self.station_stop, self.station_side)

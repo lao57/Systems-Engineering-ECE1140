@@ -653,13 +653,16 @@ def socket_client_thread(ctc, track_controller, track_model):
             if response:
                 try:
                     resp_data = json.loads(response.strip())
-                    
-                    # Update wayside2 state from received data
-                    track_controller.wayside_controllers["wayside2"].update({
-                        "switch_states": resp_data.get("switch_states", track_controller.wayside_controllers["wayside2"]["switch_states"]),
-                        "light_states": resp_data.get("light_states", track_controller.wayside_controllers["wayside2"]["light_states"]),
-                        "crossing_states": resp_data.get("crossing_states", track_controller.wayside_controllers["wayside2"]["crossing_states"])
-                    })
+                    # Update wayside2's state based on data from Raspberry Pi
+                    track_controller.wayside_controllers["wayside2"]["switch_states"] = resp_data.get(
+                        "switch_states", track_controller.wayside_controllers["wayside2"]["switch_states"])
+                    track_controller.wayside_controllers["wayside2"]["light_states"] = resp_data.get(
+                        "light_states", track_controller.wayside_controllers["wayside2"]["light_states"])
+                    track_controller.wayside_controllers["wayside2"]["crossing_states"] = resp_data.get(
+                        "crossing_states", track_controller.wayside_controllers["wayside2"]["crossing_states"])
+                    track_controller.wayside_controllers["wayside2"]["dont_spawn"] = resp_data.get(
+                        "dont_spawn", track_controller.wayside_controllers["wayside2"]["dont_spawn"])
+
                 except Exception as e:
                     print("Error parsing returned data:", e)
 

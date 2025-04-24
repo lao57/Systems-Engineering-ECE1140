@@ -1,24 +1,25 @@
 import pandas as pd
 
+
 class TrackModelBackend:
     def __init__(self):
         """Initialize Track Model Backend with connections to other models."""
         self.track_controller = None  # to Track Controller
-        self.train_model = None       # to Train Model
+        self.train_model = None  # to Train Model
 
         self.ready = False  # Indicates if the backend is ready
 
         self.blocks = {}  # Stores track block data
-        self.occupancy_status = [False]*150  # Block occupancy states
-        self.failure_occupancy = [False]*150
-        self.switch_states = []     # Switch states
-        self.light_signals = []       # Light signals
-        self.crossing_states = []    # Railway crossings
+        self.occupancy_status = [False] * 150  # Block occupancy states
+        self.failure_occupancy = [False] * 150
+        self.switch_states = []  # Switch states
+        self.light_signals = []  # Light signals
+        self.crossing_states = []  # Railway crossings
         self.track_circuit_failures = []  # Track circuit failure states
-        self.block_authority = [] # 10-bit block authority as string
+        self.block_authority = []  # 10-bit block authority as string
         self.failure_status = []  # Track circuit failure status
 
-        #Addng UI
+        # Addng UI
         self.ui = None  # Placeholder for UI component
 
     # ---------------------------
@@ -89,7 +90,7 @@ class TrackModelBackend:
 
     def parse_track_data(self, df):
         """Parse track data from the Excel sheet and update backend data."""
-        #print(f"parsiing track data from {df}")
+        # print(f"parsiing track data from {df}")
         self.blocks.clear()
         for _, row in df.iterrows():
             block_num = int(row["Block Number"])
@@ -105,11 +106,12 @@ class TrackModelBackend:
                 "track_circuit_failure": [False, False, False, False, False],  # Track circuit failure states
                 "track_heater": False,  # Track heater state
                 "beacon_signal": row.get("beacon_signal", None),  # New: Beacon signal from Excel
-                "block_authority": [False,False,False,False,False,False,False,False,False,False],  # 10-bit authority as a string
+                "block_authority": [False, False, False, False, False, False, False, False, False, False],
+                # 10-bit authority as a string
                 "grade_vector": row.get("grade_vector", None),  # New: Grade vector from Excel
                 "block_vector": row.get("block_vector", None),  # New: Block vector from Excel
             }
-            #print(f"Block {block_num} data: {self.blocks[block_num]}")
+            # print(f"Block {block_num} data: {self.blocks[block_num]}")
 
         # Update backend state arrays
         self.occupancy_status = [False] * len(self.blocks)  # Block occupancy states
@@ -117,7 +119,8 @@ class TrackModelBackend:
         self.light_signals = [False] * len(self.blocks)  # Light signals
         self.crossing_states = [False] * len(self.blocks)  # Railway crossings
         self.track_circuit_failures = [False] * len(self.blocks)  # Track circuit failure states
-        self.block_authority = [False,False,False,False,False,False,False,False,False,False] * len(self.blocks)  # 10-bit block authority as string
+        self.block_authority = [False, False, False, False, False, False, False, False, False, False] * len(
+            self.blocks)  # 10-bit block authority as string
         self.failure_status = [False] * len(self.blocks)  # Track circuit failure status
         self.ui.failure_vector = [[False] * 5 for _ in range(len(self.blocks))]  # Track circuit failure status
 
@@ -151,18 +154,12 @@ class TrackModelBackend:
                     for block_num in self.blocks:
                         self.update_block_occupancy(block_num, False)
 
-    def update_block_occupancy(self, block_num_begin, block_num_middle, block_num_end, occupied = True):
+    def update_block_occupancy(self, block_num_begin, block_num_middle, block_num_end, occupied=True):
         """Update block occupancy state."""
-        #print(f"Updating occupancy for blocks {block_num_begin}, {block_num_middle}, {block_num_end} to {occupied}")
-        if block_num_begin in self.blocks:
-            self.blocks[block_num_begin]["occupancy"] = True
-            self.occupancy_status[block_num_begin] = True
-        if block_num_middle in self.blocks:
-            self.blocks[block_num_middle]["occupancy"] = True
-            self.occupancy_status[block_num_middle] = True
-        if block_num_end in self.blocks:
-            self.blocks[block_num_end]["occupancy"] = True
-            self.occupancy_status[block_num_end] = True
+        for blk in [block_num_begin, block_num_middle, block_num_end]:
+            if 0 <= blk < len(self.occupancy_status) and blk in self.blocks:
+                self.blocks[blk]["occupancy"] = occupied
+                self.occupancy_status[blk] = occupied
         if self.ui:
             self.ui.update()
 
@@ -188,40 +185,39 @@ class TrackModelBackend:
         if block_num in self.blocks:
             return self.blocks[block_num]["beacon_signal"]
         return "0000"
-    
+
     def get_block_vector_from_block(self, block_num):
         """Return the block vector for a specific block."""
         if block_num in self.blocks:
             return self.blocks[block_num]["block_vector"]
         return None
-    
+
     def get_grade_from_block(self, block_num):
         """Return the grade vector for a specific block."""
         if block_num in self.blocks:
             return self.blocks[block_num]["grade_vector"]
         return None
 
-
     def update(self):
         if not self.blocks:
             return
         else:
             self.ui.update()
-            self.occupancy_status = [False] * 150 #lamine needs to fix add failures
+            self.occupancy_status = [False] * 150  # lamine needs to fix add failures
             self.switch_states = self.track_controller.switch_states
             self.light_signals = self.track_controller.light_states
             self.crossing_states = self.track_controller.crossing_states
             self.block_authority = self.track_controller.block_authority
             for block_num in self.blocks:
-                self.blocks[block_num]["switch_state"] = self.switch_states[block_num-1]
-                self.blocks[block_num]["light_signal"] = self.light_signals[block_num-1]
-                self.blocks[block_num]["crossing_state"] = self.crossing_states[block_num-1]
-                self.blocks[block_num]["track_circuit_failure"] = self.track_circuit_failures[block_num-1]
-                #for error checking
-                #print(f"Block {block_num}: set with {block_num - 1}")
-            #print("Updating backend with track controller data")
+                self.blocks[block_num]["switch_state"] = self.switch_states[block_num - 1]
+                self.blocks[block_num]["light_signal"] = self.light_signals[block_num - 1]
+                self.blocks[block_num]["crossing_state"] = self.crossing_states[block_num - 1]
+                self.blocks[block_num]["track_circuit_failure"] = self.track_circuit_failures[block_num - 1]
+                # for error checking
+                # print(f"Block {block_num}: set with {block_num - 1}")
+            # print("Updating backend with track controller data")
 
-        #self.ui.update()
+        # self.ui.update()
 
     # ---------------------------
     # SETTERS FOR DEPENDENCIES
@@ -233,8 +229,9 @@ class TrackModelBackend:
         self.train_model = train_model
 
     """Added by Liam as a place holder when Lamine flushes out his passenger transactionthis is the function I am calling in the train model"""
+
     def station_stop(self, block, number_of_passengers_on_train, max_num_passengers):
-        #shouldn't be just four needs to have some type of number of passengers on the block
+        # shouldn't be just four needs to have some type of number of passengers on the block
         passengers_on_block = 4
         new_number_of_passengers_on_train = number_of_passengers_on_train
         new_number_of_passengers_on_train += passengers_on_block

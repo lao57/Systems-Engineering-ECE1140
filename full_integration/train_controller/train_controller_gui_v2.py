@@ -37,7 +37,7 @@ class TrainControllerGUIv2(QWidget):
         self.service_brake_decel = 0.0
         self.max_sbrake_decel = 1.2
         self.failure_modes = [False, False, False]
-        self.driver_speed = 10
+        self.driver_speed = 10 / 2.23694
 
         self.setup_widgets()
         self.build_layout()
@@ -72,7 +72,7 @@ class TrainControllerGUIv2(QWidget):
         self.tc_mode_slider.valueChanged.connect(self.update_train_controller_mode)
         self.tc_mode_lbl = QLabel(self.train_controller_mode)
 
-        self.driver_speed_lbl = QLabel("Driver Commanded speed (if in automatic mode): 10")
+        self.driver_speed_lbl = QLabel("Driver Commanded speed (if in automatic mode): 10 mi/h")
         self.driver_speed_textbox = QLineEdit()
         self.driver_speed_textbox.setPlaceholderText("Enter driver speed...")
         self.driver_speed_textbox.setFixedWidth(200)
@@ -196,8 +196,8 @@ class TrainControllerGUIv2(QWidget):
         self.tc_mode_lbl.setText(self.train_controller_mode)
 
     def update_commanded_speed(self):
-        self.driver_speed = float(self.driver_speed_textbox.text())
-        self.driver_speed_lbl.setText(f"Driver Commanded speed (if in automatic mode): {self.driver_speed:.2f}")
+        self.driver_speed = float(self.driver_speed_textbox.text()) / 2.23694
+        self.driver_speed_lbl.setText(f"Driver Commanded speed (if in automatic mode): {self.driver_speed * 2.23694:.2f}")
 
     def update_driver_cabin_temp(self):
         self.cur_cabin_temp = float(self.driver_cabin_temp_textbox.text())
