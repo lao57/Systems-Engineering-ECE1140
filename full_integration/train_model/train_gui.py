@@ -217,7 +217,7 @@ class Train_GUI(QWidget):
             pixmap = QPixmap(file_name)
             pixmap = pixmap.scaled(250, 250, Qt.AspectRatioMode.KeepAspectRatio)  # Scale image to fit the banner
             self.banner_image_label.setPixmap(pixmap)
-            self.upload_image_button.deleteLater()  # Delete the button after clicking
+            #self.upload_image_button.deleteLater()  # Delete the button after clicking
 
     # Function to update the clock
     def update_clock(self, deltaT):

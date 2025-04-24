@@ -861,17 +861,21 @@ class TrainUIToggle(QWidget):
         self.update_ui()
 
     def update_ui(self):
-        for i in reversed(range(self.train_checkbox_layout.count())):
-            widget = self.train_checkbox_layout.itemAt(i).widget()
-            if widget:
-                widget.deleteLater()
-        self.checkboxes = {}
+        # Remove checkboxes for trains that are no longer active
+        for train_number in list(self.checkboxes.keys()):
+            if not any(train_model.train_number == train_number for train_model in self.real_active_trains):
+                checkbox = self.checkboxes.pop(train_number, None)
+                if checkbox:
+                    checkbox.deleteLater()
+
+        # Add checkboxes for new trains
         for train_model in self.real_active_trains:
-            checkbox = QCheckBox(f"Train {train_model.train_number}")
-            checkbox.setChecked(True)
-            checkbox.stateChanged.connect(self.toggle_train_ui)
-            self.train_checkbox_layout.addWidget(checkbox)
-            self.checkboxes[train_model.train_number] = checkbox
+            if train_model.train_number not in self.checkboxes:
+                checkbox = QCheckBox(f"Train {train_model.train_number}")
+                checkbox.setChecked(False)
+                checkbox.stateChanged.connect(self.toggle_train_ui)
+                self.train_checkbox_layout.addWidget(checkbox)
+                self.checkboxes[train_model.train_number] = checkbox
 
     def toggle_train_ui(self, state):
         for train_model in self.real_active_trains:
