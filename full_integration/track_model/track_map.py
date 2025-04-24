@@ -1,6 +1,6 @@
 import sys, os, openpyxl
 from PyQt6 import QtWidgets, QtGui, QtCore
-from networkx.classes import non_edges
+
 
 try:
     # When run from main.py
@@ -11,7 +11,7 @@ except ImportError:
 
 
 
-class TrackMapViewer(QtWidgets.QMainWindow):
+class TrackMapViewer(QtWidgets.QWidget):
     def __init__(self, backend):
         super().__init__()
         self.setWindowTitle("Track Map Viewer")
@@ -19,8 +19,7 @@ class TrackMapViewer(QtWidgets.QMainWindow):
 
         # Create central widget
         self.centralWidget = QtWidgets.QWidget()
-        self.setCentralWidget(self.centralWidget)
-        self.mainLayout = QtWidgets.QVBoxLayout(self.centralWidget)
+        self.mainLayout = QtWidgets.QVBoxLayout(self)
 
         # Top bar layout for controls
         self.topBar = QtWidgets.QHBoxLayout()

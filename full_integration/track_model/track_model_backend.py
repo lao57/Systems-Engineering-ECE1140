@@ -156,16 +156,10 @@ class TrackModelBackend:
 
     def update_block_occupancy(self, block_num_begin, block_num_middle, block_num_end, occupied=True):
         """Update block occupancy state."""
-        # print(f"Updating occupancy for blocks {block_num_begin}, {block_num_middle}, {block_num_end} to {occupied}")
-        if block_num_begin in self.blocks:
-            self.blocks[block_num_begin]["occupancy"] = True
-            self.occupancy_status[block_num_begin] = True
-        if block_num_middle in self.blocks:
-            self.blocks[block_num_middle]["occupancy"] = True
-            self.occupancy_status[block_num_middle] = True
-        if block_num_end in self.blocks:
-            self.blocks[block_num_end]["occupancy"] = True
-            self.occupancy_status[block_num_end] = True
+        for blk in [block_num_begin, block_num_middle, block_num_end]:
+            if 0 <= blk < len(self.occupancy_status) and blk in self.blocks:
+                self.blocks[blk]["occupancy"] = occupied
+                self.occupancy_status[blk] = occupied
         if self.ui:
             self.ui.update()
 

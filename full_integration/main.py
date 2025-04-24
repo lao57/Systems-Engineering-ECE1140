@@ -34,8 +34,8 @@ if __name__ == "__main__":
     ctc_office.set_ctc(ctc)
     ctc_office.set_track_model(track_model)
 
-    # socket_thread = threading.Thread(target=socket_client_thread, args=(ctc, track_controller, track_model), daemon=True)
-    # socket_thread.start()
+    socket_thread = threading.Thread(target=socket_client_thread, args=(ctc, track_controller, track_model), daemon=True)
+    socket_thread.start()
 
     # --- Wire components ---
 
@@ -135,7 +135,7 @@ if __name__ == "__main__":
     update_timer.timeout.connect(update_world)
     update_timer.start(LOOP_INTERVAL_MS)  # Update every 1 second
 
-    map_viewer = TrackMapViewer(track_model)
-    map_viewer.show()
+    #map_viewer = TrackMapViewer(track_model)
+    #map_viewer.show()
 
     sys.exit(app.exec())
