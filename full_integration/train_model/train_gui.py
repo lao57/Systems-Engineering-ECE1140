@@ -8,6 +8,10 @@ from PyQt6.QtCore import Qt, QTimer
 import train_model.train_model as train_class
 import numpy as np
 
+
+CABIN_HEIGHT = 11.2  # ft
+CABIN_WIDTH = 8.7  # ft
+
 station_naming = {
     '0001': "PIONEER",
     '0010': "EDGEBROOK",
@@ -74,10 +78,10 @@ class Train_GUI(QWidget):
         self.banner_image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.banner_layout.addWidget(self.banner_image_label)
 
-        self.clock_label = QLabel(self)
-        self.clock_label.setAlignment(Qt.AlignmentFlag.AlignRight)
-        self.clock_label.setStyleSheet("font-size: 20px; color: white;")
-        self.banner_layout.addWidget(self.clock_label)
+        #self.clock_label = QLabel(self)
+        #self.clock_label.setAlignment(Qt.AlignmentFlag.AlignRight)
+        #self.clock_label.setStyleSheet("font-size: 20px; color: white;")
+        #self.banner_layout.addWidget(self.clock_label)
 
         # Initialize labels and controls first
         self.init_labels()
@@ -94,7 +98,8 @@ class Train_GUI(QWidget):
         ])
 
         self.train_specs_group = self.create_group_box("Train Specs", [
-            "weight_label", "num_cars_label", "length_label"
+            "weight_label", "num_cars_label", "length_label", "width_label",
+            "height_label"
         ])
 
         self.controls_group = self.create_group_box("Controls", [
@@ -128,14 +133,16 @@ class Train_GUI(QWidget):
             "Train_Beacon_ID_Label", "authority_label", "cabin_temp_label", "kph_velocity_label",
             "acceleration_label", "distance_travelled_label", "distance_vector_label",
             "speeds_vector_label", "underground_vector_label", "at_station_vector_label",
-            "station_name_vector_label", "weight_label", "num_cars_label", "length_label",
-            "passenger_count_label", "crew_count_label"]:
+            "station_name_vector_label", "weight_label", "num_cars_label", "length_label", "width_label",
+            "height_label","passenger_count_label", "crew_count_label"]:
             setattr(self, name, QLabel("N/A", self))
 
         for name in [
             "left_door_button", "right_door_button", "interior_light_button", "exterior_light_button",
             "ebrake_button", "signal_pickup_button", "brake_status_button", "engine_status_button"]:
             btn = QPushButton(name.replace("_", " ").title(), self)
+            if name == "ebrake_button":
+                btn.setStyleSheet("background-color: red; color: white;")
             btn.clicked.connect(getattr(self, f"toggle_{name.replace('_button','')}", lambda: None))
             setattr(self, name, btn)
 
@@ -153,7 +160,7 @@ class Train_GUI(QWidget):
 
     def update_train_model_GUI(self, delta_t):
         self.update_train_labels()
-        self.update_clock(delta_t)  # Update the clock each time the train is updated
+        #self.update_clock(delta_t)  # Update the clock each time the train is updated
 
     def update_train_labels(self):
         self.Train_Beacon_ID_Label.setText(f"Train Number: {self.train.train_number}")
@@ -190,6 +197,8 @@ class Train_GUI(QWidget):
         self.weight_label.setText(f"Weight: {int(self.train.weight_imperial)} lbs")
         self.num_cars_label.setText(f"Number of Carts: {self.train.numberOfCars}")
         self.length_label.setText(f"Length: {int(self.train.length_imperial)} ft")
+        self.width_label.setText(f"Width: {CABIN_WIDTH} ft")
+        self.height_label.setText(f"Height: {CABIN_HEIGHT} ft")
         # Update passenger count and crew count
         self.passenger_count_label.setText(f"Passenger Count: {self.train.passenger_count}")
         self.crew_count_label.setText(f"Crew Count: {self.train.crew_count}")

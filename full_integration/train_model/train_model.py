@@ -9,8 +9,8 @@ from train_controller.train_controller_gui_v2 import TrainControllerGUIv2
 SERVICE_BRAKE_DECELERATION = 1.2  # m/s^2
 EMERGENCY_BRAKE_DECELERATION = 2.73  # m/s^2
 CABIN_LENGTH = 32.2  # m
-CABIN_HEIGHT = 3.42  # m
-CABIN_WIDTH = 2.65  # m
+CABIN_HEIGHT = 11.2  # ft
+CABIN_WIDTH = 8.7  # ft
 G_CONSTANT = 9.8  # m/s^2
 STATIC_ROLLING_RESSISTANCE = 0.1  # m/s^2
 MAX_SPEED = 19.444  # m/s
