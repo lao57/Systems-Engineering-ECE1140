@@ -558,6 +558,8 @@ def socket_client_thread(ctc, track_controller, track_model):
                         "light_states", track_controller.wayside_controllers["wayside2"]["light_states"])
                     track_controller.wayside_controllers["wayside2"]["crossing_states"] = resp_data.get(
                         "crossing_states", track_controller.wayside_controllers["wayside2"]["crossing_states"])
+                    track_controller.wayside_controllers["wayside2"]["dont_spawn"] = resp_data.get(
+                        "dont_spawn", track_controller.wayside_controllers["wayside2"]["dont_spawn"])
                 except Exception as e:
                     print("Error parsing returned data:", e)
             # Small delay to avoid flooding the socket
