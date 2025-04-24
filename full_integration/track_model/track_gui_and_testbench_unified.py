@@ -30,6 +30,9 @@ class UnifiedTrackUI(QWidget):
         }
         self.temperature = 70
         self.df_layout = None
+        self.current_passengers = 20  # or 0 to start empty
+        self.last_station_block = None
+
         self.setupUI()
 
     def setupUI(self):
@@ -118,6 +121,7 @@ class UnifiedTrackUI(QWidget):
             lbl = QLabel(f"{txt}: N/A", font=QFont("Arial",12))
             self.label_widgets[txt] = lbl
             grid.addWidget(lbl, i, 0)
+
         # States
         grid.addWidget(QLabel("Current States", font=QFont("Arial",14, QFont.Weight.Bold)), 0,1)
         self.occupancy_label = QLabel("Track Occupancy: ✅", font=QFont("Arial",14, QFont.Weight.Bold))
@@ -130,6 +134,8 @@ class UnifiedTrackUI(QWidget):
         grid.addWidget(self.light_signal_label,4,1)
         self.station_label = QLabel("Station: N/A", font=QFont("Arial",12))
         grid.addWidget(self.station_label,5,1)
+        self.passenger_info_label = QLabel("# Boarding: N/A | # Disembark: N/A", font=QFont("Arial", 12))
+        grid.addWidget(self.passenger_info_label, 6, 1)
 
         tm.addLayout(grid)
         left_panel.addLayout(tm)
@@ -193,6 +199,7 @@ class UnifiedTrackUI(QWidget):
             self.backend.load_csv(path)
         except Exception as e:
             print("Error loading CSV:", e)
+        print("loading now in GUI")
         df = pd.read_csv(path)
         self.df_layout = df
         self.block_selector.clear()
@@ -239,8 +246,42 @@ class UnifiedTrackUI(QWidget):
         # Show station info from backend
         if self.backend.get_block_data(blk).get("station", False):
             self.station_label.setText("Station: YES")
+
+            try:
+                current_passengers = self.current_passengers
+                max_passengers = 73
+
+                # Only simulate if it's a new station block
+                if not hasattr(self, "last_station_block"):
+                    self.last_station_block = None
+
+                if self.last_station_block != blk:
+                    new_passengers = self.backend.station_stop(
+                        block=blk,
+                        number_of_passengers_on_train=current_passengers,
+                        max_num_passengers=max_passengers
+                    )
+
+                    if new_passengers >= current_passengers:
+                        boarded = new_passengers - current_passengers
+                        disembarked = 0
+                    else:
+                        disembarked = current_passengers - new_passengers
+                        boarded = 0
+
+                    self.passenger_info_label.setText(f"# Boarding: {boarded} | # Disembark: {disembarked}")
+                    self.current_passengers = new_passengers
+                    self.last_station_block = blk  # Update tracker
+
+            except Exception as e:
+                print("[Passenger Update Error]", e)
+                self.passenger_info_label.setText("Passenger Info: ERROR")
+
+
         else:
             self.station_label.setText("Station: N/A")
+            self.passenger_info_label.setText("# Boarding: N/A | # Disembark: N/A")
+            self.last_station_block = None  # Reset tracker when leaving station
 
         if blk in self.map_right.line_positions["Green"]:
             if hasattr(self.map_right, 'last_sheet'):
@@ -249,6 +290,8 @@ class UnifiedTrackUI(QWidget):
         elif blk in self.map_left.line_positions["Red"]:
             if hasattr(self.map_left, 'last_sheet'):
                 self.map_left.draw_layout(self.map_left.last_sheet, line="Red", skip_fit=True)
+
+
 
 
 def main():
