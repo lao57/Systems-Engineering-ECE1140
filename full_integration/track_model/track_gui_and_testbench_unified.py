@@ -82,12 +82,14 @@ class UnifiedTrackUI(QWidget):
         up.addWidget(self.upload_button)
         tm.addLayout(up)
 
-        self.block_selector = QComboBox(); self.block_selector.currentIndexChanged.connect(self.reset_failures)
+        self.block_selector = QComboBox();
+        self.block_selector.currentIndexChanged.connect(self.reset_failures)
+        self.block_selector.currentIndexChanged.connect(self.update)
         tm.addWidget(self.block_selector)
 
         grid = QGridLayout(); grid.setSpacing(15)
         # Properties labels
-        props = ["Speed Limit","Direction of Travel","Grade","Elevation","Block Size"]
+        props = ["Speed Limit","Beacon Signal","Grade","Elevation","Block Size"]
         self.label_widgets = {}
         grid.addWidget(QLabel("Properties", font=QFont("Arial",14, QFont.Weight.Bold)), 0,0)
         for i, txt in enumerate(props, start=1):
@@ -156,11 +158,15 @@ class UnifiedTrackUI(QWidget):
     def upload_file(self):
         path, _ = QFileDialog.getOpenFileName(self, "Open Layout File","", "CSV Files (*.csv)")
         if not path: return
-        self.backend.load_excel(path)
+        try:
+            self.backend.load_csv(path)
+        except Exception as e:
+            print("Error loading CSV:", e)
         df = pd.read_csv(path)
         self.df_layout = df
         self.block_selector.clear()
         self.block_selector.addItems(df["Block Number"].astype(str).tolist())
+        self.block_selector.setCurrentIndex(0)  # ✅ force select first block
         # force initial UI update
         if self.backend.ui: self.backend.ui.update()
 
@@ -171,12 +177,26 @@ class UnifiedTrackUI(QWidget):
         row = self.df_layout.iloc[idx]
         blk = int(row["Block Number"])
         # Properties
-        sp = round(row["Speed Limit (Km/Hr)"]*0.621371,1)
-        bs = round(row["Block Length (m)"]*3.28084,1)
-        self.label_widgets["Speed Limit"].setText(f"Speed Limit: {sp} mph")
-        self.label_widgets["Block Size"].setText(f"Block Size: {bs} ft")
-        self.label_widgets["Grade"].setText(f"Grade: {row['Block Grade (%)']}%")
-        self.label_widgets["Elevation"].setText(f"Elevation: {row['ELEVATION (M)']} m")
+        try:
+            row = self.df_layout.iloc[idx]
+            blk = int(row["Block Number"])
+
+            sp = round(float(row["Speed Limit (Km/Hr)"]) * 0.621371, 1)
+            bs = round(float(row["Block Length (m)"]) * 3.28084, 1)
+            grade = row.get("Block Grade (%)", "N/A")
+            elev = row.get("ELEVATION (M)", "N/A")
+
+            self.label_widgets["Speed Limit"].setText(f"Speed Limit: {sp} mph")
+
+            beacon = self.backend.get_beacon_from_block(blk - 1)
+            presence = "Not Present" if beacon and str(beacon).strip() == "0" else "Present"
+            self.label_widgets["Beacon Signal"].setText(f"Beacon Signal: {presence}")
+
+            self.label_widgets["Block Size"].setText(f"Block Size: {bs} ft")
+            self.label_widgets["Grade"].setText(f"Grade: {grade}%")
+            self.label_widgets["Elevation"].setText(f"Elevation: {elev} m")
+        except Exception as e:
+            print("[UI Update Error]", e)
         # States
         occ = self.backend.get_occupancy_status(blk-1)
         self.occupancy_label.setText(f"Track Occupancy: {'❌' if occ else '✅'}")
@@ -185,6 +205,12 @@ class UnifiedTrackUI(QWidget):
         self.light_signal_label.setText(f"Light Signal: {'Green' if self.backend.get_light_signals(blk-1) else 'Red'}")
         # Station tooltip if any
         # …you can add more here
+        # Show station info from backend
+        if self.backend.get_block_data(blk).get("station", False):
+            self.station_label.setText("Station: YES")
+        else:
+            self.station_label.setText("Station: N/A")
+
 
 def main():
     app = QApplication(sys.argv)

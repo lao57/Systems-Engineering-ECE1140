@@ -79,14 +79,16 @@ class TrackModelBackend:
             return self.blocks[block_num]
         return None
 
-    def load_excel(self, file_path):
+    def load_csv(self, file_path):
         """Load track layout from an Excel file."""
-        print(f"Loading Excel file in backend: {file_path}")
+        print(f"Loading CSV file in backend: {file_path}")
         try:
             df = pd.read_csv(file_path)
             self.parse_track_data(df)
+            return df
         except Exception as e:
             print(f"Error loading file: {e}")
+            return pd.DataFrame()
 
     def parse_track_data(self, df):
         """Parse track data from the Excel sheet and update backend data."""
@@ -95,22 +97,24 @@ class TrackModelBackend:
         for _, row in df.iterrows():
             block_num = int(row["Block Number"])
             self.blocks[block_num] = {
-                "speed_limit": round(row["Speed Limit (Km/Hr)"] * 0.621371, 1),  # Convert to mph
+                "speed_limit": round(row["Speed Limit (Km/Hr)"] * 0.621371, 1),
                 "grade": row["Block Grade (%)"],
                 "elevation": row["ELEVATION (M)"],
-                "block_size": round(row["Block Length (m)"] * 3.28084, 1),  # Convert to feet
+                "block_size": round(row["Block Length (m)"] * 3.28084, 1),
+                "infrastructure": row.get("Infrastructure", ""),
+                "station": "STATION" in str(row.get("Infrastructure", "")).upper(),
                 "switch_state": False,
                 "light_signal": False,
                 "crossing_state": False,
                 "occupancy": False,
-                "track_circuit_failure": [False, False, False, False, False],  # Track circuit failure states
-                "track_heater": False,  # Track heater state
-                "beacon_signal": row.get("beacon_signal", None),  # New: Beacon signal from Excel
-                "block_authority": [False, False, False, False, False, False, False, False, False, False],
-                # 10-bit authority as a string
-                "grade_vector": row.get("grade_vector", None),  # New: Grade vector from Excel
-                "block_vector": row.get("block_vector", None),  # New: Block vector from Excel
+                "track_circuit_failure": [False] * 5,
+                "track_heater": False,
+                "beacon_signal": row.get("beacon_signal", None),
+                "block_authority": [False] * 10,
+                "grade_vector": row.get("grade_vector", None),
+                "block_vector": row.get("block_vector", None),
             }
+
             # print(f"Block {block_num} data: {self.blocks[block_num]}")
 
         # Update backend state arrays
@@ -132,6 +136,11 @@ class TrackModelBackend:
             print("-----------------------------------------------------------")
         """
         self.ready = True  # Mark backend as ready after loading data
+
+    def is_station(self, block_num):
+        if block_num in self.blocks:
+            return self.blocks[block_num].get("station", False)
+        return False
 
     def handle_failures(self, failures):
         """Update backend variables based on detected failures."""

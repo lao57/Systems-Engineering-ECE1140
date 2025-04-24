@@ -25,7 +25,7 @@ if __name__ == "__main__":
     track_controller = track_controller.TrackController()
 
     # --- CTC Init ---
-    track_layout = load_track_layout("assets/Track_Layout.xlsx")
+    track_layout = load_track_layout("assets/track_layout_greenline_not_one_beacon.csv")
     schedule_loader = ScheduleLoader(track_layout)
     schedules = schedule_loader.load_from_excel("assets/Train_Scheduling.xlsx")
 
