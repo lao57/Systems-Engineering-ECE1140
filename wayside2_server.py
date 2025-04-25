@@ -80,24 +80,26 @@ def process_message(message, conn):
         wayside2_block_authority = [full_block_authority[blk - 1] for blk in wayside2_blocks]
         wayside2_maintenance = [full_maintenance[blk - 1] for blk in wayside2_blocks]
         # Call wayside2_logic to compute states (simple logic: return states based on occupancy)
-        switch_states, light_states, crossing_states, stop_states = wayside2_logic.update_wayside(
+        switch_states, light_states, crossing_states, stop_states, dont_spawn = wayside2_logic.update_wayside(
             wayside2_block_occupancy,
             prev_switch_states,
             wayside2_block_authority,
             wayside2_maintenance
         )
         with lock:
-            latest_switch_states = switch_states  # 列表长度为87
+            latest_switch_states = switch_states
             latest_light_states = light_states
             latest_crossing_states = crossing_states
             latest_stop_states = stop_states
             prev_switch_states = switch_states
-        # Send response back to PC (whole list)
+
+        # Send response back to PC (whole list, now includes dont_spawn)
         response = {
             "switch_states": switch_states,
             "light_states": light_states,
             "crossing_states": crossing_states,
-            "stop_states": stop_states
+            "stop_states": stop_states,
+            "dont_spawn": dont_spawn
         }
         conn.sendall((json.dumps(response) + "\n").encode())
     except Exception as e:
@@ -224,7 +226,7 @@ def main():
     # Main loop: refresh LED display periodically
     while True:
         update_led_display(sense)
-        time.sleep(0.3)
+        time.sleep(0.1)
 
 if __name__ == "__main__":
     main()
