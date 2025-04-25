@@ -1,3 +1,16 @@
+New Full Int Branch contains final project
+
+Run main.py for software/hardware and main_both.py for just software 
+*the naming is a little counter intuative*
+
+
+
+
+
+
+
+
+
 This is the main GITHUB
 
 What this entails is that it should contain our final project along with seperate branches that everyone is working on seperatly.
